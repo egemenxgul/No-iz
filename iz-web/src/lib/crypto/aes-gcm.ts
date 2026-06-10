@@ -11,7 +11,7 @@ const ALGO = 'AES-GCM';
 export async function encrypt(plaintext: string, key: Uint8Array): Promise<{ ciphertext: Uint8Array; iv: Uint8Array }> {
   const cryptoKey = await window.crypto.subtle.importKey(
     'raw',
-    key as any,
+    key as unknown as BufferSource,
     ALGO,
     false,
     ['encrypt']
@@ -21,7 +21,7 @@ export async function encrypt(plaintext: string, key: Uint8Array): Promise<{ cip
   const encoded = new TextEncoder().encode(plaintext);
 
   const encrypted = await window.crypto.subtle.encrypt(
-    { name: ALGO, iv } as any,
+    { name: ALGO, iv } as unknown as AesGcmParams,
     cryptoKey,
     encoded
   );
@@ -38,16 +38,16 @@ export async function encrypt(plaintext: string, key: Uint8Array): Promise<{ cip
 export async function decrypt(ciphertext: Uint8Array, key: Uint8Array, iv: Uint8Array): Promise<string> {
   const cryptoKey = await window.crypto.subtle.importKey(
     'raw',
-    key as any,
+    key as unknown as BufferSource,
     ALGO,
     false,
     ['decrypt']
   );
 
   const decrypted = await window.crypto.subtle.decrypt(
-    { name: ALGO, iv } as any,
+    { name: ALGO, iv } as unknown as AesGcmParams,
     cryptoKey,
-    ciphertext as any
+    ciphertext as unknown as BufferSource
   );
 
   return new TextDecoder().decode(decrypted);

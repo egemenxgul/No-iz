@@ -1,22 +1,22 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
-import { useParams, usePathname, useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { wsManager } from '@/lib/websocket';
 import styles from './messages-layout.module.css';
 import { useI18n } from '@/lib/i18n/I18nContext';
+import { Conversation, User } from '@/types';
 
 export default function MessagesLayout({ children }: { children: React.ReactNode }) {
   const { t } = useI18n();
-  const [conversations, setConversations] = useState<any[]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNewChat, setShowNewChat] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<{ id: string; username: string; display_name: string; avatar_url: string }[]>([]);
   const [searching, setSearching] = useState(false);
   const { id } = useParams();
-  const pathname = usePathname();
   const router = useRouter();
   const searchRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -144,7 +144,7 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
                 <div className={styles.top}>
                   <span className={styles.name}>{c.other_display_name || c.other_username}</span>
                   <span className={styles.time}>
-                    {new Date(c.last_message_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {c.last_message_at ? new Date(c.last_message_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                   </span>
                 </div>
                 <p className={styles.lastMsg}>{c.last_message_type === 'text' ? t('app.msg_text') : t('app.msg_file')}</p>

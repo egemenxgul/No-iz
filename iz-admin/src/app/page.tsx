@@ -30,8 +30,9 @@ export default function LoginPage() {
 
       setCookie("token", data.access_token);
       router.push("/dashboard");
-    } catch (err: any) {
-      setError(err.message || t("login.err_login_failed"));
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || t("login.err_login_failed"));
     } finally {
       setLoading(false);
     }

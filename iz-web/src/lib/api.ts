@@ -47,7 +47,7 @@ export const api = {
         '/api/auth/login', { method: 'POST', body: JSON.stringify({ email_or_username: username, password }) }
       ),
 
-    register: (username: string, email: string, password: string, display_name: string, invite_code: string, keys: any) =>
+    register: (username: string, email: string, password: string, display_name: string, invite_code: string, keys: Record<string, unknown>) =>
       request<{ access_token: string; user_id: string; username: string; display_name: string; avatar_url: string; is_admin: boolean }>(
         '/api/auth/register', { 
           method: 'POST', 
@@ -81,7 +81,7 @@ export const api = {
 
   // ─── Messages ───────────────────────────────────────────────────────────────
   messages: {
-    conversations: () => request<{ conversations: any[] }>('/api/conversations'),
+    conversations: () => request<{ conversations: import('@/types').Conversation[] }>('/api/conversations'),
     history: (withUser: string, before?: string) => {
       const q = new URLSearchParams({ with: withUser });
       if (before) q.set('before', before);

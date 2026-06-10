@@ -1,5 +1,5 @@
 import { api } from '@/lib/api';
-import { calculateInitiatorSecret, calculateReceiverSecret, PreKeyBundle } from './x3dh';
+import { calculateInitiatorSecret, PreKeyBundle } from './x3dh';
 import { initRatchet, ratchetEncrypt, ratchetDecrypt, RatchetState } from './ratchet';
 import { fromBase64, toBase64, generateKeyPair } from './x25519';
 
@@ -36,7 +36,7 @@ export function saveSessions(sessions: Record<string, Session>) {
 /**
  * Establishes a new E2EE session with a remote user (Initiator side).
  */
-export async function establishSession(remoteUserID: string, localIdentityRaw: any): Promise<Session> {
+export async function establishSession(remoteUserID: string, localIdentityRaw: { publicKey: string; privateKey: string }): Promise<Session> {
   const localIdentity = {
     publicKey: fromBase64(localIdentityRaw.publicKey),
     privateKey: fromBase64(localIdentityRaw.privateKey),
@@ -99,7 +99,15 @@ export async function sendEncrypted(remoteUserID: string, plaintext: string) {
 /**
  * Decrypts a message from a specific session.
  */
-export async function receiveDecrypted(remoteUserID: string, payload: any): Promise<string> {
+export async function receiveDecrypted(
+  remoteUserID: string,
+  payload: import('@/types').Message & {
+    iv?: string;
+    ratchet_key?: string;
+    counter?: number;
+    prev_counter?: number;
+  }
+): Promise<string> {
   const sessions = loadSessions();
   let session = sessions[remoteUserID];
   
@@ -113,11 +121,11 @@ export async function receiveDecrypted(remoteUserID: string, payload: any): Prom
   const plaintext = await ratchetDecrypt(
     session.state,
     fromBase64(payload.ciphertext),
-    fromBase64(payload.iv),
+    fromBase64(payload.iv || ''),
     {
-      ratchetPub: fromBase64(payload.ratchet_key),
-      index: payload.counter,
-      prevSendCount: payload.prev_counter,
+      ratchetPub: fromBase64(payload.ratchet_key || ''),
+      index: payload.counter ?? 0,
+      prevSendCount: payload.prev_counter ?? 0,
     }
   );
 

@@ -1,4 +1,4 @@
-import { generateKeyPair, sharedSecret, KeyPair } from './x25519';
+import { sharedSecret, KeyPair } from './x25519';
 import { deriveKey } from './hkdf';
 
 export interface PreKeyBundle {

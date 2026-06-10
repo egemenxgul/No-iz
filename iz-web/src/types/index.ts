@@ -113,3 +113,22 @@ export interface WSEnvelope {
   type: string;
   payload: unknown;
 }
+
+export interface Conversation {
+  id: string;
+  other_user_id: string;
+  other_username: string;
+  other_display_name: string | null;
+  last_message: string | null;
+  last_message_at: string | null;
+  unread_count: number;
+  friendship_status: string;
+  initiator_id: string | null;
+  is_online: boolean;
+  last_seen_at: string | null;
+  disappearing_duration: number;
+  is_muted: boolean;
+  is_archived: boolean;
+  is_group: boolean;
+  last_message_type: string | null;
+}

@@ -28,8 +28,9 @@ export default function InvitesPage() {
       setLoading(true);
       const data = await fetchApi("/api/invites/admin");
       setCodes(data.codes || []);
-    } catch (err: any) {
-      setError(err.message || "Failed to load invites");
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || "Failed to load invites");
     } finally {
       setLoading(false);
     }
@@ -55,8 +56,9 @@ export default function InvitesPage() {
       setNewCode("");
       setMaxUses(1);
       loadCodes();
-    } catch (err: any) {
-      setError(err.message || "Failed to create code");
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || "Failed to create code");
     } finally {
       setCreating(false);
     }

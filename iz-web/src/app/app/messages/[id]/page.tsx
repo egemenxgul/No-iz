@@ -49,7 +49,8 @@ export default function ConversationPage() {
 
   // Subscribe to new messages
   useEffect(() => {
-    return wsManager.on('new_message', async (payload: any) => {
+    return wsManager.on('new_message', async (payloadRaw: unknown) => {
+      const payload = payloadRaw as Message;
       if (payload.sender_id === id || payload.recipient_id === id) {
         try {
           const plaintext = await receiveDecrypted(id, payload);

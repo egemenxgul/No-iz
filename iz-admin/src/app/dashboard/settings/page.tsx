@@ -47,8 +47,9 @@ export default function SettingsPage() {
         deleteCookie("token");
         router.push("/");
       }, 2000);
-    } catch (err: any) {
-      setError(err.message || "Failed to change password.");
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || "Failed to change password.");
     } finally {
       setLoading(false);
     }

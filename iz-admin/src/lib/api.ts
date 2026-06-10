@@ -3,9 +3,9 @@ export const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.no-iz.app
 export async function fetchApi(endpoint: string, options: RequestInit = {}) {
   const token = getCookie("token");
   
-  const headers: any = {
+  const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...options.headers,
+    ...(options.headers as Record<string, string>),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 
