@@ -35,7 +35,6 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
     fetchConversations();
     const off = wsManager.on('new_message', () => { fetchConversations(); });
     return () => off();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Debounced search

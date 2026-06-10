@@ -186,7 +186,7 @@ export default function LoginPage() {
             lineHeight: '1.6'
           }}>
             1. Telefonunuzdan <strong>iz</strong> uygulamasını açın<br/>
-            2. Ayarlar &gt; <span style={{color: 'var(--text-primary)', fontWeight: 600}}>Web'e Bağlan</span> menüsüne gidin<br/>
+            2. Ayarlar &gt; <span style={{color: 'var(--text-primary)', fontWeight: 600}}>Web&apos;e Bağlan</span> menüsüne gidin<br/>
             3. Kameranızı bu ekrana doğrultun
           </div>
         </div>
