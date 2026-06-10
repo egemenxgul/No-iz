@@ -1,0 +1,54 @@
+# Environment — ASLA commit etme! Sadece .env.example commit edilebilir.
+.env
+.env.local
+.env.*.local
+.env.*.local.*
+**/.env.local
+**/.env.*.local
+# Yedek / geçici env dosyaları
+.env.old_backup
+.env.backup
+.env.bak
+*.env.old*
+*.secret.*
+
+# Go
+iz-backend/vendor/
+iz-backend/bin/
+
+# Node
+iz-web/node_modules/
+iz-web/.next/
+iz-admin/node_modules/
+iz-admin/.next/
+
+# Flutter
+iz-mobile/.dart_tool/
+iz-mobile/.flutter-plugins
+iz-mobile/.flutter-plugins-dependencies
+iz-mobile/build/
+
+# Docker volumes
+docker/data/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Large binary / archive files
+iz-mobile.zip
+*.zip
+*.tar.gz
+*.tar.bz2
+
+# Flutter internal tool directory
+.flutter/

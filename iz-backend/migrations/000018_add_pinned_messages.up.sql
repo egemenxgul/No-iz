@@ -1,0 +1,4 @@
+-- Migration: 000018_add_pinned_messages.up.sql
+
+ALTER TABLE messages ADD COLUMN IF NOT EXISTS is_pinned BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE group_messages ADD COLUMN IF NOT EXISTS is_pinned BOOLEAN NOT NULL DEFAULT FALSE;

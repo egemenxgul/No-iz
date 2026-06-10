@@ -1,0 +1,32 @@
+# Caddyfile for no-iz.app (Behind Cloudflare)
+# SSL is handled by Cloudflare (Set Cloudflare SSL/TLS mode to "Flexible")
+
+http://no-iz.app, http://www.no-iz.app {
+    # Frontend Next.js app
+    reverse_proxy iz_web:3000
+}
+
+http://admin.no-iz.app {
+    # Admin Panel
+    reverse_proxy iz_admin:3001
+}
+
+http://api.no-iz.app {
+    # Go Backend API
+    reverse_proxy iz_backend:8080
+}
+
+http://media.no-iz.app {
+    # MinIO Web Console
+    reverse_proxy iz_minio:9001
+}
+
+http://s3.no-iz.app {
+    # MinIO S3 API (For file uploads/downloads)
+    reverse_proxy iz_minio:9000
+}
+
+http://db.no-iz.app {
+    # Adminer (Veritabanı Yönetim Arayüzü)
+    reverse_proxy iz_adminer:8080
+}

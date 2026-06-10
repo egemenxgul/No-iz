@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "763485224851",
+    "project_id": "no-iz-15ca2",
+    "storage_bucket": "no-iz-15ca2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:763485224851:android:b04fda4c3903ef015c3266",
+        "android_client_info": {
+          "package_name": "app.iz.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD3xgMvuzF7KoPwwwTQOdb_0lHzi_m6Y4g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

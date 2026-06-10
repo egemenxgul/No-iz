@@ -1,0 +1,257 @@
+.landing {
+  min-height: 100vh;
+  overflow: auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 24px;
+}
+
+/* ── Orbs ────────────────────────────────────────────────────────────────── */
+.orb1, .orb2, .orb3 {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(80px);
+}
+.orb1 {
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, var(--bg-orb-1) 0%, transparent 70%);
+  top: -200px; left: -200px;
+}
+.orb2 {
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, var(--bg-orb-2) 0%, transparent 70%);
+  bottom: -100px; right: -100px;
+}
+.orb3 {
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, var(--bg-orb-2) 0%, transparent 70%);
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+}
+
+/* ── Nav ─────────────────────────────────────────────────────────────────── */
+.nav {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 0;
+}
+.logo { display: flex; align-items: center; }
+.logoMark {
+  font-size: 28px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -1px;
+}
+.navLinks { display: flex; align-items: center; gap: 12px; }
+.navLink {
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  transition: color var(--transition-base);
+}
+.navLink:hover { color: var(--text-primary); }
+.navCta {
+  background: var(--accent);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 20px;
+  border-radius: var(--radius-full);
+  transition: background var(--transition-base), box-shadow var(--transition-base);
+}
+.navCta:hover {
+  background: var(--accent-hover);
+  box-shadow: var(--shadow-accent);
+}
+
+/* ── Hero ─────────────────────────────────────────────────────────────────── */
+.hero {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 780px;
+  text-align: center;
+  padding: 80px 0 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  animation: fadeIn 400ms ease forwards;
+}
+.heroBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent-border);
+  color: var(--accent-glow);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 16px;
+  border-radius: var(--radius-full);
+}
+.badgeDot {
+  width: 6px; height: 6px;
+  background: var(--success);
+  border-radius: 50%;
+  animation: pulse 2s ease infinite;
+}
+.heroTitle {
+  font-size: clamp(40px, 7vw, 72px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -2px;
+  color: var(--text-primary);
+}
+.heroSubtitle {
+  font-size: clamp(16px, 2vw, 18px);
+  color: var(--text-secondary);
+  max-width: 560px;
+  line-height: 1.7;
+}
+.heroActions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 8px;
+}
+.ctaPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, var(--accent), #2563eb);
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 14px 28px;
+  border-radius: var(--radius-full);
+  transition: all var(--transition-base);
+  box-shadow: 0 4px 24px rgba(37,99,235,0.4);
+}
+.ctaPrimary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(37,99,235,0.5);
+}
+.ctaSecondary {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  color: var(--text-secondary);
+  font-size: 15px;
+  font-weight: 500;
+  padding: 14px 28px;
+  border-radius: var(--radius-full);
+  transition: all var(--transition-base);
+}
+.ctaSecondary:hover {
+  color: var(--text-primary);
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+/* ── Stats ───────────────────────────────────────────────────────────────── */
+.stats {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  margin-top: 8px;
+}
+.stat { text-align: center; }
+.statNum {
+  display: block;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--accent-glow);
+}
+.statLabel {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.statDivider {
+  width: 1px;
+  height: 32px;
+  background: var(--divider);
+}
+
+/* ── Features ────────────────────────────────────────────────────────────── */
+.features {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 1100px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+  padding-bottom: 80px;
+}
+.featureCard {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  transition: all var(--transition-base);
+}
+.featureCard:hover {
+  border-color: var(--accent-border);
+  background: var(--bg-elevated);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.featureIcon {
+  font-size: 28px;
+  margin-bottom: 12px;
+}
+.featureTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+.featureDesc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* ── Footer ──────────────────────────────────────────────────────────────── */
+.footer {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 0;
+  border-top: 1px solid var(--divider);
+  margin-top: auto;
+}
+.footerLogo {
+  font-size: 18px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.footerText {
+  font-size: 13px;
+  color: var(--text-muted);
+}

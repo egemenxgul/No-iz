@@ -1,0 +1,15 @@
+.empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--text-muted);
+  padding: 40px;
+  text-align: center;
+  animation: fadeIn 250ms ease forwards;
+}
+.emptyIcon { font-size: 48px; filter: grayscale(0.5); }
+.emptyTitle { font-size: 18px; font-weight: 600; color: var(--text-secondary); }
+.emptyText  { font-size: 14px; max-width: 280px; line-height: 1.6; }

@@ -1,0 +1,26 @@
+{
+  "login": {
+    "title": "Yönetici Portalı",
+    "subtitle": "iz. yönetmek için giriş yapın.",
+    "email_or_username": "Kullanıcı adı veya e-posta",
+    "email_or_username_placeholder": "admin@no-iz.app",
+    "password": "Şifre",
+    "password_placeholder": "••••••••",
+    "submit": "Giriş Yap",
+    "submitting": "Giriş Yapılıyor...",
+    "err_login_failed": "Giriş başarısız"
+  },
+  "dashboard": {
+    "title": "Kontrol Paneli",
+    "welcome": "iz. Yönetici Paneline Hoş Geldiniz",
+    "logout": "Çıkış Yap",
+    "nav": {
+      "overview": "Genel Bakış",
+      "invites": "Davetiyeler",
+      "users": "Kullanıcılar",
+      "settings": "Ayarlar",
+      "sign_out": "Çıkış Yap"
+    },
+    "profile": "Yönetici"
+  }
+}

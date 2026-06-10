@@ -1,0 +1,111 @@
+{
+  "meta": {
+    "title": "iz — Gizli Kalın",
+    "description": "Uçtan uca şifrelenmiş mesajlaşma, grup ve topluluk platformu.",
+    "keywords": "mesajlaşma, şifreli, gizlilik, güvenlik, iz"
+  },
+  "landing": {
+    "login": "Giriş Yap",
+    "start": "Başla",
+    "encrypted": "Uçtan uca şifreli",
+    "hero_title": "Konuşmalarınız",
+    "hero_subtitle": "Gizli Kalır",
+    "hero_desc": "Signal protokolü ile şifrelenmiş mesajlar, grup konuşmaları, topluluklar ve sesli/görüntülü aramalar — sunucu hiçbir şey görmez.",
+    "cta_start": "Hemen Başla",
+    "cta_login": "Giriş Yap",
+    "stat_encryption": "Şifreleme",
+    "stat_access": "Sunucu Erişimi",
+    "footer": "© 2026 iz. Gizliliğiniz bir haktır.",
+    "features": {
+      "signal": {
+        "title": "Signal Protokolü",
+        "desc": "X3DH anahtar değişimi ve Double Ratchet ile her mesaj benzersiz şifreli."
+      },
+      "instant": {
+        "title": "Anlık Mesajlaşma",
+        "desc": "WebSocket üzerinden gerçek zamanlı mesajlar. Sunucu içeriği asla görmez."
+      },
+      "groups": {
+        "title": "Şifreli Gruplar",
+        "desc": "5.000 üyeye kadar Sender Keys ile verimli grup mesajlaşması."
+      },
+      "communities": {
+        "title": "Topluluklar",
+        "desc": "500.000 üyeye kadar topluluklar, feed ve alt gruplar."
+      },
+      "calls": {
+        "title": "Sesli/Görüntülü Arama",
+        "desc": "WebRTC ile P2P aramalar. Ses ve video sunucudan geçmez."
+      },
+      "blind": {
+        "title": "Kör Sunucu",
+        "desc": "Mesaj içeriklerinize hiçbir zaman erişemeyiz — tasarım gereği."
+      }
+    }
+  },
+  "login": {
+    "title": "Hoş Geldin",
+    "subtitle": "Devam etmek için giriş yap.",
+    "email_or_username": "Kullanıcı adı veya e-posta",
+    "email_or_username_placeholder": "kullanici_adi veya eposta@...",
+    "password": "Şifre",
+    "password_placeholder": "••••••••",
+    "submit": "Giriş Yap",
+    "submitting": "Giriş Yapılıyor...",
+    "no_account": "Hesabın yok mu?",
+    "register": "Kayıt Ol",
+    "err_login_failed": "Giriş başarısız"
+  },
+  "register": {
+    "title": "Hesap Oluştur",
+    "subtitle": "iz. ağına katıl.",
+    "display_name": "Görünen Ad",
+    "display_name_placeholder": "Ahmet Yılmaz",
+    "username": "Kullanıcı Adı",
+    "username_placeholder": "ahmet_yilmaz",
+    "email": "E-posta",
+    "email_placeholder": "ahmet@ornek.com",
+    "password": "Şifre",
+    "password_placeholder": "••••••••",
+    "invite_code": "Davet Kodu",
+    "invite_code_placeholder": "8 haneli kod",
+    "submit": "Kayıt Ol",
+    "submitting": "Kayıt Olunuyor...",
+    "has_account": "Zaten hesabın var mı?",
+    "login": "Giriş Yap",
+    "err_registration_failed": "Kayıt başarısız"
+  },
+  "app": {
+    "messages": "Mesajlar",
+    "communities": "Topluluklar",
+    "groups": "Gruplar",
+    "calls": "Aramalar",
+    "settings": "Ayarlar",
+    "new_chat": "Yeni Sohbet",
+    "search_user": "Kullanıcı adı ara...",
+    "searching": "Aranıyor...",
+    "user_not_found": "Kullanıcı bulunamadı",
+    "min_2_chars": "En az 2 karakter girin",
+    "no_chats": "Henüz sohbet yok",
+    "start_chat": "Sohbet Başlat",
+    "msg_text": "🔒 Mesaj",
+    "msg_file": "📁 Dosya",
+    "logout": "Çıkış Yap",
+    "ws_connected": "Bağlı",
+    "ws_connecting": "Bağlanıyor...",
+    "select_chat": "Soldaki listeden bir sohbet seçin veya birini arayın.",
+    "chat_placeholder": "Mesaj yaz… (Enter = gönder)",
+    "loading": "Yükleniyor...",
+    "coming_soon": "Yakında.",
+    "no_communities": "Topluluk bulunamadı.",
+    "not_joined_community": "Henüz bir topluluğa katılmadınız.",
+    "explore": "Keşfet",
+    "members": "üye",
+    "public": "Herkese açık",
+    "private": "Özel"
+  },
+  "theme": {
+    "light": "Açık Tema",
+    "dark": "Koyu Tema"
+  }
+}

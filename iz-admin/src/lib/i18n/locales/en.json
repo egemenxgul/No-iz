@@ -1,0 +1,26 @@
+{
+  "login": {
+    "title": "Admin Portal",
+    "subtitle": "Sign in to manage iz.",
+    "email_or_username": "Email or Username",
+    "email_or_username_placeholder": "admin@no-iz.app",
+    "password": "Password",
+    "password_placeholder": "••••••••",
+    "submit": "Sign In",
+    "submitting": "Signing In...",
+    "err_login_failed": "Failed to login"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome to iz. Admin",
+    "logout": "Logout",
+    "nav": {
+      "overview": "Overview",
+      "invites": "Invites",
+      "users": "Users",
+      "settings": "Settings",
+      "sign_out": "Sign Out"
+    },
+    "profile": "Admin User"
+  }
+}

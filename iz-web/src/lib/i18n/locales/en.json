@@ -1,0 +1,111 @@
+{
+  "meta": {
+    "title": "iz — Stay Hidden",
+    "description": "End-to-end encrypted messaging, groups and communities platform.",
+    "keywords": "messaging, encrypted, privacy, security, iz"
+  },
+  "landing": {
+    "login": "Sign In",
+    "start": "Start",
+    "encrypted": "End-to-end encrypted",
+    "hero_title": "Your Conversations",
+    "hero_subtitle": "Stay Hidden",
+    "hero_desc": "Messages encrypted with Signal protocol, group chats, communities and voice/video calls — the server sees nothing.",
+    "cta_start": "Get Started Now",
+    "cta_login": "Sign In",
+    "stat_encryption": "Encryption",
+    "stat_access": "Server Access",
+    "footer": "© 2026 iz. Privacy is a right.",
+    "features": {
+      "signal": {
+        "title": "Signal Protocol",
+        "desc": "X3DH key exchange and Double Ratchet ensure every message is uniquely encrypted."
+      },
+      "instant": {
+        "title": "Instant Messaging",
+        "desc": "Real-time messages via WebSocket. Server never sees the content."
+      },
+      "groups": {
+        "title": "Encrypted Groups",
+        "desc": "Efficient group messaging with Sender Keys for up to 5,000 members."
+      },
+      "communities": {
+        "title": "Communities",
+        "desc": "Communities up to 500,000 members, feeds and subgroups."
+      },
+      "calls": {
+        "title": "Voice/Video Calls",
+        "desc": "P2P calls via WebRTC. Audio and video do not pass through the server."
+      },
+      "blind": {
+        "title": "Blind Server",
+        "desc": "We can never access your message content — by design."
+      }
+    }
+  },
+  "login": {
+    "title": "Welcome Back",
+    "subtitle": "Sign in to continue to iz.",
+    "email_or_username": "Email or Username",
+    "email_or_username_placeholder": "username or email@...",
+    "password": "Password",
+    "password_placeholder": "••••••••",
+    "submit": "Sign In",
+    "submitting": "Signing In...",
+    "no_account": "Don't have an account?",
+    "register": "Register",
+    "err_login_failed": "Login failed"
+  },
+  "register": {
+    "title": "Create Account",
+    "subtitle": "Join the iz. network.",
+    "display_name": "Display Name",
+    "display_name_placeholder": "John Doe",
+    "username": "Username",
+    "username_placeholder": "john_doe",
+    "email": "Email",
+    "email_placeholder": "john@example.com",
+    "password": "Password",
+    "password_placeholder": "••••••••",
+    "invite_code": "Invite Code",
+    "invite_code_placeholder": "8 character code",
+    "submit": "Register",
+    "submitting": "Registering...",
+    "has_account": "Already have an account?",
+    "login": "Sign In",
+    "err_registration_failed": "Registration failed"
+  },
+  "app": {
+    "messages": "Messages",
+    "communities": "Communities",
+    "groups": "Groups",
+    "calls": "Calls",
+    "settings": "Settings",
+    "new_chat": "New Chat",
+    "search_user": "Search username...",
+    "searching": "Searching...",
+    "user_not_found": "User not found",
+    "min_2_chars": "Enter at least 2 characters",
+    "no_chats": "No chats yet",
+    "start_chat": "Start Chat",
+    "msg_text": "🔒 Message",
+    "msg_file": "📁 File",
+    "logout": "Logout",
+    "ws_connected": "Connected",
+    "ws_connecting": "Connecting...",
+    "select_chat": "Select a chat from the list or search for someone.",
+    "chat_placeholder": "Write a message... (Enter to send)",
+    "loading": "Loading...",
+    "coming_soon": "Coming soon.",
+    "no_communities": "No communities found.",
+    "not_joined_community": "You haven't joined any communities yet.",
+    "explore": "Explore",
+    "members": "members",
+    "public": "Public",
+    "private": "Private"
+  },
+  "theme": {
+    "light": "Light Theme",
+    "dark": "Dark Theme"
+  }
+}

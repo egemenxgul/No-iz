@@ -1,0 +1,115 @@
+// API base types
+
+export interface User {
+  id: string;
+  username: string;
+  display_name: string;
+  avatar_url: string;
+  bio: string;
+  created_at: string;
+}
+
+export interface AuthTokens {
+  access_token: string;
+  user_id: string;
+  username: string;
+  display_name: string;
+  avatar_url: string;
+  is_admin: boolean;
+}
+
+export interface Message {
+  id: string;
+  sender_id: string;
+  recipient_id: string;
+  ciphertext: string;
+  msg_type: string;
+  ratchet_key?: string;
+  counter?: number;
+  prev_counter?: number;
+  delivered_at: string | null;
+  read_at: string | null;
+  expires_at: string | null;
+  created_at: string;
+  // Decrypted client-side
+  plaintext?: string;
+}
+
+export interface Group {
+  id: string;
+  name: string;
+  description: string;
+  avatar_url: string;
+  invite_link: string;
+  is_private: boolean;
+  max_members: number;
+  created_by: string;
+  created_at: string;
+  member_count?: number;
+}
+
+export interface GroupMessage {
+  id: string;
+  group_id: string;
+  sender_id: string;
+  ciphertext: string;
+  msg_type: string;
+  iteration: number;
+  distribution_id: string;
+  expires_at: string | null;
+  created_at: string;
+  plaintext?: string;
+}
+
+export interface Community {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  avatar_url: string;
+  banner_url: string;
+  invite_link?: string;
+  is_public: boolean;
+  max_members: number;
+  created_by: string;
+  created_at: string;
+  member_count?: number;
+  group_count?: number;
+}
+
+export interface Post {
+  id: string;
+  community_id: string;
+  author_id: string;
+  title: string;
+  body: string;
+  media_urls: string[];
+  like_count: number;
+  reply_count: number;
+  is_pinned: boolean;
+  expires_at: string | null;
+  created_at: string;
+  author_username?: string;
+  author_display_name?: string;
+  author_avatar_url?: string;
+  liked_by_me?: boolean;
+}
+
+export interface Call {
+  id: string;
+  call_type: 'audio' | 'video';
+  status: 'ringing' | 'active' | 'ended' | 'missed' | 'rejected' | 'busy';
+  caller_id: string;
+  callee_id?: string;
+  group_id?: string;
+  ringing_at: string;
+  accepted_at?: string;
+  ended_at?: string;
+  duration_secs?: number;
+}
+
+// WebSocket envelope
+export interface WSEnvelope {
+  type: string;
+  payload: unknown;
+}
