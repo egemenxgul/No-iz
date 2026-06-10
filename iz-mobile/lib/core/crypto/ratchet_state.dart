@@ -11,6 +11,9 @@ class RatchetState {
   int sendCounter;
   int recvCounter;
   int prevSendCounter;
+  
+  // Stores skipped message keys for out-of-order delivery
+  final Map<int, Uint8List> skippedMessageKeys;
 
   RatchetState({
     required this.conversationId,
@@ -22,5 +25,6 @@ class RatchetState {
     this.sendCounter = 0,
     this.recvCounter = 0,
     this.prevSendCounter = 0,
-  });
+    Map<int, Uint8List>? skippedMessageKeys,
+  }) : skippedMessageKeys = skippedMessageKeys ?? {};
 }

@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dio_provider.dart';
 
 // ── Background Handler ────────────────────────────────────────────────────────
@@ -49,6 +50,7 @@ class NotificationService {
   final Dio _dio;
   bool _initialized = false;
   String? _currentDeviceToken;
+  final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
 
   // Set by main.dart after the router is ready.
   DeepLinkCallback? _onDeepLink;
@@ -69,6 +71,23 @@ class NotificationService {
 
     try {
       final messaging = FirebaseMessaging.instance;
+
+      // Initialize local notifications
+      const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+      const iosInit = DarwinInitializationSettings(
+        requestAlertPermission: false,
+        requestBadgePermission: false,
+        requestSoundPermission: false,
+      );
+      const initSettings = InitializationSettings(android: androidInit, iOS: iosInit);
+      await _localNotifications.initialize(
+        initSettings,
+        onDidReceiveNotificationResponse: (details) {
+          if (details.payload != null && _onDeepLink != null) {
+            _onDeepLink!(details.payload!);
+          }
+        },
+      );
 
       // Request permission (required on iOS; shown as a dialog).
       final settings = await messaging.requestPermission(
@@ -138,10 +157,32 @@ class NotificationService {
     if (kDebugMode) {
       debugPrint('[FCM Foreground] from=${message.data["sender_id"]}');
     }
-    // Foreground messages are surfaced via the WebSocket stream directly,
-    // so no additional action is needed here. We intentionally skip showing
-    // a local notification to avoid duplicate alerts.
-    // TODO(security): Consider flutter_local_notifications for richer foreground UX.
+    
+    final notification = message.notification;
+    final android = message.notification?.android;
+
+    if (notification != null && android != null) {
+      _localNotifications.show(
+        notification.hashCode,
+        notification.title,
+        notification.body,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'high_importance_channel', // channel id
+            'High Importance Notifications', // channel name
+            importance: Importance.max,
+            priority: Priority.high,
+            icon: '@mipmap/ic_launcher',
+          ),
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
+        ),
+        payload: _routeFromMessage(message),
+      );
+    }
   }
 
   /// Handles notification taps — routes to the relevant conversation.

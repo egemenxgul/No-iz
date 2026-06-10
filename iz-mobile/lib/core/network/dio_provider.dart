@@ -3,6 +3,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/foundation.dart';
+import 'package:go_router/go_router.dart';
+import '../../main.dart';
 import '../constants/app_constants.dart';
 
 const _storage = FlutterSecureStorage();
@@ -23,7 +25,6 @@ Completer<String?>? _refreshCompleter;
 
 /// A provider that exposes a callback to sign the user out.
 /// Set from the auth layer so the interceptor can trigger navigation-level logout.
-/// TODO(security): In production, replace with proper navigator key-based routing.
 typedef LogoutCallback = Future<void> Function();
 LogoutCallback? _onForceLogout;
 
@@ -147,5 +148,11 @@ Future<void> _handleForceLogout() async {
     } catch (e) {
       if (kDebugMode) debugPrint('[DioProvider] Force logout error: $e');
     }
+  }
+  
+  // Safe fallback to force navigation to login using root navigator key
+  final context = rootNavigatorKey.currentContext;
+  if (context != null) {
+    context.go('/login');
   }
 }

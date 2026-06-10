@@ -67,12 +67,19 @@ class RatchetService {
       state.sendChainKey = nextRootKeys['chainKey']!;
     }
 
-    // 2. Symmetric-key ratchet for receiving
-    // Skip messages if counter is ahead (TODO: store skipped keys)
+    // 2. Check if the message is in skipped keys
+    if (state.skippedMessageKeys.containsKey(msgCounter)) {
+      final skippedKey = state.skippedMessageKeys.remove(msgCounter)!;
+      return skippedKey;
+    }
+
+    // 3. Symmetric-key ratchet for receiving
+    // Skip messages if counter is ahead (store skipped keys)
     while (state.recvCounter < msgCounter) {
       final keys = await kdfChain(state.recvChainKey!);
       state.recvChainKey = keys['chainKey'];
-      // Store skipped message key...
+      // Store skipped message key
+      state.skippedMessageKeys[state.recvCounter] = keys['messageKey']!;
       state.recvCounter++;
     }
 

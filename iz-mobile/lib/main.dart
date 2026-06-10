@@ -30,8 +30,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Firebase (needed by both foreground and background isolates).
-  // TODO(config): Add google-services.json (Android) and GoogleService-Info.plist (iOS)
-  // before running on a real device. Remove this try/catch once configured.
+  // Note: Replace the placeholder config files with real ones before production.
   try {
     await Firebase.initializeApp();
     // Register the background message handler BEFORE runApp().
@@ -50,11 +49,15 @@ void main() async {
   );
 }
 
+// Global navigator key for secure and direct routing (e.g. forced logouts)
+final rootNavigatorKey = GlobalKey<NavigatorState>();
+
 // Reactive Router Configuration using Riverpod
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
 
   return GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: '/',
     redirect: (context, state) {
       if (!authState.isInitialized) {

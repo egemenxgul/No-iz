@@ -60,6 +60,7 @@ dependencies:
   # Firebase Cloud Messaging for background push notifications
   firebase_core: ^3.13.1
   firebase_messaging: ^15.2.7
+  flutter_local_notifications: ^17.1.2
   # WebRTC peer-to-peer audio and video calls
   flutter_webrtc: ^0.12.3
   # QR Code generation for 2FA

@@ -58,6 +58,7 @@ class MediaCompressor {
     int maxWidth = _maxWidth,
     int maxHeight = _maxHeight,
     int quality = _defaultQuality,
+    bool preserveTransparency = false,
   }) async {
     if (!shouldCompress(mimeType)) {
       return CompressResult(
@@ -69,7 +70,7 @@ class MediaCompressor {
     }
 
     try {
-      final format = _formatForMime(mimeType);
+      final format = _formatForMime(mimeType, preserveTransparency);
       final compressed = await FlutterImageCompress.compressWithList(
         bytes,
         minWidth: 0,
@@ -123,14 +124,13 @@ class MediaCompressor {
 
   // ── Helpers ──────────────────────────────────────────────────────────────────
 
-  static CompressFormat _formatForMime(String mime) {
+  static CompressFormat _formatForMime(String mime, bool preserveTransparency) {
     switch (mime.toLowerCase()) {
       case 'image/webp':
         return CompressFormat.webp;
       case 'image/png':
-        // PNG compression is lossless — use JPEG for better size reduction.
-        // TODO(product): Offer a "preserve transparency" option to keep PNG.
-        return CompressFormat.jpeg;
+        // PNG compression is lossless — use JPEG for better size reduction unless we need to keep transparency.
+        return preserveTransparency ? CompressFormat.png : CompressFormat.jpeg;
       case 'image/heic':
       case 'image/heif':
         return CompressFormat.heic;
