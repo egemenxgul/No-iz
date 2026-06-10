@@ -3,8 +3,7 @@ import { useState, FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { api, ApiError } from '@/lib/api';
-import { saveAuth } from '@/store/auth';
-import { generateInitialKeys, storeLocalKeys, prepareRegistrationBundle } from '@/lib/crypto/keys';
+import { generateInitialKeys, prepareRegistrationBundle } from '@/lib/crypto/keys';
 import styles from '../auth.module.css';
 import ThemeToggle from '@/components/ThemeToggle';
 import LanguageToggle from '@/components/LanguageToggle';
@@ -29,12 +28,11 @@ export default function RegisterPage() {
       const keys = generateInitialKeys();
       const bundle = prepareRegistrationBundle(keys);
 
-      const data = await api.auth.register(username.trim(), email.trim(), password, displayName.trim(), inviteCode.trim(), bundle);
+      await api.auth.register(username.trim(), email.trim(), password, displayName.trim(), inviteCode.trim(), bundle);
       
-      await storeLocalKeys(keys, password);
-      saveAuth({ ...data, access_token: data.access_token });
-      
-      router.push('/app/messages');
+      // Kayıt başarılı oldu, otomatik oturum açmak yerine
+      // QR kod girişine yönlendiriyoruz:
+      router.push('/login');
     } catch (err) {
       setError(err instanceof ApiError ? err.message : t('register.err_registration_failed'));
     } finally {
