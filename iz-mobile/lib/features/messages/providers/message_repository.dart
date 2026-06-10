@@ -212,6 +212,7 @@ class MessageRepository {
           editedAt: map['edited_at'] != null ? DateTime.parse(map['edited_at']) : null,
           reactions: map['reactions'],
           isPinned: map['is_pinned'] == 1,
+          senderName: map['sender_name'],
         );
       });
     }

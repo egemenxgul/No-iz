@@ -129,6 +129,20 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
       ),
       actions: [
         Padding(
+          padding: const EdgeInsets.only(right: 8, top: 8),
+          child: _GlassIconButton(
+            icon: Icons.explore_outlined,
+            onTap: () => context.push('/communities'),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(right: 8, top: 8),
+          child: _GlassIconButton(
+            icon: Icons.people_outline_rounded,
+            onTap: () => context.push('/social'),
+          ),
+        ),
+        Padding(
           padding: const EdgeInsets.only(right: 16, top: 8),
           child: _GlassIconButton(
             icon: Icons.settings_outlined,

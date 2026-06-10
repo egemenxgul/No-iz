@@ -15,6 +15,12 @@ import 'package:iz_mobile/features/messages/presentation/screens/privacy_setting
 import 'package:iz_mobile/features/auth/providers/auth_provider.dart';
 import 'package:iz_mobile/core/network/notification_service.dart';
 import 'package:iz_mobile/features/call/presentation/widgets/call_overlay.dart';
+import 'package:iz_mobile/features/social/presentation/screens/friends_screen.dart';
+import 'package:iz_mobile/features/messages/presentation/screens/create_group_screen.dart';
+import 'package:iz_mobile/features/messages/presentation/screens/group_settings_screen.dart';
+import 'package:iz_mobile/features/community/presentation/screens/community_list_screen.dart';
+import 'package:iz_mobile/features/community/presentation/screens/create_community_screen.dart';
+import 'package:iz_mobile/features/community/presentation/screens/community_detail_screen.dart';
 
 void main() async {
   // Required before any async work in main().
@@ -91,6 +97,24 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const UserSearchScreen(),
       ),
       GoRoute(
+        path: '/social',
+        builder: (context, state) => const FriendsScreen(),
+      ),
+      GoRoute(
+        path: '/communities',
+        builder: (context, state) => const CommunityListScreen(),
+      ),
+      GoRoute(
+        path: '/communities/create',
+        builder: (context, state) => const CreateCommunityScreen(),
+      ),
+      GoRoute(
+        path: '/communities/detail/:slug',
+        builder: (context, state) => CommunityDetailScreen(
+          slug: state.pathParameters['slug']!,
+        ),
+      ),
+      GoRoute(
         path: '/settings',
         builder: (context, state) => const SettingsScreen(),
       ),
@@ -113,6 +137,16 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: 'messages/:id',
             builder: (context, state) => ChatScreen(
               otherUserId: state.pathParameters['id']!,
+            ),
+          ),
+          GoRoute(
+            path: 'groups/create',
+            builder: (context, state) => const CreateGroupScreen(),
+          ),
+          GoRoute(
+            path: 'groups/:id/settings',
+            builder: (context, state) => GroupSettingsScreen(
+              groupId: state.pathParameters['id']!,
             ),
           ),
         ],

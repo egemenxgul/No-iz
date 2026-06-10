@@ -127,6 +127,40 @@ class _UserSearchScreenState extends ConsumerState<UserSearchScreen> {
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               children: [
+                // Action: Create New Group
+                Container(
+                  margin: const EdgeInsets.only(top: 12, bottom: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.accent.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.accentBorder.withValues(alpha: 0.2), width: 0.5),
+                  ),
+                  child: ListTile(
+                    leading: const CircleAvatar(
+                      backgroundColor: AppColors.accent,
+                      child: Icon(Icons.group_add_rounded, color: Colors.white, size: 20),
+                    ),
+                    title: Text(
+                      'Yeni Grup Oluştur',
+                      style: GoogleFonts.inter(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Arkadaşlarınızla güvenli sohbet grubu kurun',
+                      style: GoogleFonts.inter(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
+                    trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.accent, size: 20),
+                    onTap: () {
+                      context.push('/app/groups/create');
+                    },
+                  ),
+                ),
                 // ─── SECTION 1: Active Contacts on No-iz ──────────────────
                 if (activeContacts.isNotEmpty) ...[
                   Padding(

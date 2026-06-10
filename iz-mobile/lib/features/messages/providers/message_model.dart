@@ -20,6 +20,7 @@ class MessageModel {
   final DateTime? editedAt;
   final String? reactions;
   final bool isPinned;
+  final String? senderName;
 
   MessageModel({
     required this.id,
@@ -41,6 +42,7 @@ class MessageModel {
     this.editedAt,
     this.reactions,
     this.isPinned = false,
+    this.senderName,
   });
 
   Map<String, String> get reactionsMap {
@@ -76,6 +78,7 @@ class MessageModel {
       'edited_at': editedAt?.toIso8601String(),
       'reactions': reactions,
       'is_pinned': isPinned ? 1 : 0,
+      'sender_name': senderName,
     };
   }
 
@@ -100,6 +103,7 @@ class MessageModel {
       editedAt: map['edited_at'] != null ? DateTime.parse(map['edited_at']) : null,
       reactions: map['reactions'],
       isPinned: map['is_pinned'] == 1 || map['is_pinned'] == true,
+      senderName: map['sender_name'],
     );
   }
 
@@ -123,6 +127,7 @@ class MessageModel {
     DateTime? editedAt,
     String? reactions,
     bool? isPinned,
+    String? senderName,
   }) {
     return MessageModel(
       id: id ?? this.id,
@@ -144,6 +149,7 @@ class MessageModel {
       editedAt: editedAt ?? this.editedAt,
       reactions: reactions ?? this.reactions,
       isPinned: isPinned ?? this.isPinned,
+      senderName: senderName ?? this.senderName,
     );
   }
 }

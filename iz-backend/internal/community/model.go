@@ -61,7 +61,8 @@ type CommunityGroup struct {
 	LinkedAt    time.Time `json:"linked_at"`
 
 	// Populated on demand
-	GroupName string `json:"group_name,omitempty"`
+	GroupName  string `json:"group_name,omitempty"`
+	InviteLink string `json:"invite_link,omitempty"`
 }
 
 // Post is a public post in a community's feed.

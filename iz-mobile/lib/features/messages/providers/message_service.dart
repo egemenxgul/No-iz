@@ -71,6 +71,60 @@ class MessageService {
     }
   }
 
+  Future<Map<String, dynamic>> getGroupDetails(String groupId) async {
+    try {
+      final response = await _dio.get('/api/groups/$groupId');
+      return Map<String, dynamic>.from(response.data);
+    } on DioException catch (e) {
+      throw _parseError(e, 'Grup detayları alınamadı');
+    }
+  }
+
+  Future<void> leaveGroup(String groupId) async {
+    try {
+      await _dio.delete('/api/groups/$groupId/leave');
+    } on DioException catch (e) {
+      throw _parseError(e, 'Gruptan çıkılamadı');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> listGroupMembers(String groupId) async {
+    try {
+      final response = await _dio.get('/api/groups/$groupId/members');
+      final data = response.data['members'] as List;
+      return List<Map<String, dynamic>>.from(data);
+    } on DioException catch (e) {
+      throw _parseError(e, 'Grup üyeleri alınamadı');
+    }
+  }
+
+  Future<void> kickGroupMember(String groupId, String userId) async {
+    try {
+      await _dio.delete('/api/groups/$groupId/members/$userId');
+    } on DioException catch (e) {
+      throw _parseError(e, 'Grup üyesi çıkarılamadı');
+    }
+  }
+
+  Future<void> promoteGroupMember(String groupId, String userId, String role) async {
+    try {
+      await _dio.put('/api/groups/$groupId/members/$userId/role', data: {
+        'role': role,
+      });
+    } on DioException catch (e) {
+      throw _parseError(e, 'Grup üyesi rolü güncellenemedi');
+    }
+  }
+
+  Future<Map<String, dynamic>> joinGroupByInvite(String token) async {
+    try {
+      final response = await _dio.post('/api/groups/join/$token');
+      return Map<String, dynamic>.from(response.data);
+    } on DioException catch (e) {
+      throw _parseError(e, 'Davet linki ile gruba katılım başarısız oldu');
+    }
+  }
+
   Future<List<Map<String, dynamic>>> searchUsers(String query) async {
     try {
       final response = await _dio.get('/api/users/search', queryParameters: {'q': query});

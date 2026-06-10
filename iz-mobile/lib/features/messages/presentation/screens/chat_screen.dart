@@ -655,94 +655,102 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               ],
             ),
             actions: [
-              _GlassIconBtn(
-                icon: conv.disappearingDuration > 0
-                    ? Icons.timer_rounded
-                    : Icons.timer_outlined,
-                onTap: () => _showDisappearingMessagesSelector(conv),
-              ),
-              const SizedBox(width: 6),
-              _GlassIconBtn(
-                icon: Icons.videocam_rounded,
-                onTap: () => ref.read(callProvider.notifier).startCall(
-                  peerId: widget.otherUserId,
-                  peerName: displayName,
-                  type: CallType.video,
+              if (conv.isGroup) ...[
+                _GlassIconBtn(
+                  icon: Icons.info_outline_rounded,
+                  onTap: () => context.push('/app/groups/${conv.id}/settings'),
                 ),
-              ),
-              const SizedBox(width: 6),
-              _GlassIconBtn(
-                icon: Icons.call_rounded,
-                onTap: () => ref.read(callProvider.notifier).startCall(
-                  peerId: widget.otherUserId,
-                  peerName: displayName,
-                  type: CallType.audio,
+              ] else ...[
+                _GlassIconBtn(
+                  icon: conv.disappearingDuration > 0
+                      ? Icons.timer_rounded
+                      : Icons.timer_outlined,
+                  onTap: () => _showDisappearingMessagesSelector(conv),
                 ),
-              ),
+                const SizedBox(width: 6),
+                _GlassIconBtn(
+                  icon: Icons.videocam_rounded,
+                  onTap: () => ref.read(callProvider.notifier).startCall(
+                    peerId: widget.otherUserId,
+                    peerName: displayName,
+                    type: CallType.video,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                _GlassIconBtn(
+                  icon: Icons.call_rounded,
+                  onTap: () => ref.read(callProvider.notifier).startCall(
+                    peerId: widget.otherUserId,
+                    peerName: displayName,
+                    type: CallType.audio,
+                  ),
+                ),
+              ],
               const SizedBox(width: 4),
-              PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert, color: AppColors.textPrimary),
-                color: AppColors.bgElevated,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                onSelected: (value) async {
-                  if (value == 'unmute') {
-                    await ref.read(messageServiceProvider).unmuteChat(widget.otherUserId);
-                    // Refresh conversation list to update UI
-                    ref.read(conversationListProvider.notifier).loadConversations();
-                  } else {
-                    await ref.read(messageServiceProvider).muteChat(widget.otherUserId, value);
-                    ref.read(conversationListProvider.notifier).loadConversations();
-                  }
-                },
-                itemBuilder: (context) {
-                  if (conv.isMuted) {
+              if (!conv.isGroup)
+                PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_vert, color: AppColors.textPrimary),
+                  color: AppColors.bgElevated,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  onSelected: (value) async {
+                    if (value == 'unmute') {
+                      await ref.read(messageServiceProvider).unmuteChat(widget.otherUserId);
+                      // Refresh conversation list to update UI
+                      ref.read(conversationListProvider.notifier).loadConversations();
+                    } else {
+                      await ref.read(messageServiceProvider).muteChat(widget.otherUserId, value);
+                      ref.read(conversationListProvider.notifier).loadConversations();
+                    }
+                  },
+                  itemBuilder: (context) {
+                    if (conv.isMuted) {
+                      return [
+                        PopupMenuItem(
+                          value: 'unmute',
+                          child: Row(
+                            children: [
+                              const Icon(Icons.notifications_active, color: AppColors.accent, size: 20),
+                              const SizedBox(width: 12),
+                              Text("Sessizden Çıkar", style: GoogleFonts.inter(color: Colors.white)),
+                            ],
+                          ),
+                        ),
+                      ];
+                    }
                     return [
                       PopupMenuItem(
-                        value: 'unmute',
+                        value: '8_hours',
                         child: Row(
                           children: [
-                            const Icon(Icons.notifications_active, color: AppColors.accent, size: 20),
+                            const Icon(Icons.notifications_off, color: Colors.white70, size: 20),
                             const SizedBox(width: 12),
-                            Text("Sessizden Çıkar", style: GoogleFonts.inter(color: Colors.white)),
+                            Text("8 Saat Sessize Al", style: GoogleFonts.inter(color: Colors.white)),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: '1_week',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.notifications_off, color: Colors.white70, size: 20),
+                            const SizedBox(width: 12),
+                            Text("1 Hafta Sessize Al", style: GoogleFonts.inter(color: Colors.white)),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'forever',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.notifications_off, color: Colors.white70, size: 20),
+                            const SizedBox(width: 12),
+                            Text("Süresiz Sessize Al", style: GoogleFonts.inter(color: Colors.white)),
                           ],
                         ),
                       ),
                     ];
-                  }
-                  return [
-                    PopupMenuItem(
-                      value: '8_hours',
-                      child: Row(
-                        children: [
-                          const Icon(Icons.notifications_off, color: Colors.white70, size: 20),
-                          const SizedBox(width: 12),
-                          Text("8 Saat Sessize Al", style: GoogleFonts.inter(color: Colors.white)),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: '1_week',
-                      child: Row(
-                        children: [
-                          const Icon(Icons.notifications_off, color: Colors.white70, size: 20),
-                          const SizedBox(width: 12),
-                          Text("1 Hafta Sessize Al", style: GoogleFonts.inter(color: Colors.white)),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'forever',
-                      child: Row(
-                        children: [
-                          const Icon(Icons.notifications_off, color: Colors.white70, size: 20),
-                          const SizedBox(width: 12),
-                          Text("Süresiz Sessize Al", style: GoogleFonts.inter(color: Colors.white)),
-                        ],
-                      ),
-                    ),
-                  ];
-                },
-              ),
+                  },
+                ),
               const SizedBox(width: 8),
             ],
           ),
@@ -1203,6 +1211,8 @@ class _MessageBubble extends ConsumerWidget {
       );
     } else if (msgType == 'call_log') {
       bubbleContent = _buildCallLogBubble(context, plaintext);
+    } else if (msgType == 'group_invite') {
+      bubbleContent = _buildGroupInviteBubble(context, ref, plaintext);
     } else if ((msgType == 'image' || msgType == 'file') && plaintext != null && plaintext.trim().startsWith('{')) {
       try {
         final mediaData = jsonDecode(plaintext);
@@ -1235,6 +1245,48 @@ class _MessageBubble extends ConsumerWidget {
     }
 
     final reactionsRow = _buildReactionsRow(context, message);
+
+    Widget? senderHeader;
+    if (!isMe) {
+      final conversations = ref.watch(conversationProvider);
+      final conv = conversations.firstWhere(
+        (c) => c.otherUserId == message.conversationId,
+        orElse: () => ConversationModel(id: '', otherUserId: message.conversationId, otherUsername: ''),
+      );
+      if (conv.isGroup) {
+        final contactsState = ref.watch(contactsProvider);
+        String name = message.senderName ?? 'Kullanıcı';
+        for (var contact in contactsState.localContacts) {
+          if (contact.isActive && contact.userId == message.senderId) {
+            name = contact.name;
+            break;
+          }
+        }
+        final colorHash = message.senderId.hashCode.abs();
+        final colors = [
+          Colors.blueAccent,
+          Colors.tealAccent,
+          Colors.orangeAccent,
+          Colors.purpleAccent,
+          Colors.pinkAccent,
+          Colors.amberAccent,
+          Colors.lightBlueAccent,
+          Colors.deepOrangeAccent,
+        ];
+        final senderColor = colors[colorHash % colors.length];
+        senderHeader = Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Text(
+            name,
+            style: GoogleFonts.inter(
+              color: senderColor,
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
+          ),
+        );
+      }
+    }
 
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
@@ -1286,6 +1338,7 @@ class _MessageBubble extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                 children: [
+                  if (senderHeader != null) senderHeader,
                   bubbleContent,
                   if (reactionsRow != null) reactionsRow,
                   const SizedBox(height: 4),
@@ -1347,6 +1400,111 @@ class _MessageBubble extends ConsumerWidget {
     } else {
       // ✓ — sent/saving
       return Icon(Icons.done_rounded, size: 15, color: Colors.white.withValues(alpha: 0.45));
+    }
+  }
+
+  Widget _buildGroupInviteBubble(BuildContext context, WidgetRef ref, String? plaintext) {
+    if (plaintext == null) return const SizedBox();
+    try {
+      final data = jsonDecode(plaintext);
+      final groupId = data['group_id'] as String;
+      final groupName = data['group_name'] as String;
+      final token = data['invite_token'] as String;
+
+      final conversations = ref.watch(conversationProvider);
+      final isMember = conversations.any((c) => c.isGroup && c.otherUserId == groupId);
+
+      return Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.group_add_rounded, color: AppColors.accentLight, size: 22),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Grup Daveti',
+                    style: GoogleFonts.inter(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'You are invited to join the group "$groupName".',
+              style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 13),
+            ),
+            const SizedBox(height: 12),
+            isMember
+                ? Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.success.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+                    ),
+                    child: Center(
+                      child: Text(
+                        'Katılındı',
+                        style: GoogleFonts.inter(
+                          color: AppColors.success,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  )
+                : GestureDetector(
+                    onTap: () async {
+                      try {
+                        final service = ref.read(messageServiceProvider);
+                        await service.joinGroupByInvite(token);
+                        // Refresh conversations
+                        ref.read(conversationProvider.notifier).loadConversations();
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Gruba başarıyla katıldınız!')),
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Hata: $e')),
+                          );
+                        }
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [AppColors.accent, AppColors.accentSecondary],
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'Gruba Katıl',
+                          style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+          ],
+        ),
+      );
+    } catch (_) {
+      return const Text('[Geçersiz Grup Daveti]');
     }
   }
 

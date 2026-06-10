@@ -193,7 +193,7 @@ func (r *Repository) UnlinkGroup(ctx context.Context, communityID, groupID uuid.
 
 func (r *Repository) ListLinkedGroups(ctx context.Context, communityID uuid.UUID) ([]*CommunityGroup, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT cg.community_id, cg.group_id, cg.position, cg.linked_at, g.name
+		SELECT cg.community_id, cg.group_id, cg.position, cg.linked_at, g.name, g.invite_link
 		FROM community_groups cg
 		JOIN groups g ON g.id = cg.group_id
 		WHERE cg.community_id = $1
@@ -207,7 +207,7 @@ func (r *Repository) ListLinkedGroups(ctx context.Context, communityID uuid.UUID
 	var list []*CommunityGroup
 	for rows.Next() {
 		cg := &CommunityGroup{}
-		if err := rows.Scan(&cg.CommunityID, &cg.GroupID, &cg.Position, &cg.LinkedAt, &cg.GroupName); err != nil {
+		if err := rows.Scan(&cg.CommunityID, &cg.GroupID, &cg.Position, &cg.LinkedAt, &cg.GroupName, &cg.InviteLink); err != nil {
 			return nil, err
 		}
 		list = append(list, cg)
