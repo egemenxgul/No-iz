@@ -15,6 +15,7 @@ import (
 	"github.com/no-iz/iz-backend/internal/invite"
 	"github.com/no-iz/iz-backend/internal/media"
 	"github.com/no-iz/iz-backend/internal/messaging"
+	"github.com/no-iz/iz-backend/internal/notification"
 	"github.com/no-iz/iz-backend/internal/social"
 	"github.com/no-iz/iz-backend/internal/story"
 	"github.com/no-iz/iz-backend/internal/report"
@@ -40,6 +41,7 @@ type Server struct {
 	storyHandler     *story.Handler
 	reportHandler    *report.Handler
 	backupHandler    *backup.Handler
+	notificationHandler *notification.Handler
 }
 
 // New creates a new Server.
@@ -58,6 +60,7 @@ func New(
 	storyHandler *story.Handler,
 	reportHandler *report.Handler,
 	backupHandler *backup.Handler,
+	notificationHandler *notification.Handler,
 ) *Server {
 	return &Server{
 		cfg:              cfg,
@@ -74,6 +77,7 @@ func New(
 		storyHandler:     storyHandler,
 		reportHandler:    reportHandler,
 		backupHandler:    backupHandler,
+		notificationHandler: notificationHandler,
 	}
 }
 
@@ -188,6 +192,9 @@ func (s *Server) Router() http.Handler {
 		// ── Media Storage (MinIO) ──────────────────────────────────
 		r.Post("/api/media/upload", s.mediaHandler.Upload)
 		r.Get("/api/media/download/{key}", s.mediaHandler.Download)
+
+		// ── Notifications ──────────────────────────────────────────
+		r.Mount("/api/notifications", s.notificationHandler.Routes())
 	})
 
 	return r

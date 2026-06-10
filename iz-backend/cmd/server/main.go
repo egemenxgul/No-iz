@@ -68,7 +68,9 @@ func main() {
 	inviteSvc := invite.NewService(inviteRepo, cfg, log)
 
 	// Notifications
-	notificationSvc := notification.NewService(db, log)
+	notificationRepo := notification.NewRepository(db)
+	notificationSvc := notification.NewService(db, notificationRepo, log)
+	notificationHandler := notification.NewHandler(notificationSvc, log)
 
 	// Social (Friendship & Message Requests)
 	socialRepo := social.NewRepository(db)
@@ -127,7 +129,7 @@ func main() {
 	backupHandler := backup.NewHandler(backupSvc, log)
 
 	// Build HTTP server
-	srv := server.New(cfg, log, rdb, authSvc, inviteSvc, msgHandler, groupHandler, communityHandler, callHandler, mediaHandler, socialHandler, storyHandler, reportHandler, backupHandler)
+	srv := server.New(cfg, log, rdb, authSvc, inviteSvc, msgHandler, groupHandler, communityHandler, callHandler, mediaHandler, socialHandler, storyHandler, reportHandler, backupHandler, notificationHandler)
 
 	httpSrv := &http.Server{
 		Addr:         ":" + cfg.AppPort,

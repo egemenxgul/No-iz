@@ -16,6 +16,7 @@ import (
 
 type Service struct {
 	db        *pgxpool.Pool
+	repo      *Repository
 	log       zerolog.Logger
 	fcmClient *messaging.Client
 }
@@ -26,12 +27,13 @@ type PushPayload struct {
 	Data  map[string]string `json:"data,omitempty"`
 }
 
-func NewService(db *pgxpool.Pool, log zerolog.Logger) *Service {
+func NewService(db *pgxpool.Pool, repo *Repository, log zerolog.Logger) *Service {
 	logger := log.With().Str("svc", "notification").Logger()
 	
 	svc := &Service{
-		db:  db,
-		log: logger,
+		db:   db,
+		repo: repo,
+		log:  logger,
 	}
 
 	// Try to initialize Firebase Admin SDK
@@ -146,4 +148,28 @@ func (s *Service) sendFCM(ctx context.Context, token, title, body string, data m
 func (s *Service) sendAPNs(ctx context.Context, token, title, body string, data map[string]string) error {
 	s.log.Info().Str("token", token).Str("title", title).Msg("APNs Push Dispatched (Simulated HTTP/2 REST API Call)")
 	return nil
+}
+
+// CreateNotification persists a notification in the database and dispatches it via push notifications.
+func (s *Service) CreateNotification(ctx context.Context, userID uuid.UUID, title, body string, data map[string]string) (*Notification, error) {
+	n := &Notification{
+		UserID: userID,
+		Title:  title,
+		Body:   body,
+		Data:   data,
+	}
+
+	if err := s.repo.Save(ctx, n); err != nil {
+		return nil, fmt.Errorf("save notification record: %w", err)
+	}
+
+	// Send Push Notification asynchronously to not block the caller
+	go func() {
+		bgCtx := context.Background()
+		if err := s.SendPush(bgCtx, userID, title, body, data); err != nil {
+			s.log.Error().Err(err).Str("user_id", userID.String()).Msg("failed to dispatch push notification")
+		}
+	}()
+
+	return n, nil
 }
