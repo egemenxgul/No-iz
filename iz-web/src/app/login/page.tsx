@@ -19,8 +19,13 @@ export default function LoginPage() {
 
   useEffect(() => {
     let ws: WebSocket;
+    let timeoutId: NodeJS.Timeout;
 
     async function initQRLogin() {
+      if (ws) {
+        ws.close();
+      }
+
       try {
         if (!window.crypto || !window.crypto.subtle) {
           setError('Güvenli bağlantı (HTTPS) gereklidir. Sistem sadece HTTPS üzerinde çalışır.');
@@ -64,6 +69,12 @@ export default function LoginPage() {
           // 4. Set the QR URI to display
           setQrUri(`iz://qr-login?token=${qrToken}&pubKey=${encodeURIComponent(pubKeyBase64)}`);
           setLoading(false);
+
+          // 60 saniyede bir QR kodu ve soket bağlantısını yenile
+          clearTimeout(timeoutId);
+          timeoutId = setTimeout(() => {
+            initQRLogin();
+          }, 60000);
         };
 
         ws.onmessage = async (event) => {
@@ -98,6 +109,7 @@ export default function LoginPage() {
               }
 
               ws.close();
+              clearTimeout(timeoutId);
               router.push('/app/messages');
             }
           } catch (err) {
@@ -125,6 +137,7 @@ export default function LoginPage() {
 
     return () => {
       if (ws) ws.close();
+      if (timeoutId) clearTimeout(timeoutId);
     };
   }, [router]);
 
