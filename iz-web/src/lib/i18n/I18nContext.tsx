@@ -16,6 +16,10 @@ const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
 const dictionaries = { en, tr };
 
+interface TranslationDict {
+  [key: string]: string | TranslationDict | undefined;
+}
+
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>('en');
   const [mounted, setMounted] = useState(false);
@@ -46,22 +50,22 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   const t = (path: string): string => {
     const keys = path.split('.');
-    let current: any = dictionaries[language];
+    let current = dictionaries[language] as unknown as TranslationDict;
 
     for (const key of keys) {
       if (current[key] === undefined) {
         // Fallback to English if translation is missing
-        let fallback: any = dictionaries['en'];
+        let fallback = dictionaries['en'] as unknown as TranslationDict;
         for (const k of keys) {
           if (fallback[k] === undefined) return path;
-          fallback = fallback[k];
+          fallback = fallback[k] as TranslationDict;
         }
-        return fallback;
+        return fallback as unknown as string;
       }
-      current = current[key];
+      current = current[key] as TranslationDict;
     }
 
-    return current;
+    return current as unknown as string;
   };
 
   // Prevent hydration mismatch by not rendering anything until mounted

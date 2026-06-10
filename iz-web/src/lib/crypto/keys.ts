@@ -78,11 +78,11 @@ async function encryptWithPassword(text: string, password: string) {
   const salt = window.crypto.getRandomValues(new Uint8Array(16));
   
   const keyMaterial = await window.crypto.subtle.importKey(
-    "raw", enc.encode(password) as any, "PBKDF2", false, ["deriveKey"]
+    "raw", enc.encode(password), "PBKDF2", false, ["deriveKey"]
   );
   
   const key = await window.crypto.subtle.deriveKey(
-    { name: "PBKDF2", salt: salt as any, iterations: 100000, hash: "SHA-256" },
+    { name: "PBKDF2", salt: salt as unknown as BufferSource, iterations: 100000, hash: "SHA-256" },
     keyMaterial,
     { name: "AES-GCM", length: 256 },
     false,
@@ -91,9 +91,9 @@ async function encryptWithPassword(text: string, password: string) {
   
   const iv = window.crypto.getRandomValues(new Uint8Array(12));
   const ciphertext = await window.crypto.subtle.encrypt(
-    { name: "AES-GCM", iv: iv as any },
+    { name: "AES-GCM", iv: iv as unknown as BufferSource },
     key,
-    enc.encode(text) as any
+    enc.encode(text)
   );
   
   return {
@@ -121,7 +121,7 @@ export async function decryptLocalKeys(password: string): Promise<UserKeys | nul
         publicKey: fromBase64(raw.signedPreKey.publicKey),
         privateKey: fromBase64(raw.signedPreKey.privateKey),
       },
-      oneTimePreKeys: raw.oneTimePreKeys.map((pk: any) => ({
+      oneTimePreKeys: raw.oneTimePreKeys.map((pk: { publicKey: string; privateKey: string }) => ({
         publicKey: fromBase64(pk.publicKey),
         privateKey: fromBase64(pk.privateKey),
       })),
@@ -141,7 +141,7 @@ async function decryptWithPassword(data: { ciphertext: string; iv: string; salt:
   );
   
   const key = await window.crypto.subtle.deriveKey(
-    { name: "PBKDF2", salt: fromBase64(data.salt) as any, iterations: 100000, hash: "SHA-256" },
+    { name: "PBKDF2", salt: fromBase64(data.salt) as unknown as BufferSource, iterations: 100000, hash: "SHA-256" },
     keyMaterial,
     { name: "AES-GCM", length: 256 },
     false,
@@ -149,9 +149,9 @@ async function decryptWithPassword(data: { ciphertext: string; iv: string; salt:
   );
   
   const decrypted = await window.crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: fromBase64(data.iv) as any },
+    { name: "AES-GCM", iv: fromBase64(data.iv) as unknown as BufferSource },
     key,
-    fromBase64(data.ciphertext) as any
+    fromBase64(data.ciphertext) as unknown as BufferSource
   );
   
   return dec.decode(decrypted);

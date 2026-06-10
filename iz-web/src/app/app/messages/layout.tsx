@@ -6,7 +6,7 @@ import { api } from '@/lib/api';
 import { wsManager } from '@/lib/websocket';
 import styles from './messages-layout.module.css';
 import { useI18n } from '@/lib/i18n/I18nContext';
-import { Conversation, User } from '@/types';
+import { Conversation } from '@/types';
 
 export default function MessagesLayout({ children }: { children: React.ReactNode }) {
   const { t } = useI18n();

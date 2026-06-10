@@ -109,7 +109,7 @@ export async function receiveDecrypted(
   }
 ): Promise<string> {
   const sessions = loadSessions();
-  let session = sessions[remoteUserID];
+  const session = sessions[remoteUserID];
   
   // If no session, this might be the initial message (Alice to Bob)
   if (!session) {
