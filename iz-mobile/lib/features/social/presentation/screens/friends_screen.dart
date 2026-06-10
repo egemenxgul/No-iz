@@ -146,153 +146,175 @@ class _FriendsListTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (friends.isEmpty) {
-      return _buildEmptyState(
-        context,
-        ref,
-        icon: Icons.people_outline_rounded,
-        titleKey: 'no_friends_yet',
-      );
-    }
-
-    return ListView.builder(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 150, 16, 80),
-      itemCount: friends.length,
-      itemBuilder: (context, index) {
-        final item = friends[index];
-        final name = item.otherDisplayName?.isNotEmpty == true ? item.otherDisplayName! : item.otherUsername;
-        final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
-
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: GlassCard(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              children: [
-                // Avatar with online status
-                Stack(
-                  children: [
-                    Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          colors: [
-                            AppColors.accent.withValues(alpha: 0.6),
-                            AppColors.accentSecondary.withValues(alpha: 0.5),
-                          ],
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          initial,
-                          style: GoogleFonts.outfit(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (item.isOnline)
-                      Positioned(
-                        right: 1,
-                        bottom: 1,
-                        child: Container(
-                          width: 12,
-                          height: 12,
-                          decoration: BoxDecoration(
-                            color: AppColors.success,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.bgSurface, width: 2),
-                          ),
-                        ),
-                      ),
-                  ],
+    return RefreshIndicator(
+      color: Colors.white,
+      backgroundColor: AppColors.bgCard,
+      onRefresh: () async {
+        await ref.read(conversationProvider.notifier).loadConversations();
+      },
+      child: friends.isEmpty
+          ? LayoutBuilder(
+              builder: (context, constraints) => SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
                 ),
-                const SizedBox(width: 14),
-
-                // Name & Username
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        name,
-                        style: GoogleFonts.inter(
-                          color: AppColors.textPrimary,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 15,
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        '@${item.otherUsername}',
-                        style: GoogleFonts.inter(
-                          color: AppColors.textSecondary,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
+                padding: const EdgeInsets.fromLTRB(16, 150, 16, 80),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight - 230,
+                  ),
+                  child: Center(
+                    child: _buildEmptyState(
+                      context,
+                      ref,
+                      icon: Icons.people_outline_rounded,
+                      titleKey: 'no_friends_yet',
+                    ),
                   ),
                 ),
+              ),
+            )
+          : ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(
+                parent: BouncingScrollPhysics(),
+              ),
+              padding: const EdgeInsets.fromLTRB(16, 150, 16, 80),
+              itemCount: friends.length,
+              itemBuilder: (context, index) {
+                final item = friends[index];
+                final name = item.otherDisplayName?.isNotEmpty == true ? item.otherDisplayName! : item.otherUsername;
+                final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
 
-                // Action Buttons
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Chat button
-                    _GlassActionButton(
-                      icon: Icons.chat_bubble_outline_rounded,
-                      color: AppColors.accent,
-                      onTap: () {
-                        context.push('/app/messages/${item.otherUserId}');
-                      },
-                    ),
-                    const SizedBox(width: 8),
-                    // More options (Block)
-                    PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert_rounded, color: AppColors.textSecondary),
-                      color: AppColors.bgElevated,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      onSelected: (value) async {
-                        if (value == 'block') {
-                          final confirm = await _showBlockConfirmDialog(context, ref, name);
-                          if (confirm == true) {
-                            await ref.read(chatProvider(item.otherUserId).notifier).blockUser();
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(context.tr(ref, 'user_blocked'))),
-                              );
-                            }
-                          }
-                        }
-                      },
-                      itemBuilder: (context) => [
-                        PopupMenuItem(
-                          value: 'block',
-                          child: Row(
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: GlassCard(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Row(
+                      children: [
+                        // Avatar with online status
+                        Stack(
+                          children: [
+                            Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  colors: [
+                                    AppColors.accent.withValues(alpha: 0.6),
+                                    AppColors.accentSecondary.withValues(alpha: 0.5),
+                                  ],
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  initial,
+                                  style: GoogleFonts.outfit(
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            if (item.isOnline)
+                              Positioned(
+                                right: 1,
+                                bottom: 1,
+                                child: Container(
+                                  width: 12,
+                                  height: 12,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.success,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: AppColors.bgSurface, width: 2),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(width: 14),
+
+                        // Name & Username
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Icon(Icons.block_flipped, color: AppColors.danger, size: 18),
-                              const SizedBox(width: 8),
                               Text(
-                                context.tr(ref, 'block'),
-                                style: GoogleFonts.inter(color: AppColors.danger, fontWeight: FontWeight.w600),
+                                name,
+                                style: GoogleFonts.inter(
+                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 15,
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                '@${item.otherUsername}',
+                                style: GoogleFonts.inter(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 12,
+                                ),
                               ),
                             ],
                           ),
                         ),
+
+                        // Action Buttons
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Chat button
+                            _GlassActionButton(
+                              icon: Icons.chat_bubble_outline_rounded,
+                              color: AppColors.accent,
+                              onTap: () {
+                                context.push('/app/messages/${item.otherUserId}');
+                              },
+                            ),
+                            const SizedBox(width: 8),
+                            // More options (Block)
+                            PopupMenuButton<String>(
+                              icon: const Icon(Icons.more_vert_rounded, color: AppColors.textSecondary),
+                              color: AppColors.bgElevated,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              onSelected: (value) async {
+                                if (value == 'block') {
+                                  final confirm = await _showBlockConfirmDialog(context, ref, name);
+                                  if (confirm == true) {
+                                    await ref.read(chatProvider(item.otherUserId).notifier).blockUser();
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text(context.tr(ref, 'user_blocked'))),
+                                      );
+                                    }
+                                  }
+                                }
+                              },
+                              itemBuilder: (context) => [
+                                PopupMenuItem(
+                                  value: 'block',
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.block_flipped, color: AppColors.danger, size: 18),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        context.tr(ref, 'block'),
+                                        style: GoogleFonts.inter(color: AppColors.danger, fontWeight: FontWeight.w600),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ],
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                );
+              },
             ),
-          ),
-        );
-      },
     );
   }
 }
@@ -303,109 +325,131 @@ class _RequestsListTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (requests.isEmpty) {
-      return _buildEmptyState(
-        context,
-        ref,
-        icon: Icons.mark_email_unread_outlined,
-        titleKey: 'no_requests_yet',
-      );
-    }
-
-    return ListView.builder(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 150, 16, 80),
-      itemCount: requests.length,
-      itemBuilder: (context, index) {
-        final item = requests[index];
-        final name = item.otherDisplayName?.isNotEmpty == true ? item.otherDisplayName! : item.otherUsername;
-        final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
-
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: GlassCard(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 24,
-                  backgroundColor: AppColors.accentDim,
-                  child: Text(
-                    initial,
-                    style: GoogleFonts.outfit(
-                      color: AppColors.accentLight,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 14),
-
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        name,
-                        style: GoogleFonts.inter(
-                          color: AppColors.textPrimary,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 15,
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        '@${item.otherUsername}',
-                        style: GoogleFonts.inter(
-                          color: AppColors.textSecondary,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Accept request
-                    _TextActionButton(
-                      text: context.tr(ref, 'accept'),
-                      textColor: AppColors.success,
-                      backgroundColor: AppColors.success.withValues(alpha: 0.15),
-                      borderColor: AppColors.success.withValues(alpha: 0.3),
-                      onTap: () async {
-                        await ref.read(chatProvider(item.otherUserId).notifier).acceptRequest();
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(context.tr(ref, 'friendship_accepted'))),
-                          );
-                        }
-                      },
-                    ),
-                    const SizedBox(width: 8),
-                    // Reject request
-                    _TextActionButton(
-                      text: context.tr(ref, 'reject'),
-                      textColor: AppColors.danger,
-                      backgroundColor: AppColors.danger.withValues(alpha: 0.15),
-                      borderColor: AppColors.danger.withValues(alpha: 0.3),
-                      onTap: () async {
-                        await ref.read(chatProvider(item.otherUserId).notifier).rejectRequest();
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(context.tr(ref, 'friendship_rejected'))),
-                          );
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
+    return RefreshIndicator(
+      color: Colors.white,
+      backgroundColor: AppColors.bgCard,
+      onRefresh: () async {
+        await ref.read(conversationProvider.notifier).loadConversations();
       },
+      child: requests.isEmpty
+          ? LayoutBuilder(
+              builder: (context, constraints) => SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
+                padding: const EdgeInsets.fromLTRB(16, 150, 16, 80),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight - 230,
+                  ),
+                  child: Center(
+                    child: _buildEmptyState(
+                      context,
+                      ref,
+                      icon: Icons.mark_email_unread_outlined,
+                      titleKey: 'no_requests_yet',
+                    ),
+                  ),
+                ),
+              ),
+            )
+          : ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(
+                parent: BouncingScrollPhysics(),
+              ),
+              padding: const EdgeInsets.fromLTRB(16, 150, 16, 80),
+              itemCount: requests.length,
+              itemBuilder: (context, index) {
+                final item = requests[index];
+                final name = item.otherDisplayName?.isNotEmpty == true ? item.otherDisplayName! : item.otherUsername;
+                final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: GlassCard(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 24,
+                          backgroundColor: AppColors.accentDim,
+                          child: Text(
+                            initial,
+                            style: GoogleFonts.outfit(
+                              color: AppColors.accentLight,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                name,
+                                style: GoogleFonts.inter(
+                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 15,
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                '@${item.otherUsername}',
+                                style: GoogleFonts.inter(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Accept request
+                            _TextActionButton(
+                              text: context.tr(ref, 'accept'),
+                              textColor: AppColors.success,
+                              backgroundColor: AppColors.success.withValues(alpha: 0.15),
+                              borderColor: AppColors.success.withValues(alpha: 0.3),
+                              onTap: () async {
+                                await ref.read(chatProvider(item.otherUserId).notifier).acceptRequest();
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(context.tr(ref, 'friendship_accepted'))),
+                                  );
+                                }
+                              },
+                            ),
+                            const SizedBox(width: 8),
+                            // Reject request
+                            _TextActionButton(
+                              text: context.tr(ref, 'reject'),
+                              textColor: AppColors.danger,
+                              backgroundColor: AppColors.danger.withValues(alpha: 0.15),
+                              borderColor: AppColors.danger.withValues(alpha: 0.3),
+                              onTap: () async {
+                                await ref.read(chatProvider(item.otherUserId).notifier).rejectRequest();
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(context.tr(ref, 'friendship_rejected'))),
+                                  );
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
     );
   }
 }
@@ -416,88 +460,110 @@ class _BlockedListTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (blocked.isEmpty) {
-      return _buildEmptyState(
-        context,
-        ref,
-        icon: Icons.block_rounded,
-        titleKey: 'no_blocked_yet',
-      );
-    }
-
-    return ListView.builder(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 150, 16, 80),
-      itemCount: blocked.length,
-      itemBuilder: (context, index) {
-        final item = blocked[index];
-        final name = item.otherDisplayName?.isNotEmpty == true ? item.otherDisplayName! : item.otherUsername;
-        final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
-
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: GlassCard(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 24,
-                  backgroundColor: AppColors.bgHover,
-                  child: Text(
-                    initial,
-                    style: GoogleFonts.outfit(
-                      color: AppColors.textSecondary,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
+    return RefreshIndicator(
+      color: Colors.white,
+      backgroundColor: AppColors.bgCard,
+      onRefresh: () async {
+        await ref.read(conversationProvider.notifier).loadConversations();
+      },
+      child: blocked.isEmpty
+          ? LayoutBuilder(
+              builder: (context, constraints) => SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
+                padding: const EdgeInsets.fromLTRB(16, 150, 16, 80),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight - 230,
+                  ),
+                  child: Center(
+                    child: _buildEmptyState(
+                      context,
+                      ref,
+                      icon: Icons.block_rounded,
+                      titleKey: 'no_blocked_yet',
                     ),
                   ),
                 ),
-                const SizedBox(width: 14),
+              ),
+            )
+          : ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(
+                parent: BouncingScrollPhysics(),
+              ),
+              padding: const EdgeInsets.fromLTRB(16, 150, 16, 80),
+              itemCount: blocked.length,
+              itemBuilder: (context, index) {
+                final item = blocked[index];
+                final name = item.otherDisplayName?.isNotEmpty == true ? item.otherDisplayName! : item.otherUsername;
+                final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
 
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        name,
-                        style: GoogleFonts.inter(
-                          color: AppColors.textPrimary,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 15,
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: GlassCard(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 24,
+                          backgroundColor: AppColors.bgHover,
+                          child: Text(
+                            initial,
+                            style: GoogleFonts.outfit(
+                              color: AppColors.textSecondary,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        '@${item.otherUsername}',
-                        style: GoogleFonts.inter(
-                          color: AppColors.textSecondary,
-                          fontSize: 12,
+                        const SizedBox(width: 14),
+
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                name,
+                                style: GoogleFonts.inter(
+                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 15,
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                '@${item.otherUsername}',
+                                style: GoogleFonts.inter(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+
+                        // Unblock Button
+                        _TextActionButton(
+                          text: context.tr(ref, 'unblock'),
+                          textColor: AppColors.textPrimary,
+                          backgroundColor: AppColors.accent.withValues(alpha: 0.25),
+                          borderColor: AppColors.accentBorder,
+                          onTap: () async {
+                            await ref.read(chatProvider(item.otherUserId).notifier).unblockUser();
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(context.tr(ref, 'user_unblocked'))),
+                              );
+                            }
+                          },
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-
-                // Unblock Button
-                _TextActionButton(
-                  text: context.tr(ref, 'unblock'),
-                  textColor: AppColors.textPrimary,
-                  backgroundColor: AppColors.accent.withValues(alpha: 0.25),
-                  borderColor: AppColors.accentBorder,
-                  onTap: () async {
-                    await ref.read(chatProvider(item.otherUserId).notifier).unblockUser();
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(context.tr(ref, 'user_unblocked'))),
-                      );
-                    }
-                  },
-                ),
-              ],
+                );
+              },
             ),
-          ),
-        );
-      },
     );
   }
 }
