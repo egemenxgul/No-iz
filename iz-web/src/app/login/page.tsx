@@ -95,6 +95,12 @@ export default function LoginPage() {
           {t('login.no_account')}{' '}
           <Link href="/register" className={styles.switchLink}>{t('login.register')}</Link>
         </p>
+
+        <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+          <Link href="/web" className={styles.switchLink} style={{ color: 'var(--text-secondary)' }}>
+            QR Kod ile Web Girişi Yap
+          </Link>
+        </div>
       </div>
     </div>
   );

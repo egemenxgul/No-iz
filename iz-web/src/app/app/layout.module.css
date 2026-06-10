@@ -3,6 +3,34 @@
   height: 100vh;
   overflow: hidden;
   background: var(--bg-base);
+  padding: 16px;
+  gap: 16px;
+  position: relative;
+}
+
+.orb1, .orb2 {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(120px);
+  z-index: 0;
+  animation: floatOrb 12s ease-in-out infinite alternate;
+}
+.orb1 {
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, var(--bg-orb-1) 0%, transparent 70%);
+  top: -200px; right: -100px;
+}
+.orb2 {
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, var(--bg-orb-2) 0%, transparent 70%);
+  bottom: -200px; left: 100px;
+  animation-delay: -6s;
+}
+
+@keyframes floatOrb {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(-50px, 30px) scale(1.1); }
 }
 
 /* ─── Sidebar ─────────────────────────────────────────────────────────────── */
@@ -12,16 +40,20 @@
   display: flex;
   flex-direction: column;
   background: var(--bg-surface);
-  border-right: 1px solid var(--border);
-  height: 100vh;
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  height: 100%;
   overflow: hidden;
+  box-shadow: var(--shadow-md);
 }
 
 .sidebarHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 20px 16px;
+  padding: 24px 20px 16px;
   border-bottom: 1px solid var(--divider);
 }
 
@@ -156,4 +188,11 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  background: var(--bg-surface);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  position: relative;
 }

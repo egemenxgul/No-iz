@@ -23,6 +23,8 @@ import 'package:iz_mobile/features/community/presentation/screens/create_communi
 import 'package:iz_mobile/features/community/presentation/screens/community_detail_screen.dart';
 import 'package:iz_mobile/features/notification/presentation/screens/notification_list_screen.dart';
 
+import 'package:iz_mobile/features/auth/presentation/screens/qr_scanner_screen.dart';
+
 void main() async {
   // Required before any async work in main().
   WidgetsFlutterBinding.ensureInitialized();
@@ -129,6 +131,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings/privacy',
         builder: (context, state) => const PrivacySettingsScreen(),
+      ),
+      GoRoute(
+        path: '/qr-scanner',
+        builder: (context, state) => const QrScannerScreen(),
       ),
       GoRoute(
         path: '/notifications',

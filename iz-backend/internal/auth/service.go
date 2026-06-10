@@ -829,6 +829,16 @@ func min(a, b int) int {
 	return b
 }
 
+// LinkWebDevice creates a new token pair for a linked web device.
+func (s *Service) LinkWebDevice(ctx context.Context, userID string) (access, refresh string, err error) {
+	var isAdmin bool
+	err = s.db.QueryRow(ctx, "SELECT is_admin FROM users WHERE id = $1", userID).Scan(&isAdmin)
+	if err != nil {
+		return "", "", err
+	}
+	return s.issueTokens(ctx, userID, "web_linked", isAdmin)
+}
+
 // ── Email Encryption & Hashing ───────────────────────────────────────────────
 
 func (s *Service) hashEmail(email string) string {

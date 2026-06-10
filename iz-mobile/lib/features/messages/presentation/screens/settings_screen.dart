@@ -156,6 +156,30 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               const SizedBox(height: 28),
 
+              // ── Web Login ────────────────────────────────────────────
+              _sectionTitle('Web Bağlantısı'),
+              _GlassSection(
+                children: [
+                  _GlassTile(
+                    leading: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF10B981), Color(0xFF047857)],
+                        ),
+                      ),
+                      child: const Icon(Icons.qr_code_scanner, color: Colors.white, size: 20),
+                    ),
+                    title: 'Web\'e Bağlan',
+                    subtitle: 'QR kod okutarak web üzerinden giriş yapın',
+                    onTap: () => context.push('/qr-scanner'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 28),
+
               // ── Backup ─────────────────────────────────────────────
               _sectionTitle(context.tr(ref, 'backup_cloud')),
               _GlassSection(

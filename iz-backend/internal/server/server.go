@@ -111,11 +111,13 @@ func (s *Server) Router() http.Handler {
 	r.Get("/api/health", auth.HealthCheck)
 
 	// Auth (no token required) — rate-limited
-	authHandler := auth.NewHandler(s.authSvc)
+	qrHub := auth.NewQRHub(s.log)
+	authHandler := auth.NewHandler(s.authSvc, qrHub)
 	r.With(registerRL.Middleware).Post("/api/auth/register", authHandler.Register)
 	r.With(loginRL.Middleware).Post("/api/auth/login", authHandler.Login)
 	r.With(loginRL.Middleware).Post("/api/auth/login/2fa", authHandler.Login2FA)
 	r.With(refreshRL.Middleware).Post("/api/auth/refresh", authHandler.RefreshToken)
+	r.Get("/ws/qr-login", authHandler.WebSocketQRAuth) // Add WS endpoint
 
 	// ── Protected routes ───────────────────────────────────────────
 	r.Group(func(r chi.Router) {
@@ -131,6 +133,9 @@ func (s *Server) Router() http.Handler {
 		r.With(searchRL.Middleware).Get("/api/users/search", authHandler.SearchUsers)
 		r.Get("/api/users/{id}/bundle", authHandler.GetUserBundle)
 		r.Post("/api/users/contacts", authHandler.MatchContacts)
+		
+		// QR Link Device (from mobile)
+		r.Post("/api/auth/qr-link", authHandler.QRLinkDevice)
 
 		// 2FA Setup
 		r.Post("/api/auth/2fa/generate", authHandler.Generate2FA)
@@ -140,7 +145,6 @@ func (s *Server) Router() http.Handler {
 		r.Post("/api/devices/register", authHandler.RegisterDevice)
 
 		// Change password & email — rate-limited
-		authHandler := auth.NewHandler(s.authSvc)
 		r.With(changePwRL.Middleware).Post("/api/auth/change-password", authHandler.ChangePassword)
 		r.With(changeEmailRL.Middleware).Post("/api/auth/change-email", authHandler.ChangeEmail)
 

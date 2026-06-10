@@ -91,7 +91,7 @@ class _ReportDialogState extends ConsumerState<ReportDialog> {
         backgroundColor: const Color(0xFF1E1E38).withOpacity(0.85),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: Colors.redAccent.withOpacity(0.2)),
+          side: BorderSide(color: Colors.redAccent.withValues(alpha: 0.2)),
         ),
         title: Row(
           children: const [

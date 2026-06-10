@@ -15,6 +15,7 @@ import 'dart:convert';
 import 'dart:async';
 import 'package:uuid/uuid.dart';
 import 'media_upload_service.dart';
+import 'package:sqflite_sqlcipher/sqflite.dart';
 
 class DecryptedMediaNotifier extends Notifier<Map<String, Uint8List>> {
   @override
@@ -554,6 +555,62 @@ class ChatNotifier extends Notifier<List<MessageModel>> {
     final repo = ref.read(messageRepositoryProvider);
     state = [...state, msg];
     await repo.saveMessage(msg);
+  }
+
+  Future<void> editMessage(String id, String newText) async {
+    try {
+      final sessionManager = ref.read(sessionManagerProvider);
+      final socket = ref.read(webSocketProvider);
+      
+      final db = await ref.read(dbProvider.future);
+      
+      // Update locally first
+      await db.update(
+        'messages',
+        {
+          'plaintext': newText,
+          'edited_at': DateTime.now().toIso8601String(),
+        },
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      
+      state = state.map((m) {
+        if (m.id == id) {
+          return m.copyWith(plaintext: newText, editedAt: DateTime.now());
+        }
+        return m;
+      }).toList();
+      
+      ref.read(conversationProvider.notifier).loadConversations();
+      
+      // Send WebSocket event
+      final controlPlaintext = jsonEncode({
+        'type': 'edit',
+        'target_message_id': id,
+        'new_text': newText,
+      });
+
+      final encryptionResult = await sessionManager.encryptMessage(
+        conversationId,
+        controlPlaintext,
+      );
+
+      if (socket != null && socket.isConnected) {
+        socket.sendMessage('send_message', {
+          'recipient_id': conversationId,
+          'ciphertext': encryptionResult['ciphertext'],
+          'msg_type': 'edit',
+          'ratchet_key': encryptionResult['ratchet_key'],
+          'prev_counter': 0,
+          'counter': encryptionResult['counter'],
+          'expires_in': 0,
+          'queue_id': const Uuid().v4(),
+        });
+      }
+    } catch (e) {
+      debugPrint('Edit error: $e');
+    }
   }
 
   Future<void> deleteMessageForMe(String id) async {

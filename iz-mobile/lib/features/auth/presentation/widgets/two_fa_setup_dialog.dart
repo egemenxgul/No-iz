@@ -168,7 +168,7 @@ class _TwoFASetupDialogState extends ConsumerState<TwoFASetupDialog> {
                             children: [
                               Text(
                                 _secret!,
-                                style: GoogleFonts.monospace(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                                style: GoogleFonts.robotoMono(color: Colors.white, fontSize: 18, letterSpacing: 2),
                               ),
                               const SizedBox(width: 8),
                               const Icon(Icons.copy, color: Colors.white70, size: 18),

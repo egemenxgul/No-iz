@@ -148,7 +148,7 @@ class _FriendsListTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return RefreshIndicator(
       color: Colors.white,
-      backgroundColor: AppColors.bgCard,
+      backgroundColor: AppColors.glassLight,
       onRefresh: () async {
         await ref.read(conversationProvider.notifier).loadConversations();
       },
@@ -327,7 +327,7 @@ class _RequestsListTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return RefreshIndicator(
       color: Colors.white,
-      backgroundColor: AppColors.bgCard,
+      backgroundColor: AppColors.glassLight,
       onRefresh: () async {
         await ref.read(conversationProvider.notifier).loadConversations();
       },
@@ -462,7 +462,7 @@ class _BlockedListTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return RefreshIndicator(
       color: Colors.white,
-      backgroundColor: AppColors.bgCard,
+      backgroundColor: AppColors.glassLight,
       onRefresh: () async {
         await ref.read(conversationProvider.notifier).loadConversations();
       },

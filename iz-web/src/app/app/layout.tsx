@@ -46,6 +46,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className={styles.shell}>
+      <div className={styles.orb1} />
+      <div className={styles.orb2} />
+      
       {/* Sidebar */}
       <aside className={styles.sidebar}>
         {/* Logo */}

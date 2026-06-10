@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -19,8 +20,37 @@ class ConversationListScreen extends StatefulWidget {
   State<ConversationListScreen> createState() => _ConversationListScreenState();
 }
 
-class _ConversationListScreenState extends State<ConversationListScreen> {
-  int _selectedTab = 0; // 0: Sohbetler, 1: Mesaj İstekleri
+class _ConversationListScreenState extends State<ConversationListScreen>
+    with SingleTickerProviderStateMixin {
+  int _selectedTab = 0;
+  late AnimationController _fadeController;
+  late Animation<double> _fadeAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 350),
+    );
+    _fadeAnim = CurvedAnimation(parent: _fadeController, curve: Curves.easeOut);
+    _fadeController.forward();
+
+    // Full edge-to-edge
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.light,
+    ));
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,178 +59,166 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
         final conversations = ref.watch(conversationProvider);
         final myUserId = ref.watch(authProvider).userId ?? '';
         final notificationsState = ref.watch(notificationsProvider);
-        final hasUnreadNotifications = notificationsState.valueOrNull?.any((n) => !n.isRead) ?? false;
+        final hasUnreadNotifications =
+            notificationsState.valueOrNull?.any((n) => !n.isRead) ?? false;
 
         Future.microtask(() {
           ref.read(contactsProvider.notifier).syncContacts();
         });
 
-        // Dynamic Filtering (excluding archived conversations)
         final activeChats = conversations.where((conv) {
-          return !conv.isArchived && (conv.friendshipStatus == 'accepted' ||
-                 conv.friendshipStatus == 'none' ||
-                 (conv.friendshipStatus == 'pending' && conv.initiatorId == myUserId));
+          return !conv.isArchived &&
+              (conv.friendshipStatus == 'accepted' ||
+                  conv.friendshipStatus == 'none' ||
+                  (conv.friendshipStatus == 'pending' &&
+                      conv.initiatorId == myUserId));
         }).toList();
 
         final messageRequests = conversations.where((conv) {
-          return !conv.isArchived && conv.friendshipStatus == 'pending' && conv.initiatorId != myUserId;
+          return !conv.isArchived &&
+              conv.friendshipStatus == 'pending' &&
+              conv.initiatorId != myUserId;
         }).toList();
 
-        final displayedList = _selectedTab == 0 ? activeChats : messageRequests;
+        final displayedList =
+            _selectedTab == 0 ? activeChats : messageRequests;
 
         return Scaffold(
-          backgroundColor: AppColors.bgBase,
+          backgroundColor: Colors.transparent,
           extendBodyBehindAppBar: true,
-          body: Stack(
-            children: [
-              // ── Ambient gradient blobs ─────────────────────────────────────
-              Positioned(
-                top: -80,
-                right: -60,
-                child: _AmbientBlob(
-                  color: AppColors.accent.withValues(alpha: 0.18),
-                  size: 280,
+          extendBody: true,
+          body: Container(
+            decoration: const BoxDecoration(
+              gradient: AppColors.backgroundGradient,
+            ),
+            child: Stack(
+              children: [
+                // ── Ambient light blobs ──────────────────────────────────
+                Positioned(
+                  top: -100,
+                  right: -80,
+                  child: LiquidAmbientBlob(
+                    color: AppColors.accent.withValues(alpha: 0.15),
+                    size: 340,
+                    blur: 70,
+                  ),
                 ),
-              ),
-              Positioned(
-                bottom: 120,
-                left: -80,
-                child: _AmbientBlob(
-                  color: AppColors.accentSecondary.withValues(alpha: 0.12),
-                  size: 240,
+                Positioned(
+                  top: 200,
+                  left: -100,
+                  child: LiquidAmbientBlob(
+                    color: AppColors.accentSecondary.withValues(alpha: 0.10),
+                    size: 280,
+                    blur: 65,
+                  ),
                 ),
-              ),
+                Positioned(
+                  bottom: 160,
+                  right: -60,
+                  child: LiquidAmbientBlob(
+                    color: const Color(0xFF06B6D4).withValues(alpha: 0.06),
+                    size: 220,
+                    blur: 60,
+                  ),
+                ),
 
-              // ── Main scroll content ────────────────────────────────────────
-              CustomScrollView(
-                physics: const BouncingScrollPhysics(),
-                slivers: [
-                  _buildAppBar(context),
-                  _buildSearchBox(context),
-                  _buildShortcuts(context),
-                  _buildTabs(context, messageRequests.length),
-                  if (displayedList.isEmpty)
-                    SliverFillRemaining(child: _buildEmptyState(context))
-                  else
-                    SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            final conv = displayedList[index];
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: _ConversationTile(conv: conv),
-                            );
-                          },
-                          childCount: displayedList.length,
-                         ),
+                // ── Main scroll ────────────────────────────────────────
+                FadeTransition(
+                  opacity: _fadeAnim,
+                  child: RefreshIndicator(
+                    color: AppColors.accent,
+                    backgroundColor: AppColors.bgElevated,
+                    onRefresh: () async {
+                      await Future.delayed(const Duration(milliseconds: 600));
+                    },
+                    child: CustomScrollView(
+                      physics: const BouncingScrollPhysics(
+                        parent: AlwaysScrollableScrollPhysics(),
                       ),
+                      slivers: [
+                        _LiquidSliverAppBar(
+                          hasUnreadNotifications: hasUnreadNotifications,
+                        ),
+                        _buildSearchBar(context),
+                        _buildShortcutStrip(context),
+                        _buildTabBar(messageRequests.length),
+                        if (displayedList.isEmpty)
+                          SliverFillRemaining(
+                            child: _EmptyStateView(isRequests: _selectedTab == 1),
+                          )
+                        else
+                          SliverPadding(
+                            padding: const EdgeInsets.fromLTRB(16, 6, 16, 120),
+                            sliver: SliverList(
+                              delegate: SliverChildBuilderDelegate(
+                                (context, i) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: _ConversationTile(conv: displayedList[i]),
+                                ),
+                                childCount: displayedList.length,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
-                ],
-              ),
-            ],
+                  ),
+                ),
+              ],
+            ),
           ),
-
-          // ── Floating Action Button ─────────────────────────────────────────
-          floatingActionButton: _GlassFAB(
-            onPressed: () => context.push('/search'),
+          floatingActionButton: LiquidFAB(
+            onTap: () => context.push('/search'),
           ),
         );
       },
     );
   }
 
-  Widget _buildAppBar(BuildContext context) {
-    return SliverAppBar(
-      floating: true,
-      backgroundColor: Colors.transparent,
-      surfaceTintColor: Colors.transparent,
-      expandedHeight: 100,
-      collapsedHeight: 70,
-      flexibleSpace: FlexibleSpaceBar(
-        titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
-        title: Text(
-          'Sohbetler',
-          style: GoogleFonts.outfit(
-            fontSize: 30,
-            fontWeight: FontWeight.w800,
-            color: AppColors.textPrimary,
-            letterSpacing: -0.8,
-          ),
-        ),
-      ),
-      actions: [
-        Padding(
-          padding: const EdgeInsets.only(right: 8, top: 8),
-          child: _GlassIconButton(
-            icon: Icons.explore_outlined,
-            onTap: () => context.push('/communities'),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(right: 8, top: 8),
-          child: _GlassIconButton(
-            icon: Icons.people_outline_rounded,
-            onTap: () => context.push('/social'),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(right: 8, top: 8),
-          child: _GlassIconButton(
-            icon: Icons.notifications_none_rounded,
-            onTap: () => context.push('/notifications'),
-            badge: hasUnreadNotifications
-                ? Positioned(
-                    top: 10,
-                    right: 10,
-                    child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.accent,
-                      ),
-                    ),
-                  )
-                : null,
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(right: 16, top: 8),
-          child: _GlassIconButton(
-            icon: Icons.settings_outlined,
-            onTap: () => context.push('/settings'),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSearchBox(BuildContext context) {
+  Widget _buildSearchBar(BuildContext context) {
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(20),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
             child: Container(
               decoration: BoxDecoration(
-                color: AppColors.glassMedium,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.glassBorder, width: 0.5),
-              ),
-              child: TextField(
-                style: const TextStyle(color: AppColors.textPrimary),
-                decoration: InputDecoration(
-                  hintText: 'Sohbetlerde ara...',
-                  hintStyle: const TextStyle(color: AppColors.textMuted),
-                  prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textMuted, size: 22),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  filled: false,
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0x22FFFFFF), Color(0x0EFFFFFF)],
                 ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.glassBorderStrong, width: 0.6),
+              ),
+              child: Row(
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(left: 16),
+                    child: Icon(Icons.search_rounded, color: AppColors.textMuted, size: 20),
+                  ),
+                  Expanded(
+                    child: TextField(
+                      style: GoogleFonts.inter(
+                        color: AppColors.textPrimary,
+                        fontSize: 15,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'Sohbetlerde ara...',
+                        hintStyle: GoogleFonts.inter(
+                          color: AppColors.textMuted,
+                          fontSize: 15,
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 15,
+                        ),
+                        filled: false,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -209,68 +227,38 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
     );
   }
 
-  Widget _buildShortcuts(BuildContext context) {
+  Widget _buildShortcutStrip(BuildContext context) {
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
         child: Row(
           children: [
             Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const StoryListScreen()),
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1E1E38).withOpacity(0.5),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.cyanAccent.withOpacity(0.15)),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(Icons.camera_alt, color: Colors.cyanAccent, size: 18),
-                      SizedBox(width: 8),
-                      Text(
-                        'Durumlar',
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
-                      ),
-                    ],
-                  ),
+              child: _ShortcutChip(
+                icon: Icons.camera_enhance_outlined,
+                label: 'Durumlar',
+                iconColor: const Color(0xFF38BDF8),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF0EA5E9), Color(0xFF06B6D4)],
+                ),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const StoryListScreen()),
                 ),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
             Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const ArchivedConversationsScreen()),
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1E1E38).withOpacity(0.5),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.purpleAccent.withOpacity(0.15)),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(Icons.archive, color: Colors.purpleAccent, size: 18),
-                      SizedBox(width: 8),
-                      Text(
-                        'Arşiv',
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
-                      ),
-                    ],
-                  ),
+              child: _ShortcutChip(
+                icon: Icons.archive_outlined,
+                label: 'Arşiv',
+                iconColor: const Color(0xFFC084FC),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF9333EA), Color(0xFF7C3AED)],
+                ),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ArchivedConversationsScreen()),
                 ),
               ),
             ),
@@ -280,88 +268,352 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
     );
   }
 
-  Widget _buildTabs(BuildContext context, int requestCount) {
+  Widget _buildTabBar(int requestCount) {
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: AppColors.glassDark.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.glassBorder, width: 0.5),
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+        child: LiquidPillTab(
+          tabs: const ['Sohbetler', 'İstekler'],
+          selectedIndex: _selectedTab,
+          badgeCount: (i) => i == 1 ? requestCount : 0,
+          onChanged: (i) => setState(() => _selectedTab = i),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Liquid Sliver App Bar
+// ─────────────────────────────────────────────────────────────────────────────
+class _LiquidSliverAppBar extends ConsumerWidget {
+  final bool hasUnreadNotifications;
+  const _LiquidSliverAppBar({required this.hasUnreadNotifications});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final top = MediaQuery.of(context).padding.top;
+
+    return SliverPersistentHeader(
+      floating: true,
+      delegate: _LiquidAppBarDelegate(
+        hasUnreadNotifications: hasUnreadNotifications,
+        topPadding: top,
+      ),
+    );
+  }
+}
+
+class _LiquidAppBarDelegate extends SliverPersistentHeaderDelegate {
+  final bool hasUnreadNotifications;
+  final double topPadding;
+
+  _LiquidAppBarDelegate({
+    required this.hasUnreadNotifications,
+    required this.topPadding,
+  });
+
+  @override
+  double get minExtent => topPadding + 62;
+  @override
+  double get maxExtent => topPadding + 110;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    final progress = (shrinkOffset / (maxExtent - minExtent)).clamp(0.0, 1.0);
+    final titleScale = 1.0 - (progress * 0.28);
+    final titleOpacity = 1.0 - (progress * 0.5);
+    final blurAmount = progress * 28.0;
+
+    return Stack(
+      children: [
+        // Frosted glass backdrop when collapsed
+        if (blurAmount > 0)
+          Positioned.fill(
+            child: ClipRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: blurAmount, sigmaY: blurAmount),
+                child: Container(
+                  color: AppColors.bgBase.withValues(alpha: progress * 0.65),
+                ),
               ),
+            ),
+          ),
+
+        // Bottom border when scrolled
+        if (progress > 0.5)
+          Positioned(
+            bottom: 0, left: 0, right: 0,
+            child: Container(
+              height: 0.5,
+              color: AppColors.glassBorder.withValues(alpha: (progress - 0.5) * 2),
+            ),
+          ),
+
+        Padding(
+          padding: EdgeInsets.only(top: topPadding),
+          child: SizedBox(
+            height: maxExtent - topPadding,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  // Title
                   Expanded(
-                    child: _TabButton(
-                      title: 'Sohbetler',
-                      isActive: _selectedTab == 0,
-                      onTap: () => setState(() => _selectedTab = 0),
+                    child: Transform.scale(
+                      scale: titleScale,
+                      alignment: Alignment.centerLeft,
+                      child: Opacity(
+                        opacity: titleOpacity.clamp(0.0, 1.0),
+                        child: Text(
+                          'iz',
+                          style: GoogleFonts.outfit(
+                            fontSize: 38,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.textPrimary,
+                            letterSpacing: -1.5,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                  Expanded(
-                    child: _TabButton(
-                      title: 'Mesaj İstekleri',
-                      isActive: _selectedTab == 1,
-                      badgeCount: requestCount,
-                      onTap: () => setState(() => _selectedTab = 1),
-                    ),
+
+                  // Action buttons
+                  Row(
+                    children: [
+                      LiquidIconButton(
+                        icon: Icons.explore_outlined,
+                        onTap: () => context.push('/communities'),
+                      ),
+                      const SizedBox(width: 8),
+                      LiquidIconButton(
+                        icon: Icons.people_outline_rounded,
+                        onTap: () => context.push('/social'),
+                      ),
+                      const SizedBox(width: 8),
+                      LiquidIconButton(
+                        icon: Icons.notifications_none_rounded,
+                        onTap: () => context.push('/notifications'),
+                        glow: hasUnreadNotifications,
+                        badge: hasUnreadNotifications
+                            ? Positioned(
+                                top: 8,
+                                right: 8,
+                                child: Container(
+                                  width: 7,
+                                  height: 7,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: AppColors.accent,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppColors.accent.withValues(alpha: 0.6),
+                                        blurRadius: 6,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            : null,
+                      ),
+                      const SizedBox(width: 8),
+                      LiquidIconButton(
+                        icon: Icons.settings_outlined,
+                        onTap: () => context.push('/settings'),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
           ),
         ),
-      ),
+      ],
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
-    final isRequests = _selectedTab == 1;
+  @override
+  bool shouldRebuild(covariant _LiquidAppBarDelegate old) =>
+      old.hasUnreadNotifications != hasUnreadNotifications ||
+      old.topPadding != topPadding;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shortcut Chip
+// ─────────────────────────────────────────────────────────────────────────────
+class _ShortcutChip extends StatefulWidget {
+  final IconData icon;
+  final String label;
+  final Color iconColor;
+  final LinearGradient gradient;
+  final VoidCallback onTap;
+
+  const _ShortcutChip({
+    required this.icon,
+    required this.label,
+    required this.iconColor,
+    required this.gradient,
+    required this.onTap,
+  });
+
+  @override
+  State<_ShortcutChip> createState() => _ShortcutChipState();
+}
+
+class _ShortcutChipState extends State<_ShortcutChip>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 100));
+    _scale = Tween<double>(begin: 1.0, end: 0.93).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        widget.onTap();
+      },
+      onTapDown: (_) => _ctrl.forward(),
+      onTapUp: (_) => _ctrl.reverse(),
+      onTapCancel: () => _ctrl.reverse(),
+      child: AnimatedBuilder(
+        animation: _ctrl,
+        builder: (ctx, child) => Transform.scale(scale: _scale.value, child: child),
+        child: Stack(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(18),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0x20FFFFFF), Color(0x0CFFFFFF)],
+                    ),
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: AppColors.glassBorderStrong,
+                      width: 0.6,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 26,
+                        height: 26,
+                        decoration: BoxDecoration(
+                          gradient: widget.gradient,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(widget.icon, color: Colors.white, size: 14),
+                      ),
+                      const SizedBox(width: 9),
+                      Text(
+                        widget.label,
+                        style: GoogleFonts.inter(
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13.5,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            // Specular top
+            Positioned(
+              top: 0, left: 8, right: 8,
+              child: Container(
+                height: 0.7,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Colors.transparent, AppColors.specularTop, Colors.transparent],
+                  ),
+                  borderRadius: BorderRadius.circular(1),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Empty State
+// ─────────────────────────────────────────────────────────────────────────────
+class _EmptyStateView extends StatelessWidget {
+  final bool isRequests;
+  const _EmptyStateView({required this.isRequests});
+
+  @override
+  Widget build(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          GlassCard(
-            padding: const EdgeInsets.all(28),
-            borderRadius: 30,
-            tintOpacity: 0.07,
+          LiquidGlassCard(
+            padding: const EdgeInsets.all(26),
+            borderRadius: 32,
+            tintOpacity: 0.06,
+            showPrismatic: true,
             child: Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: LinearGradient(
                   colors: [
-                    AppColors.accent.withValues(alpha: 0.3),
-                    AppColors.accentSecondary.withValues(alpha: 0.2),
+                    AppColors.accent.withValues(alpha: 0.28),
+                    AppColors.accentSecondary.withValues(alpha: 0.18),
                   ],
                 ),
               ),
               child: Icon(
-                isRequests ? Icons.mark_email_unread_outlined : Icons.chat_bubble_outline_rounded,
-                size: 44,
-                color: AppColors.accentLight,
+                isRequests
+                    ? Icons.mark_email_unread_outlined
+                    : Icons.chat_bubble_outline_rounded,
+                size: 42,
+                color: AppColors.accentGlow,
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 22),
           Text(
-            isRequests ? 'Mesaj isteği yok' : 'Henüz mesajınız yok',
+            isRequests ? 'Mesaj isteği yok' : 'Henüz sohbet yok',
             style: GoogleFonts.outfit(
               fontSize: 22,
               fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
-              letterSpacing: -0.3,
+              letterSpacing: -0.4,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            isRequests ? 'Yeni istekler burada görünecektir.' : 'Yeni bir sohbet başlatmak için tıkla.',
+            isRequests
+                ? 'Yeni istekler burada görünecektir.'
+                : 'Yeni bir sohbet başlatmak için + tıkla.',
             style: GoogleFonts.inter(
               color: AppColors.textSecondary,
               fontSize: 15,
@@ -373,84 +625,43 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
   }
 }
 
-class _TabButton extends StatelessWidget {
-  final String title;
-  final bool isActive;
-  final int badgeCount;
-  final VoidCallback onTap;
-
-  const _TabButton({
-    required this.title,
-    required this.isActive,
-    this.badgeCount = 0,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeInOut,
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: isActive ? AppColors.accent.withValues(alpha: 0.25) : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-          border: isActive
-              ? Border.all(color: AppColors.accentBorder.withValues(alpha: 0.5), width: 0.5)
-              : null,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              title,
-              style: GoogleFonts.inter(
-                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                color: isActive ? AppColors.textPrimary : AppColors.textSecondary,
-                fontSize: 14,
-              ),
-            ),
-            if (badgeCount > 0) ...[
-              const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.accent,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.accent.withValues(alpha: 0.4),
-                      blurRadius: 6,
-                    ),
-                  ],
-                ),
-                child: Text(
-                  '$badgeCount',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Conversation Tile ────────────────────────────────────────────────────────
-
-class _ConversationTile extends ConsumerWidget {
+// ─────────────────────────────────────────────────────────────────────────────
+// Conversation Tile — Liquid Glass
+// ─────────────────────────────────────────────────────────────────────────────
+class _ConversationTile extends ConsumerStatefulWidget {
   final dynamic conv;
   const _ConversationTile({required this.conv});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_ConversationTile> createState() => _ConversationTileState();
+}
+
+class _ConversationTileState extends ConsumerState<_ConversationTile>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _pressCtrl;
+  late Animation<double> _pressScale;
+
+  @override
+  void initState() {
+    super.initState();
+    _pressCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 100),
+    );
+    _pressScale = Tween<double>(begin: 1.0, end: 0.96).animate(
+      CurvedAnimation(parent: _pressCtrl, curve: Curves.easeOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pressCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final conv = widget.conv;
     final contactsState = ref.watch(contactsProvider);
 
     String displayName = conv.otherDisplayName ?? conv.otherUsername;
@@ -464,241 +675,213 @@ class _ConversationTile extends ConsumerWidget {
     final hasUnread = conv.unreadCount > 0;
     final initial = displayName.isNotEmpty ? displayName[0].toUpperCase() : '?';
 
-    return Dismissible(
-      key: Key(conv.id),
-      background: Container(
-        decoration: BoxDecoration(
-          color: Colors.teal.withOpacity(0.8),
-          borderRadius: BorderRadius.circular(22),
+    return AnimatedBuilder(
+      animation: _pressCtrl,
+      builder: (ctx, child) => Transform.scale(scale: _pressScale.value, child: child),
+      child: Dismissible(
+        key: Key(conv.id),
+        background: _DismissBackground(
+          icon: Icons.volume_off_rounded,
+          label: conv.isMuted ? 'Sesi Aç' : 'Sessize Al',
+          color: const Color(0xFF0891B2),
+          alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.only(left: 22),
         ),
-        alignment: Alignment.centerLeft,
-        padding: const EdgeInsets.only(left: 20),
-        child: Row(
-          children: const [
-            Icon(Icons.volume_off, color: Colors.white),
-            SizedBox(width: 8),
-            Text('Sessize Al / Aç', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          ],
+        secondaryBackground: _DismissBackground(
+          icon: Icons.archive_outlined,
+          label: 'Arşivle',
+          color: const Color(0xFF7C3AED),
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.only(right: 22),
         ),
-      ),
-      secondaryBackground: Container(
-        decoration: BoxDecoration(
-          color: Colors.purple.withOpacity(0.8),
-          borderRadius: BorderRadius.circular(22),
-        ),
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: const [
-            Text('Arşivle', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            SizedBox(width: 8),
-            Icon(Icons.archive, color: Colors.white),
-          ],
-        ),
-      ),
-      confirmDismiss: (direction) async {
-        if (direction == DismissDirection.endToStart) {
-          // Archive
-          await ref.read(conversationProvider.notifier).toggleArchive(conv.otherUserId);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('${displayName} arşivlendi'),
-              action: SnackBarAction(
-                label: 'Geri Al',
-                textColor: Colors.cyanAccent,
-                onPressed: () {
-                  ref.read(conversationProvider.notifier).toggleArchive(conv.otherUserId);
-                },
-              ),
-            ),
-          );
-          return true;
-        } else {
-          // Mute
-          await ref.read(conversationProvider.notifier).toggleMute(conv.otherUserId);
-          final isMutedNow = !conv.isMuted;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('${displayName} ${isMutedNow ? 'sessize alındı' : 'sesi açıldı'}'),
-            ),
-          );
-          return false; // Do not dismiss from view
-        }
-      },
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(22),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () => context.push('/app/messages/${conv.otherUserId}'),
-              borderRadius: BorderRadius.circular(22),
-              splashColor: AppColors.accent.withValues(alpha: 0.06),
-              highlightColor: AppColors.glassLight,
-              child: Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: hasUnread
-                      ? AppColors.accentDim.withValues(alpha: 0.25)
-                      : AppColors.glassLight,
-                  borderRadius: BorderRadius.circular(22),
-                  border: Border.all(
-                    color: hasUnread ? AppColors.accentBorder : AppColors.glassBorder,
-                    width: 0.5,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    // Avatar with status dot
-                    Stack(
-                      children: [
-                        Container(
-                          width: 54,
-                          height: 54,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: conv.isGroup
-                                  ? [
-                                      Colors.purpleAccent.withValues(alpha: 0.7),
-                                      Colors.deepPurple.withValues(alpha: 0.6),
-                                    ]
-                                  : [
-                                      AppColors.accent.withValues(alpha: 0.6),
-                                      AppColors.accentSecondary.withValues(alpha: 0.5),
-                                    ],
+        confirmDismiss: (direction) async {
+          if (direction == DismissDirection.endToStart) {
+            await ref.read(conversationProvider.notifier).toggleArchive(conv.otherUserId);
+            if (context.mounted) {
+              _showLiquidSnackbar(context, '$displayName arşivlendi', () {
+                ref.read(conversationProvider.notifier).toggleArchive(conv.otherUserId);
+              });
+            }
+            return true;
+          } else {
+            await ref.read(conversationProvider.notifier).toggleMute(conv.otherUserId);
+            final isMutedNow = !conv.isMuted;
+            if (context.mounted) {
+              _showLiquidSnackbar(
+                context,
+                '$displayName ${isMutedNow ? 'sessize alındı' : 'sesi açıldı'}',
+                null,
+              );
+            }
+            return false;
+          }
+        },
+        child: GestureDetector(
+          onTapDown: (_) {
+            HapticFeedback.selectionClick();
+            _pressCtrl.forward();
+          },
+          onTapUp: (_) {
+            _pressCtrl.reverse();
+            context.push('/app/messages/${conv.otherUserId}');
+          },
+          onTapCancel: () => _pressCtrl.reverse(),
+          child: Stack(
+            children: [
+              // Glass tile body
+              ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      gradient: hasUnread
+                          ? LinearGradient(
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: (conv.isGroup ? Colors.deepPurple : AppColors.accent).withValues(alpha: 0.25),
-                                blurRadius: 12,
-                                spreadRadius: 0,
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child: conv.isGroup
-                                ? const Icon(Icons.group_rounded, color: Colors.white, size: 26)
-                                : Text(
-                                    initial,
-                                    style: GoogleFonts.outfit(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 22,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                        if (!conv.isGroup && conv.isOnline)
-                          Positioned(
-                            right: 2,
-                            bottom: 2,
-                            child: Container(
-                              width: 13,
-                              height: 13,
-                              decoration: BoxDecoration(
-                                color: AppColors.success,
-                                shape: BoxShape.circle,
-                                border: Border.all(color: AppColors.bgBase, width: 2),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
- 
-                    const SizedBox(width: 14),
- 
-                    // Name & preview
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    displayName,
-                                    style: GoogleFonts.inter(
-                                      fontWeight: hasUnread ? FontWeight.w700 : FontWeight.w600,
-                                      fontSize: 16,
-                                      color: AppColors.textPrimary,
-                                    ),
-                                  ),
-                                  if (conv.isMuted) ...[
-                                    const SizedBox(width: 6),
-                                    const Icon(Icons.volume_off, color: AppColors.textMuted, size: 16),
-                                  ],
-                                ],
-                              ),
-                              if (conv.lastMessageAt != null)
-                                Text(
-                                  _formatTime(conv.lastMessageAt),
-                                  style: TextStyle(
-                                    color: hasUnread ? AppColors.accentLight : AppColors.textMuted,
-                                    fontSize: 12,
-                                    fontWeight: hasUnread ? FontWeight.w600 : FontWeight.normal,
-                                  ),
-                                ),
-                            ],
-                          ),
-                          const SizedBox(height: 5),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  conv.lastMessage ?? 'Henüz mesaj yok',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    color: hasUnread
-                                        ? AppColors.textPrimary
-                                        : AppColors.textSecondary,
-                                    fontSize: 14,
-                                    fontWeight: hasUnread ? FontWeight.w500 : FontWeight.normal,
-                                  ),
-                                ),
-                              ),
-                              if (hasUnread) ...[
-                                const SizedBox(width: 8),
-                                Container(
-                                  constraints: const BoxConstraints(minWidth: 22),
-                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                                  decoration: BoxDecoration(
-                                    gradient: const LinearGradient(
-                                      colors: [AppColors.accent, AppColors.accentSecondary],
-                                    ),
-                                    borderRadius: BorderRadius.circular(12),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: AppColors.accent.withValues(alpha: 0.4),
-                                        blurRadius: 8,
-                                      ),
-                                    ],
-                                  ),
-                                  child: Text(
-                                    '${conv.unreadCount}',
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                ),
+                              colors: [
+                                AppColors.accent.withValues(alpha: 0.16),
+                                AppColors.accentSecondary.withValues(alpha: 0.08),
                               ],
-                            ],
-                          ),
-                        ],
+                            )
+                          : const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Color(0x1AFFFFFF),
+                                Color(0x08FFFFFF),
+                              ],
+                            ),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: hasUnread
+                            ? AppColors.accentBorder.withValues(alpha: 0.6)
+                            : AppColors.glassBorder,
+                        width: 0.6,
                       ),
                     ),
-                  ],
+                    child: Row(
+                      children: [
+                        _LiquidAvatar(
+                          initial: initial,
+                          isGroup: conv.isGroup,
+                          isOnline: !conv.isGroup && conv.isOnline,
+                          hasUnread: hasUnread,
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: _TileContent(
+                            displayName: displayName,
+                            lastMessage: conv.lastMessage,
+                            lastMessageAt: conv.lastMessageAt,
+                            unreadCount: conv.unreadCount,
+                            isMuted: conv.isMuted,
+                            hasUnread: hasUnread,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
+              ),
+
+              // Specular top edge
+              Positioned(
+                top: 0, left: 10, right: 10,
+                child: Container(
+                  height: 0.7,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Colors.transparent, AppColors.specularTop, Colors.transparent],
+                    ),
+                    borderRadius: BorderRadius.circular(1),
+                  ),
+                ),
+              ),
+
+              // Unread glow pulse
+              if (hasUnread)
+                Positioned(
+                  right: 12,
+                  bottom: 12,
+                  child: Container(
+                    constraints: const BoxConstraints(minWidth: 22),
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    decoration: BoxDecoration(
+                      gradient: AppColors.accentGradient,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.accent.withValues(alpha: 0.45),
+                          blurRadius: 10,
+                          spreadRadius: 0,
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      '${conv.unreadCount}',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showLiquidSnackbar(BuildContext context, String message, VoidCallback? onUndo) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        content: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0x28FFFFFF), Color(0x10FFFFFF)],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.glassBorderStrong, width: 0.6),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      message,
+                      style: GoogleFonts.inter(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                  if (onUndo != null)
+                    GestureDetector(
+                      onTap: onUndo,
+                      child: Text(
+                        'Geri Al',
+                        style: GoogleFonts.inter(
+                          color: AppColors.accentLight,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
           ),
@@ -706,6 +889,127 @@ class _ConversationTile extends ConsumerWidget {
       ),
     );
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Liquid Avatar
+// ─────────────────────────────────────────────────────────────────────────────
+class _LiquidAvatar extends StatelessWidget {
+  final String initial;
+  final bool isGroup;
+  final bool isOnline;
+  final bool hasUnread;
+
+  const _LiquidAvatar({
+    required this.initial,
+    required this.isGroup,
+    required this.isOnline,
+    required this.hasUnread,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        // Outer glow for unread
+        if (hasUnread)
+          Container(
+            width: 58,
+            height: 58,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: (isGroup ? const Color(0xFF7C3AED) : AppColors.accent)
+                      .withValues(alpha: 0.35),
+                  blurRadius: 16,
+                  spreadRadius: 0,
+                ),
+              ],
+            ),
+          ),
+        // Avatar body
+        Container(
+          width: 54,
+          height: 54,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              colors: isGroup
+                  ? [
+                      const Color(0xFF9333EA).withValues(alpha: 0.8),
+                      const Color(0xFF6D28D9).withValues(alpha: 0.7),
+                    ]
+                  : [
+                      AppColors.accent.withValues(alpha: 0.7),
+                      AppColors.accentSecondary.withValues(alpha: 0.6),
+                    ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            border: Border.all(
+              color: hasUnread ? AppColors.accentBorder : AppColors.glassBorder,
+              width: 1.0,
+            ),
+          ),
+          child: Center(
+            child: isGroup
+                ? const Icon(Icons.group_rounded, color: Colors.white, size: 26)
+                : Text(
+                    initial,
+                    style: GoogleFonts.outfit(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 22,
+                    ),
+                  ),
+          ),
+        ),
+        // Online dot
+        if (isOnline)
+          Positioned(
+            right: 1,
+            bottom: 1,
+            child: Container(
+              width: 13,
+              height: 13,
+              decoration: BoxDecoration(
+                color: AppColors.success,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.bgBase, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.success.withValues(alpha: 0.5),
+                    blurRadius: 6,
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tile Content
+// ─────────────────────────────────────────────────────────────────────────────
+class _TileContent extends StatelessWidget {
+  final String displayName;
+  final String? lastMessage;
+  final DateTime? lastMessageAt;
+  final int unreadCount;
+  final bool isMuted;
+  final bool hasUnread;
+
+  const _TileContent({
+    required this.displayName,
+    required this.lastMessage,
+    required this.lastMessageAt,
+    required this.unreadCount,
+    required this.isMuted,
+    required this.hasUnread,
+  });
 
   String _formatTime(DateTime date) {
     final now = DateTime.now();
@@ -714,101 +1018,105 @@ class _ConversationTile extends ConsumerWidget {
     }
     return '${date.day}/${date.month}';
   }
-}
-
-// ─── Supporting Widgets ───────────────────────────────────────────────────────
-
-class _GlassFAB extends StatelessWidget {
-  final VoidCallback onPressed;
-  const _GlassFAB({required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(22),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-          child: Container(
-            width: 58,
-            height: 58,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [AppColors.accent, AppColors.accentSecondary],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(22),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.accent.withValues(alpha: 0.45),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: const Icon(Icons.edit_note_rounded, color: Colors.white, size: 26),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _GlassIconButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-  final Widget? badge;
-  const _GlassIconButton({required this.icon, required this.onTap, this.badge});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(14),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: AppColors.glassMedium,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.glassBorder, width: 0.5),
-            ),
-            child: Stack(
-              alignment: Alignment.center,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
               children: [
-                Icon(icon, color: AppColors.textSecondary, size: 21),
-                if (badge != null) badge!,
+                Text(
+                  displayName,
+                  style: GoogleFonts.inter(
+                    fontWeight: hasUnread ? FontWeight.w700 : FontWeight.w600,
+                    fontSize: 15.5,
+                    color: AppColors.textPrimary,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                if (isMuted) ...[
+                  const SizedBox(width: 5),
+                  const Icon(Icons.volume_off_rounded,
+                      color: AppColors.textMuted, size: 14),
+                ],
               ],
             ),
+            if (lastMessageAt != null)
+              Text(
+                _formatTime(lastMessageAt!),
+                style: GoogleFonts.inter(
+                  color: hasUnread ? AppColors.accentLight : AppColors.textMuted,
+                  fontSize: 12,
+                  fontWeight: hasUnread ? FontWeight.w600 : FontWeight.w400,
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 5),
+        Text(
+          lastMessage ?? 'Henüz mesaj yok',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.inter(
+            color: hasUnread ? AppColors.textPrimary : AppColors.textSecondary,
+            fontSize: 13.5,
+            fontWeight: hasUnread ? FontWeight.w500 : FontWeight.w400,
           ),
         ),
-      ),
+      ],
     );
   }
 }
 
-class _AmbientBlob extends StatelessWidget {
+// ─────────────────────────────────────────────────────────────────────────────
+// Dismiss Background
+// ─────────────────────────────────────────────────────────────────────────────
+class _DismissBackground extends StatelessWidget {
+  final IconData icon;
+  final String label;
   final Color color;
-  final double size;
-  const _AmbientBlob({required this.color, required this.size});
+  final Alignment alignment;
+  final EdgeInsetsGeometry padding;
+
+  const _DismissBackground({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.alignment,
+    required this.padding,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: size,
-      height: size,
       decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: color,
+        gradient: LinearGradient(
+          colors: [color.withValues(alpha: 0.85), color.withValues(alpha: 0.65)],
+          begin: alignment == Alignment.centerLeft ? Alignment.centerLeft : Alignment.centerRight,
+          end: alignment == Alignment.centerLeft ? Alignment.centerRight : Alignment.centerLeft,
+        ),
+        borderRadius: BorderRadius.circular(24),
       ),
-      child: ImageFiltered(
-        imageFilter: ImageFilter.blur(sigmaX: 60, sigmaY: 60),
-        child: Container(color: color),
+      alignment: alignment,
+      padding: padding,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: Colors.white, size: 20),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+            ),
+          ),
+        ],
       ),
     );
   }

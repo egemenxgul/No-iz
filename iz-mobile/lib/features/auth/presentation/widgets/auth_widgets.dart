@@ -129,12 +129,14 @@ class IzButton extends StatefulWidget {
   final String label;
   final VoidCallback onPressed;
   final bool isLoading;
+  final bool isOutlined;
 
   const IzButton({
     super.key,
     required this.label,
     required this.onPressed,
     this.isLoading = false,
+    this.isOutlined = false,
   });
 
   @override
@@ -183,14 +185,17 @@ class _IzButtonState extends State<IzButton> with SingleTickerProviderStateMixin
             gradient: LinearGradient(
               colors: widget.isLoading
                   ? [AppColors.bgHover, AppColors.bgHover]
-                  : [
-                      AppColors.accent,
-                      AppColors.accentSecondary,
-                    ],
+                  : widget.isOutlined
+                      ? [Colors.transparent, Colors.transparent]
+                      : [
+                          AppColors.accent,
+                          AppColors.accentSecondary,
+                        ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            boxShadow: widget.isLoading
+            border: widget.isOutlined ? Border.all(color: AppColors.glassBorder, width: 1.5) : null,
+            boxShadow: widget.isLoading || widget.isOutlined
                 ? []
                 : [
                     BoxShadow(
@@ -202,18 +207,18 @@ class _IzButtonState extends State<IzButton> with SingleTickerProviderStateMixin
           ),
           child: Center(
             child: widget.isLoading
-                ? const SizedBox(
+                ? SizedBox(
                     height: 24,
                     width: 24,
                     child: CircularProgressIndicator(
                       strokeWidth: 2.5,
-                      color: Colors.white,
+                      color: widget.isOutlined ? AppColors.accent : Colors.white,
                     ),
                   )
                 : Text(
                     widget.label,
                     style: GoogleFonts.inter(
-                      color: Colors.white,
+                      color: widget.isOutlined ? AppColors.textPrimary : Colors.white,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 0.5,

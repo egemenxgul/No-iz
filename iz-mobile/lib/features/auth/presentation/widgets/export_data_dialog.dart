@@ -95,7 +95,7 @@ class _ExportDataDialogState extends ConsumerState<ExportDataDialog> {
                         child: SingleChildScrollView(
                           child: Text(
                             _dataSummary!,
-                            style: GoogleFonts.monospace(color: Colors.white, fontSize: 11),
+                            style: GoogleFonts.robotoMono(color: Colors.white, fontSize: 11),
                           ),
                         ),
                       ),

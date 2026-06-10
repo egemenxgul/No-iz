@@ -7,6 +7,9 @@ import '../../../core/network/webrtc_service.dart';
 import '../../../core/network/websocket_provider.dart';
 import '../models/call_session.dart';
 import '../../messages/providers/chat_provider.dart';
+import '../../auth/providers/auth_provider.dart';
+import '../../messages/providers/message_model.dart';
+import '../../messages/providers/message_repository.dart';
 
 final webrtcServiceProvider = Provider<WebrtcService>((ref) {
   final service = WebrtcService();

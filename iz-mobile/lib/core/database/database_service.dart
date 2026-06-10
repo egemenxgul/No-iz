@@ -49,7 +49,7 @@ class DatabaseService {
 
     return await openDatabase(
       path,
-      version: 8,
+      version: 9,
       password: dbKey, // SQLCipher encryption
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
@@ -87,6 +87,8 @@ class DatabaseService {
         plaintext TEXT,
         msg_type TEXT NOT NULL,
         ratchet_key TEXT,
+        alice_identity_key TEXT,
+        alice_ephemeral_key TEXT,
         prev_counter INTEGER,
         counter INTEGER,
         created_at TEXT NOT NULL,
@@ -96,6 +98,7 @@ class DatabaseService {
         edited_at TEXT,
         reactions TEXT,
         is_pinned INTEGER DEFAULT 0,
+        sender_name TEXT,
         FOREIGN KEY (conversation_id) REFERENCES conversations (id)
       )
     ''');
@@ -217,6 +220,15 @@ class DatabaseService {
         await db.execute("ALTER TABLE messages ADD COLUMN edited_at TEXT");
       } catch (e) {
         debugPrint("SQLite version 7 upgrade warning: $e");
+      }
+    }
+    if (oldVersion < 9) {
+      try {
+        await db.execute("ALTER TABLE messages ADD COLUMN alice_identity_key TEXT");
+        await db.execute("ALTER TABLE messages ADD COLUMN alice_ephemeral_key TEXT");
+        await db.execute("ALTER TABLE messages ADD COLUMN sender_name TEXT");
+      } catch (e) {
+        debugPrint('SQLite version 9 upgrade warning: $e');
       }
     }
     if (oldVersion < 8) {

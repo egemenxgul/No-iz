@@ -17,32 +17,33 @@ class AppTheme {
         error: AppColors.danger,
       ),
 
-      // ─── Typography (SF Pro style via Inter + Outfit) ──────────────────
+      // ─── Typography ────────────────────────────────────────────────────
       textTheme: GoogleFonts.interTextTheme(
         const TextTheme(
           displayLarge: TextStyle(
             color: AppColors.textPrimary,
             fontWeight: FontWeight.w800,
-            letterSpacing: -1.0,
+            letterSpacing: -1.2,
           ),
           displayMedium: TextStyle(
             color: AppColors.textPrimary,
             fontWeight: FontWeight.w700,
-            letterSpacing: -0.8,
+            letterSpacing: -0.9,
           ),
           headlineLarge: TextStyle(
             color: AppColors.textPrimary,
             fontWeight: FontWeight.w700,
-            letterSpacing: -0.5,
+            letterSpacing: -0.6,
           ),
           headlineMedium: TextStyle(
             color: AppColors.textPrimary,
             fontWeight: FontWeight.w600,
+            letterSpacing: -0.3,
           ),
           titleLarge: TextStyle(
             color: AppColors.textPrimary,
             fontWeight: FontWeight.w600,
-            letterSpacing: -0.3,
+            letterSpacing: -0.4,
           ),
           bodyLarge: TextStyle(color: AppColors.textPrimary),
           bodyMedium: TextStyle(color: AppColors.textSecondary),
@@ -54,7 +55,7 @@ class AppTheme {
         ),
       ),
 
-      // ─── AppBar ────────────────────────────────────────────────────────
+      // ─── AppBar — fully transparent, edge-to-edge ────────────────────
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -64,10 +65,16 @@ class AppTheme {
           color: AppColors.textPrimary,
           fontSize: 20,
           fontWeight: FontWeight.w700,
-          letterSpacing: -0.4,
+          letterSpacing: -0.5,
         ),
         iconTheme: const IconThemeData(color: AppColors.textSecondary),
-        systemOverlayStyle: SystemUiOverlayStyle.light,
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          systemNavigationBarColor: Colors.transparent,
+          systemNavigationBarIconBrightness: Brightness.light,
+          systemNavigationBarDividerColor: Colors.transparent,
+        ),
       ),
 
       // ─── Input Decoration ──────────────────────────────────────────────
@@ -77,11 +84,11 @@ class AppTheme {
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: AppColors.glassBorder, width: 1),
+          borderSide: const BorderSide(color: AppColors.glassBorder, width: 0.6),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: AppColors.glassBorder, width: 1),
+          borderSide: const BorderSide(color: AppColors.glassBorder, width: 0.6),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
@@ -124,10 +131,11 @@ class AppTheme {
         thickness: 0.5,
       ),
 
-      // ─── Bottom Sheet ──────────────────────────────────────────────────
+      // ─── Bottom Sheet — liquid glass ───────────────────────────────────
       bottomSheetTheme: BottomSheetThemeData(
-        backgroundColor: AppColors.bgElevated,
-        modalBarrierColor: Colors.black.withValues(alpha: 0.6),
+        backgroundColor: Colors.transparent,
+        modalBackgroundColor: Colors.transparent,
+        modalBarrierColor: Colors.black.withValues(alpha: 0.55),
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
@@ -139,7 +147,7 @@ class AppTheme {
         color: AppColors.bgSurface,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(24),
           side: const BorderSide(color: AppColors.glassBorder, width: 0.5),
         ),
       ),
@@ -147,7 +155,7 @@ class AppTheme {
       // ─── Chip ──────────────────────────────────────────────────────────
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.glassLight,
-        side: const BorderSide(color: AppColors.glassBorder),
+        side: const BorderSide(color: AppColors.glassBorder, width: 0.5),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
 

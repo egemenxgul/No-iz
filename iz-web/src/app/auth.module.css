@@ -1,4 +1,4 @@
-/* Auth pages shared styles */
+/* Auth pages shared styles - Liquid Glass Premium */
 .page {
   min-height: 100vh;
   display: flex;
@@ -7,6 +7,7 @@
   padding: 24px;
   position: relative;
   overflow: hidden;
+  background: radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.15) 0%, transparent 70%);
 }
 
 .themeToggleContainer {
@@ -14,85 +15,98 @@
   top: 24px;
   right: 24px;
   z-index: 100;
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
 .orb1, .orb2 {
   position: fixed;
   border-radius: 50%;
   pointer-events: none;
-  filter: blur(80px);
+  filter: blur(100px);
   z-index: 0;
+  animation: floatOrb 10s ease-in-out infinite alternate;
 }
 .orb1 {
-  width: 500px; height: 500px;
+  width: 600px; height: 600px;
   background: radial-gradient(circle, var(--bg-orb-1) 0%, transparent 70%);
-  top: -200px; left: -100px;
+  top: -200px; left: -200px;
+  animation-delay: 0s;
 }
 .orb2 {
-  width: 350px; height: 350px;
+  width: 500px; height: 500px;
   background: radial-gradient(circle, var(--bg-orb-2) 0%, transparent 70%);
-  bottom: -100px; right: -100px;
+  bottom: -150px; right: -150px;
+  animation-delay: -5s;
+}
+
+@keyframes floatOrb {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(50px, 50px) scale(1.1); }
 }
 
 .card {
   position: relative;
   z-index: 10;
   width: 100%;
-  max-width: 420px;
+  max-width: 440px;
   background: var(--bg-card);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(40px) saturate(150%);
+  -webkit-backdrop-filter: blur(40px) saturate(150%);
   border: 1px solid var(--border-strong);
-  border-radius: 24px;
-  padding: 40px;
-  box-shadow: var(--shadow-lg), 0 0 60px rgba(37,99,235,0.06);
-  animation: scaleIn 250ms ease forwards;
+  border-radius: var(--radius-xl);
+  padding: 48px;
+  box-shadow: var(--shadow-lg), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  animation: scaleIn var(--transition-bounce) forwards;
 }
 
 .cardHeader {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 36px;
 }
 
 .logo {
   display: inline-block;
-  font-size: 32px;
+  font-size: 38px;
   font-weight: 800;
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  background: linear-gradient(135deg, var(--accent-glow), var(--accent));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  letter-spacing: -1px;
+  letter-spacing: -1.5px;
   margin-bottom: 16px;
+  filter: drop-shadow(0 2px 8px rgba(139, 92, 246, 0.3));
 }
 
 .title {
-  font-size: 22px;
-  font-weight: 700;
+  font-size: 26px;
+  font-weight: 800;
   color: var(--text-primary);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
 }
 
 .subtitle {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--text-muted);
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .label {
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
   color: var(--text-secondary);
   display: flex;
   align-items: center;
@@ -101,11 +115,11 @@
 
 .labelBadge {
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   background: var(--accent-dim);
   color: var(--accent-glow);
   border: 1px solid var(--accent-border);
-  padding: 2px 8px;
+  padding: 3px 10px;
   border-radius: var(--radius-full);
 }
 
@@ -114,16 +128,17 @@
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 12px 14px;
-  font-size: 14px;
+  padding: 14px 16px;
+  font-size: 15px;
   color: var(--text-primary);
   outline: none;
-  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+  transition: all var(--transition-base);
 }
-.input::placeholder { color: var(--text-muted); }
+.input::placeholder { color: var(--text-muted); font-weight: 400; }
 .input:focus {
+  background: var(--bg-hover);
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  box-shadow: 0 0 0 4px var(--accent-dim);
 }
 
 .inputAccent {
@@ -131,25 +146,26 @@
 }
 .inputAccent:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 0 0 4px var(--accent-dim);
 }
 
 .error {
   background: var(--danger-dim);
   border: 1px solid rgba(239,68,68,0.3);
   color: var(--danger);
-  font-size: 13px;
-  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 12px 16px;
   border-radius: var(--radius-md);
 }
 
 .submitBtn {
   width: 100%;
-  background: linear-gradient(135deg, var(--accent), #2563eb);
+  background: linear-gradient(135deg, var(--accent), var(--accent-glow));
   color: white;
-  font-size: 15px;
-  font-weight: 600;
-  padding: 13px;
+  font-size: 16px;
+  font-weight: 700;
+  padding: 14px;
   border-radius: var(--radius-md);
   border: none;
   cursor: pointer;
@@ -157,37 +173,58 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 46px;
-  margin-top: 4px;
-  box-shadow: 0 4px 16px rgba(37,99,235,0.3);
+  min-height: 52px;
+  margin-top: 8px;
+  box-shadow: 0 4px 20px var(--accent-dim);
+  position: relative;
+  overflow: hidden;
 }
+
+.submitBtn::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%; width: 50%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transform: skewX(-20deg);
+  transition: all 0.5s ease;
+}
+
 .submitBtn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 24px rgba(37,99,235,0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 28px var(--accent-border);
 }
+
+.submitBtn:hover:not(:disabled)::after {
+  left: 150%;
+}
+
 .submitBtn:disabled {
-  opacity: 0.7;
+  opacity: 0.6;
   cursor: not-allowed;
   transform: none;
 }
 
 .spinner {
-  width: 18px; height: 18px;
-  border: 2px solid rgba(255,255,255,0.3);
+  width: 20px; height: 20px;
+  border: 3px solid rgba(255,255,255,0.3);
   border-top-color: white;
   border-radius: 50%;
-  animation: spin 0.7s linear infinite;
+  animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 .switchText {
   text-align: center;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-muted);
-  margin-top: 20px;
+  margin-top: 24px;
 }
 .switchLink {
-  color: var(--accent-glow);
-  font-weight: 500;
-  transition: color var(--transition-base);
+  color: var(--text-primary);
+  font-weight: 600;
+  transition: color var(--transition-fast);
+  margin-left: 4px;
 }
-.switchLink:hover { color: var(--accent-hover); }
+.switchLink:hover {
+  color: var(--accent-hover);
+  text-shadow: 0 0 12px var(--accent-dim);
+}

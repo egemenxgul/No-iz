@@ -267,7 +267,7 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
             backgroundColor: AppColors.bgSurface.withOpacity(0.9),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: AppColors.glassBorder, width: 0.5),
+              side: BorderSide(color: AppColors.glassBorder, width: 0.5),
             ),
             title: Row(
               children: [

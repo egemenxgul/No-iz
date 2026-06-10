@@ -12,12 +12,13 @@ import (
 
 // Handler returns http.HandlerFunc functions for auth routes.
 type Handler struct {
-	svc *Service
+	svc   *Service
+	qrHub *QRHub
 }
 
 // NewHandler creates an auth HTTP handler.
-func NewHandler(svc *Service) *Handler {
-	return &Handler{svc: svc}
+func NewHandler(svc *Service, qrHub *QRHub) *Handler {
+	return &Handler{svc: svc, qrHub: qrHub}
 }
 
 func (h *Handler) GetUserBundle(w http.ResponseWriter, r *http.Request) {
@@ -529,3 +530,72 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 func writeError(w http.ResponseWriter, status int, msg string) {
 	writeJSON(w, status, map[string]string{"error": msg})
 }
+
+// ────────────────────────────────────────────────────────────────
+// QR Web Login
+// ────────────────────────────────────────────────────────────────
+
+func (h *Handler) WebSocketQRAuth(w http.ResponseWriter, r *http.Request) {
+	token := r.URL.Query().Get("token")
+	if token == "" {
+		http.Error(w, "missing token", http.StatusBadRequest)
+		return
+	}
+
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		return
+	}
+
+	if h.qrHub != nil {
+		h.qrHub.Register(token, conn)
+	}
+}
+
+type qrLinkRequest struct {
+	QRToken          string `json:"qr_token"`
+	EncryptedPayload string `json:"encrypted_payload"`
+}
+
+func (h *Handler) QRLinkDevice(w http.ResponseWriter, r *http.Request) {
+	userIDStr, ok := UserIDFromContext(r.Context())
+	if !ok {
+		writeError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	var req qrLinkRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if req.QRToken == "" || req.EncryptedPayload == "" {
+		writeError(w, http.StatusBadRequest, "missing parameters")
+		return
+	}
+
+	access, refresh, err := h.svc.LinkWebDevice(r.Context(), userIDStr)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to link device")
+		return
+	}
+
+	payload := map[string]interface{}{
+		"type":              "AUTH_SUCCESS",
+		"access_token":      access,
+		"refresh_token":     refresh,
+		"encrypted_payload": req.EncryptedPayload,
+	}
+
+	if h.qrHub != nil {
+		success := h.qrHub.SendPayload(req.QRToken, payload)
+		if !success {
+			writeError(w, http.StatusNotFound, "web client not found or disconnected")
+			return
+		}
+	}
+
+	writeJSON(w, http.StatusOK, map[string]string{"status": "linked"})
+}
+

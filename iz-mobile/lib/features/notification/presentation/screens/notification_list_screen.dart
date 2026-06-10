@@ -5,8 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:iz_mobile/core/theme/app_colors.dart';
 import 'package:iz_mobile/core/theme/glass_widgets.dart';
-import '../../notification/models/notification_model.dart';
-import '../../notification/providers/notification_provider.dart';
+import '../models/notification_model.dart';
+import '../providers/notification_provider.dart';
 
 class NotificationListScreen extends ConsumerWidget {
   const NotificationListScreen({super.key});
@@ -41,7 +41,7 @@ class NotificationListScreen extends ConsumerWidget {
           // ── Scroll Content ──────────────────────────────────────────────
           RefreshIndicator(
             color: Colors.white,
-            backgroundColor: AppColors.bgCard,
+            backgroundColor: AppColors.glassLight,
             onRefresh: () async {
               await ref.read(notificationsProvider.notifier).refreshNotifications();
             },

@@ -1,9 +1,10 @@
 import 'dart:async';
-import 'dart:io';
-import 'dart:typed_data';
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:iz_mobile/core/theme/app_colors.dart';
 import '../../models/story_model.dart';
 import '../../providers/story_provider.dart';
 import '../../../messages/providers/media_upload_service.dart';
@@ -20,7 +21,8 @@ class StoryViewerScreen extends ConsumerStatefulWidget {
   ConsumerState<StoryViewerScreen> createState() => _StoryViewerScreenState();
 }
 
-class _StoryViewerScreenState extends ConsumerState<StoryViewerScreen> {
+class _StoryViewerScreenState extends ConsumerState<StoryViewerScreen>
+    with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
   double _progress = 0.0;
   Timer? _timer;
@@ -30,20 +32,31 @@ class _StoryViewerScreenState extends ConsumerState<StoryViewerScreen> {
   String? _decryptedCaption;
   bool _isPaused = false;
 
+  late AnimationController _fadeCtrl;
+  late Animation<double> _fadeAnim;
+
   @override
   void initState() {
     super.initState();
+    _fadeCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+    _fadeAnim = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut);
     _loadStoryMedia();
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _fadeCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _loadStoryMedia() async {
     _timer?.cancel();
+    _fadeCtrl.reset();
     if (mounted) {
       setState(() {
         _isLoading = true;
@@ -57,22 +70,20 @@ class _StoryViewerScreenState extends ConsumerState<StoryViewerScreen> {
     final story = widget.feedItem.stories[_currentIndex];
 
     try {
-      // 1. Fetch E2EE key from SQLite story_keys
-      final mediaKey = await ref.read(storyProvider.notifier).getCachedStoryKey(story.id);
-      
+      final mediaKey =
+          await ref.read(storyProvider.notifier).getCachedStoryKey(story.id);
+
       if (mediaKey == null) {
         throw 'Bu duruma ait şifreleme anahtarı yerel cihazda bulunamadı.';
       }
 
-      // 2. Decrypt caption if present
       if (story.caption != null && story.caption!.isNotEmpty) {
         _decryptedCaption = await ref.read(storyProvider.notifier).decryptCaption(
-          story.caption,
-          mediaKey,
-        );
+              story.caption,
+              mediaKey,
+            );
       }
 
-      // 3. If image/video story, download and decrypt the media bytes
       if (story.mediaType == 'image' || story.mediaType == 'video') {
         final uploadSvc = ref.read(mediaUploadServiceProvider);
         _decryptedBytes = await uploadSvc.downloadAndDecryptMedia(
@@ -85,6 +96,7 @@ class _StoryViewerScreenState extends ConsumerState<StoryViewerScreen> {
         setState(() {
           _isLoading = false;
         });
+        _fadeCtrl.forward();
         _startTimer();
       }
     } catch (e) {
@@ -93,6 +105,7 @@ class _StoryViewerScreenState extends ConsumerState<StoryViewerScreen> {
           _isLoading = false;
           _error = e.toString();
         });
+        _fadeCtrl.forward();
       }
     }
   }
@@ -100,19 +113,17 @@ class _StoryViewerScreenState extends ConsumerState<StoryViewerScreen> {
   void _startTimer() {
     _timer?.cancel();
     const duration = Duration(milliseconds: 50);
-    final totalSteps = 100; // 5 seconds total (50ms * 100)
+    const totalSteps = 100;
     var step = 0;
 
     _timer = Timer.periodic(duration, (timer) {
       if (_isPaused) return;
-
       step++;
       if (mounted) {
         setState(() {
           _progress = step / totalSteps;
         });
       }
-
       if (step >= totalSteps) {
         timer.cancel();
         _nextStory();
@@ -122,9 +133,7 @@ class _StoryViewerScreenState extends ConsumerState<StoryViewerScreen> {
 
   void _nextStory() {
     if (_currentIndex < widget.feedItem.stories.length - 1) {
-      setState(() {
-        _currentIndex++;
-      });
+      setState(() => _currentIndex++);
       _loadStoryMedia();
     } else {
       Navigator.pop(context);
@@ -133,207 +142,413 @@ class _StoryViewerScreenState extends ConsumerState<StoryViewerScreen> {
 
   void _prevStory() {
     if (_currentIndex > 0) {
-      setState(() {
-        _currentIndex--;
-      });
+      setState(() => _currentIndex--);
       _loadStoryMedia();
     } else {
-      // Re-run first story
       _loadStoryMedia();
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // ignore: unused_local_variable
     final story = widget.feedItem.stories[_currentIndex];
+    final initial = widget.feedItem.displayName.isNotEmpty
+        ? widget.feedItem.displayName[0].toUpperCase()
+        : '?';
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: GestureDetector(
-        onVerticalDragEnd: (details) {
-          if (details.primaryVelocity != null && details.primaryVelocity! > 100) {
-            Navigator.pop(context);
-          }
-        },
-        onLongPressStart: (_) {
-          setState(() {
-            _isPaused = true;
-          });
-        },
-        onLongPressEnd: (_) {
-          setState(() {
-            _isPaused = false;
-          });
-        },
-        onTapUp: (details) {
-          final width = MediaQuery.of(context).size.width;
-          if (details.globalPosition.dx < width * 0.3) {
-            _prevStory();
-          } else {
-            _nextStory();
-          }
-        },
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // Black background fallback
-            Container(color: Colors.black),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: GestureDetector(
+          onVerticalDragEnd: (details) {
+            if (details.primaryVelocity != null && details.primaryVelocity! > 100) {
+              Navigator.pop(context);
+            }
+          },
+          onLongPressStart: (_) {
+            HapticFeedback.lightImpact();
+            setState(() => _isPaused = true);
+          },
+          onLongPressEnd: (_) {
+            setState(() => _isPaused = false);
+          },
+          onTapUp: (details) {
+            final width = MediaQuery.of(context).size.width;
+            if (details.globalPosition.dx < width * 0.3) {
+              _prevStory();
+            } else {
+              _nextStory();
+            }
+          },
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // ── Background ──────────────────────────────────────────
+              Container(color: Colors.black),
 
-            // Decrypted Content Render
-            Center(
-              child: _isLoading
-                  ? const CircularProgressIndicator(color: Colors.cyanAccent)
-                  : _error != null
-                      ? Padding(
-                          padding: const EdgeInsets.all(24.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(Icons.lock, size: 64, color: Colors.purpleAccent),
-                              const SizedBox(height: 16),
-                              Text(
-                                _error!,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(color: Colors.white70, fontSize: 15),
-                              ),
-                            ],
+              // ── Content ─────────────────────────────────────────────
+              FadeTransition(
+                opacity: _fadeAnim,
+                child: Center(
+                  child: _isLoading
+                      ? _buildLoader()
+                      : _error != null
+                          ? _buildErrorState()
+                          : _decryptedBytes != null
+                              ? Image.memory(
+                                  _decryptedBytes!,
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                )
+                              : _buildTextStory(),
+                ),
+              ),
+
+              // ── Top vignette ─────────────────────────────────────────
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 200,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withValues(alpha: 0.6),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              // ── Bottom vignette ───────────────────────────────────────
+              if (!_isLoading && _error == null &&
+                  _decryptedBytes != null && _decryptedCaption != null)
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                        colors: [
+                          Colors.black.withValues(alpha: 0.85),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                    padding: const EdgeInsets.fromLTRB(24, 48, 24, 56),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(18),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 18, vertical: 14),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.4),
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.1),
+                              width: 0.5,
+                            ),
                           ),
-                        )
-                      : _decryptedBytes != null
-                          ? Image.memory(
-                              _decryptedBytes!,
-                              fit: BoxFit.contain,
-                              width: double.infinity,
-                              height: double.infinity,
-                            )
-                          : Container(
-                              color: const Color(0xFF1E1E38),
-                              alignment: Alignment.center,
-                              padding: const EdgeInsets.all(24.0),
-                              child: Text(
-                                _decryptedCaption ?? '[Metin Durumu]',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
+                          child: Text(
+                            _decryptedCaption!,
+                            style: GoogleFonts.inter(
+                              color: Colors.white,
+                              fontSize: 16,
+                              height: 1.5,
+                              fontWeight: FontWeight.w500,
                             ),
-            ),
-
-            // Top Status Overlay (Name, avatar, segments progress-bars)
-            SafeArea(
-              child: Column(
-                children: [
-                  // Progress segments at the very top
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-                    child: Row(
-                      children: List.generate(
-                        widget.feedItem.stories.length,
-                        (index) => Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                            child: LinearProgressIndicator(
-                              value: index < _currentIndex
-                                  ? 1.0
-                                  : index == _currentIndex
-                                      ? _progress
-                                      : 0.0,
-                              backgroundColor: Colors.white24,
-                              valueColor: const AlwaysStoppedAnimation<Color>(Colors.cyanAccent),
-                              minHeight: 3,
-                            ),
+                            textAlign: TextAlign.center,
                           ),
                         ),
                       ),
                     ),
                   ),
+                ),
 
-                  // Avatar, Username and timestamp
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 20,
-                          backgroundColor: Colors.cyanAccent.withOpacity(0.2),
-                          child: Text(
-                            widget.feedItem.displayName.isNotEmpty
-                                ? widget.feedItem.displayName.substring(0, 1).toUpperCase()
-                                : '?',
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                widget.feedItem.displayName,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
+              // ── Top overlay: progress + header ───────────────────────
+              SafeArea(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Progress segments
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                      child: Row(
+                        children: List.generate(
+                          widget.feedItem.stories.length,
+                          (index) => Expanded(
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 2),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(2),
+                                child: LinearProgressIndicator(
+                                  value: index < _currentIndex
+                                      ? 1.0
+                                      : index == _currentIndex
+                                          ? _progress
+                                          : 0.0,
+                                  backgroundColor:
+                                      Colors.white.withValues(alpha: 0.25),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    AppColors.accent,
+                                  ),
+                                  minHeight: 3,
                                 ),
                               ),
-                              const SizedBox(height: 2),
-                              const Text(
-                                'Uçtan Uca Şifreli',
-                                style: TextStyle(
-                                  color: Colors.cyanAccent,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.close, color: Colors.white70),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
+                    const SizedBox(height: 12),
 
-            // Bottom Caption Render (Only if there is media and caption)
-            if (!_isLoading && _error == null && _decryptedBytes != null && _decryptedCaption != null)
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.bottomCenter,
-                      end: Alignment.topCenter,
-                      colors: [
-                        Colors.black.withOpacity(0.9),
-                        Colors.black.withOpacity(0.0),
-                      ],
+                    // Avatar + Name + E2E badge + Close
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        children: [
+                          // Avatar
+                          Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppColors.accent,
+                                  AppColors.accentSecondary,
+                                ],
+                              ),
+                            ),
+                            child: Container(
+                              width: 38,
+                              height: 38,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Color(0xFF1C1C2E),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  initial,
+                                  style: GoogleFonts.outfit(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.feedItem.displayName,
+                                  style: GoogleFonts.outfit(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 15,
+                                    letterSpacing: -0.2,
+                                  ),
+                                ),
+                                const SizedBox(height: 1),
+                                Row(
+                                  children: [
+                                    Container(
+                                      width: 6,
+                                      height: 6,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: AppColors.accent,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: AppColors.accent
+                                                .withValues(alpha: 0.6),
+                                            blurRadius: 4,
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      'Uçtan Uca Şifreli',
+                                      style: GoogleFonts.inter(
+                                        color: AppColors.accentLight,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Close button
+                          GestureDetector(
+                            onTap: () => Navigator.pop(context),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: BackdropFilter(
+                                filter:
+                                    ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                child: Container(
+                                  width: 36,
+                                  height: 36,
+                                  decoration: BoxDecoration(
+                                    color:
+                                        Colors.white.withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color:
+                                          Colors.white.withValues(alpha: 0.15),
+                                      width: 0.5,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.close_rounded,
+                                    color: Colors.white70,
+                                    size: 18,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  padding: const EdgeInsets.only(left: 20, right: 20, bottom: 48, top: 40),
-                  child: Text(
-                    _decryptedCaption!,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      shadows: [
-                        Shadow(color: Colors.black, blurRadius: 4),
-                      ],
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
+                  ],
                 ),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoader() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        SizedBox(
+          width: 44,
+          height: 44,
+          child: CircularProgressIndicator(
+            color: AppColors.accent,
+            strokeWidth: 2.5,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'Şifre çözülüyor...',
+          style: GoogleFonts.inter(
+            color: Colors.white60,
+            fontSize: 13,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Padding(
+      padding: const EdgeInsets.all(32),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            padding: const EdgeInsets.all(28),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.1),
+                width: 0.5,
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.danger.withValues(alpha: 0.15),
+                  ),
+                  child: const Icon(
+                    Icons.lock_outline_rounded,
+                    color: AppColors.danger,
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  _error!,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(
+                    color: Colors.white70,
+                    fontSize: 14,
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextStory() {
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.accent.withValues(alpha: 0.3),
+            AppColors.accentSecondary.withValues(alpha: 0.2),
+            const Color(0xFF1C1C2E),
           ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(36),
+          child: Text(
+            _decryptedCaption ?? '[Metin Durumu]',
+            style: GoogleFonts.outfit(
+              color: Colors.white,
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
+              height: 1.4,
+              letterSpacing: -0.4,
+              shadows: const [
+                Shadow(color: Colors.black54, blurRadius: 8),
+              ],
+            ),
+            textAlign: TextAlign.center,
+          ),
         ),
       ),
     );

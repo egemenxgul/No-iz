@@ -1,38 +1,36 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-
 /* ─── Design Tokens ─────────────────────────────────────────────────────────── */
 :root {
-  /* Colors - Dark (Default) */
-  --bg-base:        #020617;
-  --bg-surface:     #0f172a;
-  --bg-elevated:    #1e293b;
-  --bg-hover:       #334155;
-  --bg-active:      #475569;
+  /* Colors - Dark (Default) - Liquid Glass Premium */
+  --bg-base:        #000000;
+  --bg-surface:     rgba(255, 255, 255, 0.05);
+  --bg-elevated:    rgba(255, 255, 255, 0.08);
+  --bg-hover:       rgba(255, 255, 255, 0.12);
+  --bg-active:      rgba(255, 255, 255, 0.16);
 
-  --accent:         #3b82f6;
-  --accent-hover:   #60a5fa;
-  --accent-glow:    #93c5fd;
-  --accent-dim:     rgba(59, 130, 246, 0.12);
-  --accent-border:  rgba(59, 130, 246, 0.3);
+  --accent:         #8b5cf6;
+  --accent-hover:   #a78bfa;
+  --accent-glow:    #6366f1;
+  --accent-dim:     rgba(139, 92, 246, 0.15);
+  --accent-border:  rgba(139, 92, 246, 0.4);
 
-  --bg-card:        rgba(15, 23, 42, 0.85);
-  --bg-orb-1:       rgba(37, 99, 235, 0.2);
-  --bg-orb-2:       rgba(59, 130, 246, 0.12);
+  --bg-card:        rgba(15, 23, 42, 0.4); /* Frosted Glass Base */
+  --bg-orb-1:       rgba(99, 102, 241, 0.15);
+  --bg-orb-2:       rgba(139, 92, 246, 0.2);
 
-  --text-primary:   #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted:     #64748b;
-  --text-dim:       #334155;
+  --text-primary:   #ffffff;
+  --text-secondary: #a1a1aa;
+  --text-muted:     #71717a;
+  --text-dim:       #52525b;
 
   --success:        #10b981;
-  --success-dim:    rgba(16, 185, 129, 0.1);
+  --success-dim:    rgba(16, 185, 129, 0.15);
   --warning:        #f59e0b;
   --danger:         #ef4444;
-  --danger-dim:     rgba(239, 68, 68, 0.1);
+  --danger-dim:     rgba(239, 68, 68, 0.15);
 
-  --border:         rgba(59, 130, 246, 0.12);
-  --border-strong:  rgba(59, 130, 246, 0.25);
-  --divider:        rgba(255, 255, 255, 0.05);
+  --border:         rgba(255, 255, 255, 0.08);
+  --border-strong:  rgba(255, 255, 255, 0.15);
+  --divider:        rgba(255, 255, 255, 0.06);
 
   /* Spacing */
   --space-1: 4px;
@@ -45,56 +43,57 @@
   --space-10: 40px;
 
   /* Radius */
-  --radius-sm:  6px;
-  --radius-md:  12px;
-  --radius-lg:  20px;
-  --radius-xl:  28px;
+  --radius-sm:  8px;
+  --radius-md:  16px;
+  --radius-lg:  24px;
+  --radius-xl:  32px;
   --radius-full: 9999px;
 
   /* Shadows */
-  --shadow-sm:  0 2px 8px rgba(0,0,0,0.4);
-  --shadow-md:  0 4px 24px rgba(0,0,0,0.5);
-  --shadow-lg:  0 8px 48px rgba(0,0,0,0.6);
-  --shadow-accent: 0 0 24px rgba(59, 130, 246, 0.25);
+  --shadow-sm:  0 2px 10px rgba(0,0,0,0.5);
+  --shadow-md:  0 8px 30px rgba(0,0,0,0.6);
+  --shadow-lg:  0 12px 60px rgba(0,0,0,0.8);
+  --shadow-accent: 0 0 30px rgba(139, 92, 246, 0.3);
 
   /* Transitions */
-  --transition-fast: 120ms ease;
-  --transition-base: 200ms ease;
-  --transition-slow: 350ms ease;
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
 
-  --sidebar-width: 300px;
+  --sidebar-width: 320px;
 }
 
 [data-theme='light'] {
   --bg-base:        #f8fafc;
-  --bg-surface:     #ffffff;
-  --bg-elevated:    #f1f5f9;
-  --bg-hover:       #e2e8f0;
-  --bg-active:      #cbd5e1;
+  --bg-surface:     rgba(255, 255, 255, 0.6);
+  --bg-elevated:    rgba(255, 255, 255, 0.9);
+  --bg-hover:       rgba(0, 0, 0, 0.04);
+  --bg-active:      rgba(0, 0, 0, 0.08);
 
-  --accent:         #2563eb;
-  --accent-hover:   #1d4ed8;
-  --accent-glow:    #3b82f6;
-  --accent-dim:     rgba(37, 99, 235, 0.1);
-  --accent-border:  rgba(37, 99, 235, 0.2);
+  --accent:         #3b82f6;
+  --accent-hover:   #2563eb;
+  --accent-glow:    #8b5cf6;
+  --accent-dim:     rgba(59, 130, 246, 0.1);
+  --accent-border:  rgba(59, 130, 246, 0.3);
 
-  --bg-card:        rgba(255, 255, 255, 0.85);
-  --bg-orb-1:       rgba(59, 130, 246, 0.1);
-  --bg-orb-2:       rgba(147, 197, 253, 0.08);
+  --bg-card:        rgba(255, 255, 255, 0.7);
+  --bg-orb-1:       rgba(59, 130, 246, 0.15);
+  --bg-orb-2:       rgba(139, 92, 246, 0.1);
 
   --text-primary:   #0f172a;
   --text-secondary: #475569;
   --text-muted:     #64748b;
   --text-dim:       #94a3b8;
 
-  --border:         rgba(37, 99, 235, 0.1);
-  --border-strong:  rgba(37, 99, 235, 0.15);
-  --divider:        rgba(0, 0, 0, 0.05);
+  --border:         rgba(0, 0, 0, 0.06);
+  --border-strong:  rgba(0, 0, 0, 0.12);
+  --divider:        rgba(0, 0, 0, 0.04);
 
-  --shadow-sm:  0 2px 8px rgba(0,0,0,0.05);
-  --shadow-md:  0 4px 24px rgba(0,0,0,0.08);
-  --shadow-lg:  0 8px 48px rgba(0,0,0,0.12);
-  --shadow-accent: 0 0 24px rgba(37, 99, 235, 0.15);
+  --shadow-sm:  0 2px 12px rgba(0,0,0,0.04);
+  --shadow-md:  0 8px 32px rgba(31, 38, 135, 0.06);
+  --shadow-lg:  0 12px 48px rgba(31, 38, 135, 0.08);
+  --shadow-accent: 0 0 30px rgba(59, 130, 246, 0.2);
 }
 
 /* ─── Reset ──────────────────────────────────────────────────────────────────── */
@@ -109,16 +108,16 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--bg-base);
   color: var(--text-primary);
   min-height: 100vh;
   overflow-x: hidden;
   line-height: 1.5;
+  transition: background-color var(--transition-slow), color var(--transition-slow);
 }
 
 a {

@@ -104,7 +104,7 @@ class CommunityService {
 
   Future<List<Map<String, dynamic>>> listCommunityPosts(String communityId, {int limit = 50, String? before}) async {
     try {
-      final queryParams = {'limit': limit};
+      final queryParams = <String, dynamic>{'limit': limit};
       if (before != null) {
         queryParams['before'] = before;
       }

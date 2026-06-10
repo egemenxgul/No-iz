@@ -20,7 +20,7 @@ import 'dart:typed_data';
 import 'dart:ui';
 import 'dart:math';
 import 'dart:io';
-
+import 'package:go_router/go_router.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String otherUserId;
@@ -121,6 +121,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         final month = lastSeen.month.toString().padLeft(2, '0');
         final hour = lastSeen.hour.toString().padLeft(2, '0');
         final minute = lastSeen.minute.toString().padLeft(2, '0');
+        final year = lastSeen.year.toString();
         return 'Son görülme: $day.$month.$year $hour:$minute';
       }
     }
@@ -696,10 +697,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     if (value == 'unmute') {
                       await ref.read(messageServiceProvider).unmuteChat(widget.otherUserId);
                       // Refresh conversation list to update UI
-                      ref.read(conversationListProvider.notifier).loadConversations();
+                      ref.read(conversationProvider.notifier).loadConversations();
                     } else {
                       await ref.read(messageServiceProvider).muteChat(widget.otherUserId, value);
-                      ref.read(conversationListProvider.notifier).loadConversations();
+                      ref.read(conversationProvider.notifier).loadConversations();
                     }
                   },
                   itemBuilder: (context) {
@@ -1021,7 +1022,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         return;
       }
 
-      final filename = file.name;
       String mimeType = 'application/octet-stream';
       if (type == FileType.image) {
         final ext = filename.split('.').last.toLowerCase();
@@ -1776,7 +1776,6 @@ class _MessageBubble extends ConsumerWidget {
             ),
           ),
         );
-    );
   }
 
   void _showEditDialog(BuildContext context, WidgetRef ref, MessageModel msg) {
