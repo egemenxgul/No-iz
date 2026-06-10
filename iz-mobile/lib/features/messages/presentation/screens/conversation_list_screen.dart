@@ -8,6 +8,7 @@ import 'package:iz_mobile/core/theme/glass_widgets.dart';
 import 'package:iz_mobile/features/messages/providers/chat_provider.dart';
 import 'package:iz_mobile/features/messages/providers/contacts_provider.dart';
 import 'package:iz_mobile/features/auth/providers/auth_provider.dart';
+import 'package:iz_mobile/features/notification/providers/notification_provider.dart';
 import 'package:iz_mobile/features/story/presentation/screens/story_list_screen.dart';
 import 'archived_conversations_screen.dart';
 
@@ -27,6 +28,8 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
       builder: (context, ref, child) {
         final conversations = ref.watch(conversationProvider);
         final myUserId = ref.watch(authProvider).userId ?? '';
+        final notificationsState = ref.watch(notificationsProvider);
+        final hasUnreadNotifications = notificationsState.valueOrNull?.any((n) => !n.isRead) ?? false;
 
         Future.microtask(() {
           ref.read(contactsProvider.notifier).syncContacts();
@@ -140,6 +143,27 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
           child: _GlassIconButton(
             icon: Icons.people_outline_rounded,
             onTap: () => context.push('/social'),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(right: 8, top: 8),
+          child: _GlassIconButton(
+            icon: Icons.notifications_none_rounded,
+            onTap: () => context.push('/notifications'),
+            badge: hasUnreadNotifications
+                ? Positioned(
+                    top: 10,
+                    right: 10,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.accent,
+                      ),
+                    ),
+                  )
+                : null,
           ),
         ),
         Padding(
@@ -735,7 +759,8 @@ class _GlassFAB extends StatelessWidget {
 class _GlassIconButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
-  const _GlassIconButton({required this.icon, required this.onTap});
+  final Widget? badge;
+  const _GlassIconButton({required this.icon, required this.onTap, this.badge});
 
   @override
   Widget build(BuildContext context) {
@@ -753,7 +778,13 @@ class _GlassIconButton extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: AppColors.glassBorder, width: 0.5),
             ),
-            child: Icon(icon, color: AppColors.textSecondary, size: 21),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Icon(icon, color: AppColors.textSecondary, size: 21),
+                if (badge != null) badge!,
+              ],
+            ),
           ),
         ),
       ),

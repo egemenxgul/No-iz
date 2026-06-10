@@ -21,6 +21,7 @@ import 'package:iz_mobile/features/messages/presentation/screens/group_settings_
 import 'package:iz_mobile/features/community/presentation/screens/community_list_screen.dart';
 import 'package:iz_mobile/features/community/presentation/screens/create_community_screen.dart';
 import 'package:iz_mobile/features/community/presentation/screens/community_detail_screen.dart';
+import 'package:iz_mobile/features/notification/presentation/screens/notification_list_screen.dart';
 
 void main() async {
   // Required before any async work in main().
@@ -128,6 +129,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings/privacy',
         builder: (context, state) => const PrivacySettingsScreen(),
+      ),
+      GoRoute(
+        path: '/notifications',
+        builder: (context, state) => const NotificationListScreen(),
       ),
       GoRoute(
         path: '/app',
