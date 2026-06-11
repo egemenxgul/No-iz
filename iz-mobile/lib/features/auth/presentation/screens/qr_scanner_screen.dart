@@ -36,7 +36,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> {
     if (rawValue == null || !rawValue.startsWith('iz://qr-login')) return;
 
     setState(() => _isProcessing = true);
-    _cameraController.stop();
+    await _cameraController.stop();
 
     try {
       final uri = Uri.parse(rawValue);
@@ -61,7 +61,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> {
           SnackBar(content: Text('Hata: $e')),
         );
         setState(() => _isProcessing = false);
-        _cameraController.start();
+        await _cameraController.start();
       }
     }
   }

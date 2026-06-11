@@ -65,7 +65,7 @@ dependencies:
   flutter_webrtc: ^0.10.6
   # QR Code generation for 2FA
   qr_flutter: ^4.1.0
-  mobile_scanner: ^5.0.0
+  mobile_scanner: ^6.0.0
 
 dev_dependencies:
   flutter_test:
