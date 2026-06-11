@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.11.5
+  sdk: '>=3.3.0 <4.0.0'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -34,35 +34,35 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
-  flutter_riverpod: ^3.3.1
-  dio: ^5.9.2
-  go_router: ^17.2.3
-  flutter_secure_storage: ^10.1.0
-  sqflite_sqlcipher: ^3.3.0
-  sqlcipher_flutter_libs: ^0.7.0+eol
-  cryptography: ^2.9.0
+  flutter_riverpod: ^2.5.1
+  dio: ^5.4.3
+  go_router: ^13.2.5
+  flutter_secure_storage: ^9.2.2
+  sqflite_sqlcipher: ^2.3.0
+  sqlcipher_flutter_libs: ^0.7.0
+  cryptography: ^2.7.0
   encrypt: ^5.0.3
-  web_socket_channel: ^3.0.3
-  google_fonts: ^8.1.0
-  uuid: ^4.5.3
-  file_picker: ^8.1.7
-  http_parser: ^4.1.2
-  archive: ^4.0.9
+  web_socket_channel: ^3.0.1
+  google_fonts: ^6.2.1
+  uuid: ^4.4.0
+  file_picker: ^8.0.7
+  http_parser: ^4.1.0
+  archive: ^3.6.1
   path: ^1.9.0
-  path_provider: ^2.1.5
-  google_sign_in: ^7.2.0
-  googleapis: ^16.0.0
-  googleapis_auth: ^2.3.0
+  path_provider: ^2.1.4
+  google_sign_in: ^6.2.1
+  googleapis: ^13.2.0
+  googleapis_auth: ^1.6.0
   # Network-awareness: detect WiFi ↔ 4G transitions for WS reconnect
-  connectivity_plus: ^6.1.3
+  connectivity_plus: ^6.0.5
   # Image compression for media pipeline
-  flutter_image_compress: ^2.4.0
+  flutter_image_compress: ^2.1.0
   # Firebase Cloud Messaging for background push notifications
-  firebase_core: ^3.13.1
-  firebase_messaging: ^15.2.7
-  flutter_local_notifications: ^17.1.2
+  firebase_core: ^3.3.0
+  firebase_messaging: ^15.0.4
+  flutter_local_notifications: ^17.2.2
   # WebRTC peer-to-peer audio and video calls
-  flutter_webrtc: ^0.12.3
+  flutter_webrtc: ^0.10.6
   # QR Code generation for 2FA
   qr_flutter: ^4.1.0
   mobile_scanner: ^5.0.0
@@ -76,10 +76,10 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^6.0.0
-  build_runner: ^2.15.0
-  riverpod_generator: ^4.0.3
-  riverpod_lint: ^3.1.3
+  flutter_lints: ^4.0.0
+  build_runner: ^2.4.11
+  riverpod_generator: ^2.4.3
+  riverpod_lint: ^2.3.13
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
