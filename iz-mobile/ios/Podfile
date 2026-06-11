@@ -1,7 +1,8 @@
-# Minimum iOS version required by Firebase Core, FirebaseMessaging and flutter_webrtc
+# iOS 13.0+: Firebase 11, WebRTC ve flutter_webrtc için minimum gereksinim.
+# iOS 27 (beta) geriye dönük uyumludur — yeni Xcode/Flutter SDK otomatik destekler.
 platform :ios, '13.0'
 
-# CocoaPods analytics sends network stats synchronously affecting flutter build latency.
+# CocoaPods analytics: build süresini yavaşlatır, devre dışı bırakıldı.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
 project 'Runner', {
@@ -29,8 +30,10 @@ flutter_ios_podfile_setup
 
 target 'Runner' do
   use_frameworks!
+  use_modular_headers!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+
   target 'RunnerTests' do
     inherit! :search_paths
   end
@@ -39,5 +42,17 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
+
+    target.build_configurations.each do |config|
+      # iOS 13.0 minimum tüm pod'larda zorunlu kıl
+      # Bu olmadan bazı pod'lar eski deployment target koyar ve link hatası verir
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+
+      # Xcode 15+ arm64 simülatör desteği: M1/M2/M3/M4 Mac'lerde simülatör çalışır
+      config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = ''
+
+      # Swift versiyonu: flutter_webrtc ve SQLCipher için Swift 5 gerekli
+      config.build_settings['SWIFT_VERSION'] = '5.0'
+    end
   end
 end
