@@ -52,13 +52,18 @@
   width: 100%;
   max-width: 440px;
   background: var(--bg-card);
-  backdrop-filter: blur(40px) saturate(150%);
-  -webkit-backdrop-filter: blur(40px) saturate(150%);
-  border: 1px solid var(--border-strong);
+  backdrop-filter: blur(32px) saturate(180%);
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
+  border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   padding: 48px;
-  box-shadow: var(--shadow-lg), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  box-shadow: var(--shadow-lg), inset 0 1px 2px rgba(255, 255, 255, 0.15);
   animation: scaleIn var(--transition-bounce) forwards;
+}
+
+[data-theme='light'] .card {
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: var(--shadow-lg), inset 0 1px 4px rgba(255, 255, 255, 1);
 }
 
 .cardHeader {
