@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { QRCodeSVG } from 'qrcode.react';
 import { saveAuth } from '@/store/auth';
-import { toBase64 } from '@/lib/crypto/x25519';
+import { toBase64, generateKeyPair } from '@/lib/crypto/x25519';
 import styles from '../auth.module.css';
 import ThemeToggle from '@/components/ThemeToggle';
 import LanguageToggle from '@/components/LanguageToggle';
@@ -27,20 +27,16 @@ export default function LoginPage() {
       }
 
       try {
-        if (!window.crypto || !window.crypto.subtle) {
-          setError('Güvenli bağlantı (HTTPS) gereklidir. Sistem sadece HTTPS üzerinde çalışır.');
+        if (!window.crypto) {
+          setError('Kriptografik işlemler desteklenmiyor.');
           setLoading(false);
           return;
         }
 
         // 1. Generate an ephemeral Curve25519 key pair for secure transmission
-        const keyPair = await window.crypto.subtle.generateKey(
-          { name: 'ECDH', namedCurve: 'P-256' },
-          true,
-          ['deriveKey', 'deriveBits']
-        );
-        const exportedPubKey = await window.crypto.subtle.exportKey('raw', keyPair.publicKey);
-        const pubKeyBase64 = toBase64(new Uint8Array(exportedPubKey));
+        const keyPair = generateKeyPair();
+        const pubKeyBase64 = toBase64(keyPair.publicKey);
+        localStorage.setItem('qr_login_private_key', toBase64(keyPair.privateKey));
 
         // 2. Generate a unique QR token
         const qrToken = crypto.randomUUID();
