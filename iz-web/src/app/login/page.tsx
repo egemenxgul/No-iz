@@ -18,14 +18,10 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let ws: WebSocket;
-    let timeoutId: NodeJS.Timeout;
+    let isPolling = false;
+    let pollTimeout: NodeJS.Timeout;
 
     async function initQRLogin() {
-      if (ws) {
-        ws.close();
-      }
-
       try {
         if (!window.crypto) {
           setError('Kriptografik işlemler desteklenmiyor.');
@@ -41,86 +37,77 @@ export default function LoginPage() {
         // 2. Generate a unique QR token
         const qrToken = crypto.randomUUID();
 
-        // 3. Connect to WebSocket
+        // 3. Set the QR URI to display
+        setQrUri(`iz://qr-login?token=${qrToken}&pubKey=${encodeURIComponent(pubKeyBase64)}`);
+        setLoading(false);
+
+        // 4. Start polling over HTTPS
         let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-        
-        // Eğer yerel ortamda test ediliyorsa ve build'de production URL basılmışsa ez:
         if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
             apiUrl = 'http://localhost:8080';
         }
-
-        let wsUrl = apiUrl;
-        if (apiUrl.startsWith('https://')) {
-            wsUrl = apiUrl.replace('https://', 'wss://');
-        } else if (apiUrl.startsWith('http://')) {
-            wsUrl = apiUrl.replace('http://', 'ws://');
-        }
-        if (wsUrl.endsWith('/')) {
-            wsUrl = wsUrl.slice(0, -1);
+        if (apiUrl.endsWith('/')) {
+            apiUrl = apiUrl.slice(0, -1);
         }
 
-        ws = new WebSocket(`${wsUrl}/ws/qr-login?token=${qrToken}`);
+        isPolling = true;
 
-        ws.onopen = () => {
-          // 4. Set the QR URI to display
-          setQrUri(`iz://qr-login?token=${qrToken}&pubKey=${encodeURIComponent(pubKeyBase64)}`);
-          setLoading(false);
-
-          // 60 saniyede bir QR kodu ve soket bağlantısını yenile
-          clearTimeout(timeoutId);
-          timeoutId = setTimeout(() => {
-            initQRLogin();
-          }, 60000);
-        };
-
-        ws.onmessage = async (event) => {
+        const poll = async () => {
+          if (!isPolling) return;
           try {
-            const payload = JSON.parse(event.data);
-            if (payload.type === 'AUTH_SUCCESS') {
-              // Read the new token pair
-              const authData = {
-                access_token: payload.access_token,
-                refresh_token: payload.refresh_token,
-                user_id: '',
-              };
+            const res = await fetch(`${apiUrl}/api/auth/qr-poll?token=${qrToken}`);
+            if (res.status === 200) {
+              const payload = await res.json();
+              if (payload.type === 'AUTH_SUCCESS') {
+                isPolling = false;
+                
+                const authData = {
+                  access_token: payload.access_token,
+                  refresh_token: payload.refresh_token,
+                  user_id: '',
+                };
 
-              // Decode user_id from access_token
-              const [, body] = payload.access_token.split('.');
-              const claims = JSON.parse(atob(body));
-              authData.user_id = claims.uid;
+                const [, body] = payload.access_token.split('.');
+                const claims = JSON.parse(atob(body));
+                authData.user_id = claims.uid;
 
-              saveAuth(authData as any);
+                saveAuth(authData as any);
 
-              // 5. Decrypt the E2EE keys from mobile using ECDH
-              const { encrypted_payload } = payload;
-              if (encrypted_payload) {
-                 try {
-                     const keysData = JSON.parse(atob(encrypted_payload));
-                     if (keysData.identityKey) {
-                        localStorage.setItem(`KEYS_${authData.user_id}`, btoa(encrypted_payload));
-                     }
-                 } catch(e) {
-                     console.warn('Failed to parse keys payload', e);
-                 }
+                const { encrypted_payload } = payload;
+                if (encrypted_payload) {
+                   try {
+                       const keysData = JSON.parse(atob(encrypted_payload));
+                       if (keysData.identityKey) {
+                          localStorage.setItem(`KEYS_${authData.user_id}`, btoa(encrypted_payload));
+                       }
+                   } catch(e) {
+                       console.warn('Failed to parse keys payload', e);
+                   }
+                }
+
+                router.push('/app/messages');
+                return;
               }
-
-              ws.close();
-              clearTimeout(timeoutId);
-              router.push('/app/messages');
             }
           } catch (err) {
-            console.error('WebSocket message error:', err);
+            console.error('QR poll error:', err);
+            // Don't set error visually to prevent disrupting user if connection briefly drops
+          }
+
+          if (isPolling) {
+            pollTimeout = setTimeout(poll, 2000);
           }
         };
 
-        ws.onerror = () => {
-          setError('Sunucu bağlantısı sağlanamadı. Ağınızı kontrol edin.');
-          setLoading(false);
-        };
+        poll();
 
-        ws.onclose = () => {
-          // If closed and not navigating away
-        };
+        // Refresh QR token every 60 seconds
+        setTimeout(() => {
+          if (isPolling) {
+            isPolling = false;
+            initQRLogin();
+          }
+        }, 60000);
 
       } catch (err) {
         console.error('QR Login init error:', err);
@@ -132,8 +119,8 @@ export default function LoginPage() {
     initQRLogin();
 
     return () => {
-      if (ws) ws.close();
-      if (timeoutId) clearTimeout(timeoutId);
+      isPolling = false;
+      if (pollTimeout) clearTimeout(pollTimeout);
     };
   }, [router]);
 

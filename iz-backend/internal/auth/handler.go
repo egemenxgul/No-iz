@@ -532,24 +532,28 @@ func writeError(w http.ResponseWriter, status int, msg string) {
 }
 
 // ────────────────────────────────────────────────────────────────
-// QR Web Login
+// QR Web Login (HTTPS Polling)
 // ────────────────────────────────────────────────────────────────
 
-func (h *Handler) WebSocketQRAuth(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) PollQRAuth(w http.ResponseWriter, r *http.Request) {
 	token := r.URL.Query().Get("token")
 	if token == "" {
-		http.Error(w, "missing token", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "missing token")
 		return
 	}
 
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
+	if h.qrHub == nil {
+		writeError(w, http.StatusInternalServerError, "qr hub not initialized")
 		return
 	}
 
-	if h.qrHub != nil {
-		h.qrHub.Register(token, conn)
+	payload, ok := h.qrHub.GetPayload(token)
+	if !ok {
+		writeJSON(w, http.StatusAccepted, map[string]string{"status": "pending"})
+		return
 	}
+
+	writeJSON(w, http.StatusOK, payload)
 }
 
 type qrLinkRequest struct {
@@ -589,11 +593,7 @@ func (h *Handler) QRLinkDevice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if h.qrHub != nil {
-		success := h.qrHub.SendPayload(req.QRToken, payload)
-		if !success {
-			writeError(w, http.StatusNotFound, "web client not found or disconnected")
-			return
-		}
+		h.qrHub.StorePayload(req.QRToken, payload)
 	}
 
 	writeJSON(w, http.StatusOK, map[string]string{"status": "linked"})

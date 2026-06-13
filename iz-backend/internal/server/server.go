@@ -117,7 +117,7 @@ func (s *Server) Router() http.Handler {
 	r.With(loginRL.Middleware).Post("/api/auth/login", authHandler.Login)
 	r.With(loginRL.Middleware).Post("/api/auth/login/2fa", authHandler.Login2FA)
 	r.With(refreshRL.Middleware).Post("/api/auth/refresh", authHandler.RefreshToken)
-	r.Get("/ws/qr-login", authHandler.WebSocketQRAuth) // Add WS endpoint
+	r.Get("/api/auth/qr-poll", authHandler.PollQRAuth) // HTTPS Polling endpoint for QR Auth
 
 	// ── Protected routes ───────────────────────────────────────────
 	r.Group(func(r chi.Router) {
