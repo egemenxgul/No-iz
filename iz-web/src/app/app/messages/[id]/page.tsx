@@ -7,6 +7,7 @@ import { getAuth } from '@/store/auth';
 import { sendEncrypted, receiveDecrypted, establishSession, loadSessions } from '@/lib/crypto/session';
 import { Message } from '@/types';
 import { webrtcManager } from '@/lib/webrtc';
+import MediaRenderer from '@/components/MediaRenderer';
 import styles from './chat.module.css';
 
 import { useI18n } from '@/lib/i18n/I18nContext';
@@ -362,7 +363,13 @@ export default function ConversationPage() {
             key={m.id}
             className={`${styles.bubble} ${m.sender_id === auth?.user_id ? styles.bubbleOut : styles.bubbleIn}`}
           >
-            <span className={styles.bubbleText}>{m.plaintext ?? <span style={{opacity: 0.4, fontStyle: 'italic', fontSize: '13px'}}>{t('encrypted_placeholder') || 'Şifreli — oturum anahtarı bulunamadı'}</span>}</span>
+            {['image', 'video', 'audio', 'file'].includes(m.msg_type) ? (
+              <MediaRenderer payloadJson={m.plaintext || '{}'} msgType={m.msg_type} />
+            ) : (
+              <span className={styles.bubbleText}>
+                {m.plaintext ?? <span style={{opacity: 0.4, fontStyle: 'italic', fontSize: '13px'}}>{t('encrypted_placeholder') || 'Şifreli — oturum anahtarı bulunamadı'}</span>}
+              </span>
+            )}
             <span className={styles.bubbleTime}>
               {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               {/* UX-2: pending icon for offline-queued messages */}
