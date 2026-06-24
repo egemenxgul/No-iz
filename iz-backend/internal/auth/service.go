@@ -227,6 +227,9 @@ func (s *Service) Login(ctx context.Context, in LoginInput) (*LoginOutput, error
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		s.log.Warn().Str("input", in.EmailOrUsername).Msg("user not found in db")
+		// CWE-208 / Timing Attack Prevention: perform a dummy hash comparison so that
+		// the response time is identical whether or not the user exists.
+		s.verifyPassword(in.Password, "$argon2id$v=19,m=65536,t=3,p=4$dGltaW5nYXR0YWNr$dGltaW5nYXR0YWNrdGltaW5nYXR0YWNr")
 		return nil, ErrInvalidCredentials
 	}
 	if err != nil {

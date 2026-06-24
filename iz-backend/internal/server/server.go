@@ -106,6 +106,16 @@ func (s *Server) Router() http.Handler {
 	r.Use(middleware.Timeout(30 * time.Second))
 	r.Use(corsMiddleware)
 	r.Use(securityHeadersMiddleware)
+	// CWE-400: Limit JSON request bodies to 1 MB to prevent DoS attacks.
+	// Media upload (/api/media/upload) overrides this limit internally (50 MB).
+	r.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Body != nil && r.URL.Path != "/api/media/upload" {
+				r.Body = http.MaxBytesReader(w, r.Body, 1<<20) // 1 MB
+			}
+			next.ServeHTTP(w, r)
+		})
+	})
 
 	// ── Public routes ──────────────────────────────────────────────
 	r.Get("/api/health", auth.HealthCheck)

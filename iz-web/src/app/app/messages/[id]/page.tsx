@@ -241,7 +241,7 @@ export default function ConversationPage() {
           </div>
           <div className={styles.pinnedContent}>
             <span className={styles.pinnedLabel}>{t('app.pinned_message') || 'Pinned Message'}</span>
-            <span className={styles.pinnedText}>{pinnedMsg.plaintext ?? atob(pinnedMsg.ciphertext)}</span>
+            <span className={styles.pinnedText}>{pinnedMsg.plaintext ?? '[Şifreli mesaj]'}</span>
           </div>
           <button className={styles.pinBtn} onClick={(e) => { e.stopPropagation(); togglePin(pinnedMsg); }}>✕</button>
         </div>
@@ -255,7 +255,7 @@ export default function ConversationPage() {
             key={m.id}
             className={`${styles.bubble} ${m.sender_id === auth?.user_id ? styles.bubbleOut : styles.bubbleIn}`}
           >
-            <span className={styles.bubbleText}>{m.plaintext ?? atob(m.ciphertext)}</span>
+            <span className={styles.bubbleText}>{m.plaintext ?? <span style={{opacity: 0.4, fontStyle: 'italic', fontSize: '13px'}}>{t('encrypted_placeholder') || 'Şifreli — oturum anahtarı bulunamadı'}</span>}</span>
             <span className={styles.bubbleTime}>
               {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               {m.sender_id === auth?.user_id && (
