@@ -285,3 +285,73 @@
   color: white;
   transform: scale(1.05);
 }
+
+/* ─── Reactions ───────────────────────────────────────────────────────────── */
+.reactBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: all var(--transition-fast);
+  z-index: 10;
+}
+.bubbleOut .reactBtn { left: -32px; }
+.bubbleIn .reactBtn { right: -32px; }
+
+.bubble:hover .reactBtn { opacity: 1; }
+.reactBtn:hover { color: var(--accent-glow); border-color: var(--accent); }
+
+.reactionPicker {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 4px;
+  display: flex;
+  gap: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  z-index: 20;
+}
+.bubbleOut .reactionPicker { right: 0; }
+.bubbleIn .reactionPicker { left: 0; }
+
+.reactionPicker button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 8px;
+  transition: transform 0.2s;
+}
+.reactionPicker button:hover {
+  transform: scale(1.2);
+  background: var(--bg-surface);
+}
+
+.reactionsBadge {
+  position: absolute;
+  bottom: -10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 2px 6px;
+  font-size: 12px;
+  display: flex;
+  gap: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 5;
+}
+.bubbleOut .reactionsBadge { right: 8px; }
+.bubbleIn .reactionsBadge { left: 8px; }

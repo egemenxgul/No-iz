@@ -32,6 +32,7 @@ export interface Message {
   expires_at: string | null;
   created_at: string;
   is_pinned?: boolean;
+  reactions?: Record<string, string>;
   // Decrypted client-side
   plaintext?: string;
 }

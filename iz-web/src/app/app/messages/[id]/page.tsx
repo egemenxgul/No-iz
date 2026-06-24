@@ -141,11 +141,28 @@ export default function ConversationPage() {
       }
     });
 
+    const unsubReacted = wsManager.on('message_reacted', (payloadRaw: unknown) => {
+      const p = payloadRaw as any;
+      setMessages(prev => prev.map(m => {
+        if (m.id === p.message_id) {
+          const newReactions = { ...(m.reactions || {}) };
+          if (p.reaction) {
+            newReactions[p.user_id] = p.reaction;
+          } else {
+            delete newReactions[p.user_id];
+          }
+          return { ...m, reactions: newReactions };
+        }
+        return m;
+      }));
+    });
+
     return () => {
       unsubNewMessage();
       unsubTyping();
       unsubPresence();
       unsubRead();
+      unsubReacted();
     };
   }, [id, auth]);
 
@@ -240,14 +257,40 @@ export default function ConversationPage() {
         setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, is_pinned: false } : m));
       } else {
         await api.messages.pin(msg.id);
-        setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, is_pinned: true } : { ...m, is_pinned: false }));
+        setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, is_pinned: true } : m));
       }
     } catch (err) {
-      console.error('Failed to pin/unpin', err);
+      console.error('Toggle pin failed:', err);
     }
   }
 
+  function handleReaction(msgId: string, reaction: string) {
+    // Send over WS
+    wsManager.send('reaction', {
+      message_id: msgId,
+      reaction
+    }, true);
+    
+    // Optimistic update
+    setMessages(prev => prev.map(m => {
+      if (m.id === msgId && auth) {
+        const newReactions = { ...(m.reactions || {}) };
+        if (newReactions[auth.user_id] === reaction) {
+          // toggle off
+          delete newReactions[auth.user_id];
+          wsManager.send('reaction', { message_id: msgId, reaction: '' }, true);
+        } else {
+          newReactions[auth.user_id] = reaction;
+        }
+        return { ...m, reactions: newReactions };
+      }
+      return m;
+    }));
+  }
+
   const pinnedMsg = messages.find(m => m.is_pinned);
+  const EMOJI_LIST = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
+  const [activeReactionMsgId, setActiveReactionMsgId] = useState<string | null>(null);
 
   return (
     <div className={styles.container}>
@@ -343,6 +386,27 @@ export default function ConversationPage() {
                 <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
               </svg>
             </button>
+            <button className={styles.reactBtn} title="Tepki Ekle" onClick={() => setActiveReactionMsgId(activeReactionMsgId === m.id ? null : m.id)}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
+              </svg>
+            </button>
+            {activeReactionMsgId === m.id && (
+              <div className={styles.reactionPicker}>
+                {EMOJI_LIST.map(emoji => (
+                  <button key={emoji} onClick={() => { handleReaction(m.id, emoji); setActiveReactionMsgId(null); }}>
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            )}
+            {m.reactions && Object.keys(m.reactions).length > 0 && (
+              <div className={styles.reactionsBadge}>
+                {Object.entries(m.reactions).map(([uid, r]) => (
+                  <span key={uid} title={uid === auth?.user_id ? "Sen" : "Karşı taraf"}>{r}</span>
+                ))}
+              </div>
+            )}
           </div>
         ))}
         <div ref={bottomRef} />
