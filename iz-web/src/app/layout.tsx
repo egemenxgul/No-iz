@@ -19,9 +19,14 @@ export const metadata: Metadata = {
 
 import { I18nProvider } from '@/lib/i18n/I18nContext';
 
+import { headers } from 'next/headers';
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
   const lang = cookieStore.get('iz_language')?.value || 'en';
+  
+  const headersList = await headers();
+  const nonce = headersList.get('x-nonce') || '';
 
   return (
     <html lang={lang} suppressHydrationWarning>
@@ -30,7 +35,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-        <script dangerouslySetInnerHTML={{
+        <script nonce={nonce} dangerouslySetInnerHTML={{
           __html: `
             (function() {
               try {
