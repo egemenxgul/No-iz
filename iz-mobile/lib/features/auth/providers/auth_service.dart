@@ -112,7 +112,25 @@ class AuthService {
       final response = await _dio.get('/api/users/$userId/bundle');
       return response.data;
     } on DioException catch (e) {
-      throw _parseError(e, 'Kullanıcı anahtarları alınamadı');
+      throw _parseError(e, 'Kullanıcı anahtar demeti alınamadı');
+    }
+  }
+
+  Future<void> registerDevice({
+    required String deviceName,
+    required String deviceToken,
+    required String platform,
+    required String identityKey,
+  }) async {
+    try {
+      await _dio.post('/api/devices/register', data: {
+        'device_name': deviceName,
+        'device_token': deviceToken,
+        'platform': platform,
+        'identity_key': identityKey,
+      });
+    } on DioException catch (e) {
+      throw _parseError(e, 'Cihaz kaydedilemedi');
     }
   }
 
@@ -182,6 +200,24 @@ class AuthService {
       });
     } on DioException catch (e) {
       throw _parseError(e, 'E-posta değiştirilemedi');
+    }
+  }
+
+  /// Web tarayıcısından gösterilen QR kodu mobil cihazla okutulduğunda çağrılır.
+  /// [qrToken]       : QR URL içindeki `token` parametresi.
+  /// [encryptedPayload]: Kimlik anahtarlarını içeren, AES-GCM ile şifrelenmiş yük.
+  /// Backend bu yükü QRHub'a depolar; web tarafı polling ile alır.
+  Future<void> qrLink({
+    required String qrToken,
+    required String encryptedPayload,
+  }) async {
+    try {
+      await _dio.post('/api/auth/qr-link', data: {
+        'qr_token': qrToken,
+        'encrypted_payload': encryptedPayload,
+      });
+    } on DioException catch (e) {
+      throw _parseError(e, 'QR bağlantısı kurulamadı');
     }
   }
 }

@@ -42,6 +42,25 @@ class StoryNotifier extends Notifier<List<FriendStoryFeedModel>> {
     }
   }
 
+  Future<void> markStoryAsViewed(String storyId) async {
+    final service = ref.read(storyServiceProvider);
+    try {
+      await service.markStoryAsViewed(storyId);
+    } catch (e) {
+      debugPrint('Failed to mark story as viewed: $e');
+    }
+  }
+
+  Future<List<dynamic>> getStoryViewers(String storyId) async {
+    final service = ref.read(storyServiceProvider);
+    try {
+      return await service.getStoryViewers(storyId);
+    } catch (e) {
+      debugPrint('Failed to get story viewers: $e');
+      return [];
+    }
+  }
+
   /// Client-side encrypts the media, uploads to MinIO, posts story to backend,
   /// saves the key locally, and distributes the key E2E to all accepted
   /// friends via Double Ratchet WS.

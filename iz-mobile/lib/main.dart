@@ -24,6 +24,11 @@ import 'package:iz_mobile/features/community/presentation/screens/community_deta
 import 'package:iz_mobile/features/notification/presentation/screens/notification_list_screen.dart';
 
 import 'package:iz_mobile/features/auth/presentation/screens/qr_scanner_screen.dart';
+import 'package:iz_mobile/features/story/presentation/screens/story_list_screen.dart';
+import 'package:iz_mobile/features/story/presentation/screens/story_viewer_screen.dart';
+import 'package:iz_mobile/features/story/presentation/screens/create_story_screen.dart';
+import 'package:iz_mobile/features/story/models/story_model.dart';
+import 'package:iz_mobile/features/backup/presentation/screens/backup_screen.dart';
 
 void main() async {
   // Required before any async work in main().
@@ -142,6 +147,25 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/notifications',
         builder: (context, state) => const NotificationListScreen(),
+      ),
+      GoRoute(
+        path: '/stories',
+        builder: (context, state) => const StoryListScreen(),
+      ),
+      GoRoute(
+        path: '/stories/create',
+        builder: (context, state) => const CreateStoryScreen(),
+      ),
+      GoRoute(
+        path: '/stories/view',
+        builder: (context, state) {
+          final feedItem = state.extra as FriendStoryFeedModel;
+          return StoryViewerScreen(feedItem: feedItem);
+        },
+      ),
+      GoRoute(
+        path: '/backup',
+        builder: (context, state) => const BackupScreen(),
       ),
       GoRoute(
         path: '/app',

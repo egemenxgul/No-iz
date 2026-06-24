@@ -7,6 +7,7 @@ import '../../models/call_session.dart';
 import '../../../messages/providers/chat_provider.dart';
 import '../../../messages/providers/message_model.dart';
 import '../../../../core/network/webrtc_service.dart';
+import '../../../../core/localization/locale_provider.dart';
 
 class CallScreen extends ConsumerStatefulWidget {
   final CallSession session;
@@ -167,10 +168,10 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
                         ),
                         child: Text(
                           isDialing
-                              ? 'Aranıyor...'
+                              ? context.tr(ref, 'dialing')
                               : isVideo
-                                  ? (session.isGroup ? 'Grup Görüntülü Arama' : 'Görüntülü Arama Başlatıldı')
-                                  : (session.isGroup ? 'Grup Sesli Arama' : 'Sesli Arama Başlatıldı'),
+                                  ? (session.isGroup ? context.tr(ref, 'group_video_call') : context.tr(ref, 'video_call_started'))
+                                  : (session.isGroup ? context.tr(ref, 'group_voice_call') : context.tr(ref, 'voice_call_started')),
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.7),
                             fontSize: 13,
@@ -434,7 +435,7 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
             ),
             const SizedBox(height: 20),
             Text(
-              'Katılımcılar bekleniyor...',
+              context.tr(ref, 'waiting_participants'),
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.7),
                 fontSize: 16,
@@ -459,7 +460,7 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
         itemCount: peers.length,
         itemBuilder: (context, index) {
           final peerId = peers[index];
-          final peerName = session.peerNames[peerId] ?? 'Katılımcı';
+          final peerName = session.peerNames[peerId] ?? context.tr(ref, 'contact');
           final hasVideo = session.type == CallType.video;
           final renderer = webrtc.remoteRenderers[peerId];
           final isConnected = renderer != null && renderer.srcObject != null;
@@ -528,7 +529,7 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
                                   if (!isConnected && hasVideo) ...[
                                     const SizedBox(height: 12),
                                     Text(
-                                      'Bağlanıyor...',
+                                      context.tr(ref, 'connecting'),
                                       style: TextStyle(
                                         color: Colors.white.withValues(alpha: 0.5),
                                         fontSize: 12,
@@ -621,7 +622,7 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
-                                    'Aramaya davet edildi',
+                                    context.tr(ref, 'invited_to_call'),
                                     style: TextStyle(
                                       color: Colors.white.withValues(alpha: 0.9),
                                       fontSize: 14,
@@ -700,9 +701,9 @@ class _InviteSheetContentState extends ConsumerState<_InviteSheetContent> {
         const SizedBox(height: 18),
 
         // Sheet Title
-        const Text(
-          'Aramaya Katılımcı Ekle',
-          style: TextStyle(
+        Text(
+          context.tr(ref, 'add_participant_to_call'),
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 20,
             fontWeight: FontWeight.w800,
@@ -723,7 +724,7 @@ class _InviteSheetContentState extends ConsumerState<_InviteSheetContent> {
             child: TextField(
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
-                hintText: 'Kişi ara...',
+                hintText: context.tr(ref, 'search_contact'),
                 hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4)),
                 prefixIcon: Icon(Icons.search, color: Colors.white.withValues(alpha: 0.6)),
                 border: InputBorder.none,
@@ -744,7 +745,7 @@ class _InviteSheetContentState extends ConsumerState<_InviteSheetContent> {
           child: invitees.isEmpty
               ? Center(
                   child: Text(
-                    'Kişi bulunamadı',
+                    context.tr(ref, 'contact_not_found'),
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.4),
                       fontSize: 15,

@@ -541,6 +541,7 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
           final body = post['body'] as String? ?? '';
           final authorName = post['author_display_name'] as String? ?? post['author_username'] as String? ?? 'Kullanıcı';
           final authorUsername = post['author_username'] as String? ?? '';
+          final authorRole = post['author_role'] as String? ?? 'member';
           final likeCount = post['like_count'] as int? ?? 0;
           final likedByMe = post['liked_by_me'] as bool? ?? false;
           final relativeTime = _getRelativeTime(post['created_at'] as String? ?? '');
@@ -568,9 +569,42 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              authorName,
-                              style: GoogleFonts.inter(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 14),
+                            Row(
+                              children: [
+                                Text(
+                                  authorName,
+                                  style: GoogleFonts.inter(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 14),
+                                ),
+                                if (authorRole == 'owner' || authorRole == 'admin') ...[
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.danger.withOpacity(0.15),
+                                      borderRadius: BorderRadius.circular(4),
+                                      border: Border.all(color: AppColors.danger.withOpacity(0.5), width: 0.5),
+                                    ),
+                                    child: Text(
+                                      'Yönetici',
+                                      style: GoogleFonts.inter(color: AppColors.danger, fontSize: 9, fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ] else if (authorRole == 'moderator') ...[
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.accent.withOpacity(0.15),
+                                      borderRadius: BorderRadius.circular(4),
+                                      border: Border.all(color: AppColors.accent.withOpacity(0.5), width: 0.5),
+                                    ),
+                                    child: Text(
+                                      'Moderatör',
+                                      style: GoogleFonts.inter(color: AppColors.accent, fontSize: 9, fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
                             if (authorUsername.isNotEmpty)
                               Text(
@@ -641,99 +675,298 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
       return const Center(child: CircularProgressIndicator(color: AppColors.accent));
     }
 
-    if (_groups.isEmpty) {
-      return RefreshIndicator(
-        color: AppColors.accent,
-        onRefresh: () => _loadGroups(_community!['id']),
-        child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-          children: [
-            SizedBox(height: MediaQuery.of(context).size.height * 0.3),
-            _buildEmptyState(
-              icon: Icons.chat_bubble_outline_rounded,
-              title: 'Grup bulunamadı',
-              subtitle: 'Bu topluluğa bağlı herhangi bir sohbet grubu bulunmuyor.',
-            ),
-          ],
-        ),
-      );
-    }
-
-    // Access the conversations to check membership
     final conversations = ref.watch(conversationProvider);
 
     return RefreshIndicator(
       color: AppColors.accent,
       onRefresh: () => _loadGroups(_community!['id']),
-      child: ListView.builder(
+      child: ListView(
         physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
         padding: const EdgeInsets.fromLTRB(16, 150, 16, 80),
-        itemCount: _groups.length,
-        itemBuilder: (context, index) {
-          final group = _groups[index];
-          final groupId = group['group_id'] as String;
-          final groupName = group['group_name'] as String? ?? 'Grup';
-          final initial = groupName.isNotEmpty ? groupName[0].toUpperCase() : '?';
+        children: [
+          // Voice Channels Section (Mock-up)
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 12),
+            child: Text(
+              'SESLİ KANALLAR',
+              style: GoogleFonts.inter(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+          _buildVoiceChannelCard('Genel Sohbet', 4, 50),
+          _buildVoiceChannelCard('Oyun Odası', 0, 10),
+          const SizedBox(height: 24),
 
-          // Check if user is a member of this group chat
-          final isMember = conversations.any((c) => c.isGroup && c.otherUserId == groupId);
+          // Text Groups Section
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 12),
+            child: Text(
+              'SOHBET GRUPLARI',
+              style: GoogleFonts.inter(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+          if (_groups.isEmpty)
+            _buildEmptyState(
+              icon: Icons.chat_bubble_outline_rounded,
+              title: 'Grup bulunamadı',
+              subtitle: 'Bu topluluğa bağlı herhangi bir sohbet grubu bulunmuyor.',
+            )
+          else
+            ..._groups.map((group) {
+              final groupId = group['group_id'] as String;
+              final groupName = group['group_name'] as String? ?? 'Grup';
+              final initial = groupName.isNotEmpty ? groupName[0].toUpperCase() : '?';
 
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: GlassCard(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 22,
-                    backgroundColor: AppColors.accent.withOpacity(0.15),
-                    child: Text(
-                      initial,
-                      style: GoogleFonts.outfit(color: AppColors.accentLight, fontWeight: FontWeight.bold, fontSize: 16),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          groupName,
-                          style: GoogleFonts.inter(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 15),
+              // Check if user is a member of this group chat
+              final isMember = conversations.any((c) => c.isGroup && c.otherUserId == groupId);
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: GlassCard(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 22,
+                        backgroundColor: AppColors.accent.withOpacity(0.15),
+                        child: Text(
+                          initial,
+                          style: GoogleFonts.outfit(color: AppColors.accentLight, fontWeight: FontWeight.bold, fontSize: 16),
                         ),
-                        const SizedBox(height: 3),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              groupName,
+                              style: GoogleFonts.inter(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 15),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              isMember ? 'Katıldınız' : 'Topluluk Grubu',
+                              style: GoogleFonts.inter(
+                                color: isMember ? AppColors.accentLight : AppColors.textSecondary,
+                                fontSize: 11,
+                                fontWeight: isMember ? FontWeight.bold : FontWeight.normal,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (isMember)
+                        _TextActionButton(
+                          text: 'Sohbet',
+                          textColor: AppColors.accentLight,
+                          backgroundColor: Colors.transparent,
+                          borderColor: AppColors.accentBorder.withOpacity(0.5),
+                          onTap: () => context.push('/app/messages/$groupId'),
+                        )
+                      else
+                        _TextActionButton(
+                          text: 'Katıl',
+                          textColor: Colors.white,
+                          backgroundColor: AppColors.accent,
+                          borderColor: Colors.transparent,
+                          onTap: () => _onJoinGroup(group),
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVoiceChannelCard(String name, int onlineCount, int maxMembers) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: GestureDetector(
+        onTap: () => _showVoiceChannelBottomSheet(name, onlineCount, maxMembers),
+        child: GlassCard(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.success.withOpacity(0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.volume_up_rounded, color: AppColors.success, size: 20),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: GoogleFonts.inter(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: onlineCount > 0 ? AppColors.success : AppColors.textMuted,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
                         Text(
-                          isMember ? 'Katıldınız' : 'Topluluk Grubu',
+                          '$onlineCount / $maxMembers kişi seslide',
                           style: GoogleFonts.inter(
-                            color: isMember ? AppColors.accentLight : AppColors.textSecondary,
+                            color: onlineCount > 0 ? AppColors.success : AppColors.textSecondary,
                             fontSize: 11,
-                            fontWeight: isMember ? FontWeight.bold : FontWeight.normal,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
                     ),
-                  ),
-                  if (isMember)
-                    _TextActionButton(
-                      text: 'Sohbet',
-                      textColor: AppColors.accentLight,
-                      backgroundColor: Colors.transparent,
-                      borderColor: AppColors.accentBorder.withOpacity(0.5),
-                      onTap: () => context.push('/app/messages/$groupId'),
-                    )
-                  else
-                    _TextActionButton(
-                      text: 'Katıl',
-                      textColor: Colors.white,
-                      backgroundColor: AppColors.accent,
-                      borderColor: Colors.transparent,
-                      onTap: () => _onJoinGroup(group),
-                    ),
-                ],
+                  ],
+                ),
               ),
+              const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showVoiceChannelBottomSheet(String name, int onlineCount, int maxMembers) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: AppColors.bgSurface.withOpacity(0.9),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border(top: BorderSide(color: AppColors.glassBorder, width: 0.5)),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.textMuted.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.success.withOpacity(0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.volume_up_rounded, color: AppColors.success, size: 28),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            name,
+                            style: GoogleFonts.outfit(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 22),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Topluluk Ses Kanalı • $onlineCount/$maxMembers',
+                            style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 13),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                if (onlineCount > 0) ...[
+                  Text(
+                    'Aktif Katılımcılar',
+                    style: GoogleFonts.inter(color: AppColors.textSecondary, fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    height: 80,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: onlineCount,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 16),
+                          child: Column(
+                            children: [
+                              CircleAvatar(
+                                radius: 24,
+                                backgroundColor: AppColors.accent.withOpacity(0.2),
+                                child: Text('U${index + 1}', style: TextStyle(color: AppColors.accentLight, fontWeight: FontWeight.bold)),
+                              ),
+                              const SizedBox(height: 6),
+                              Text('User ${index + 1}', style: GoogleFonts.inter(color: AppColors.textPrimary, fontSize: 11)),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Ses kanalına bağlanılıyor... (Mock)')),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.success,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 0,
+                    ),
+                    icon: const Icon(Icons.mic_rounded, size: 22),
+                    label: Text(
+                      'Kanala Katıl',
+                      style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }

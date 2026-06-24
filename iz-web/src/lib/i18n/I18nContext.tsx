@@ -3,8 +3,9 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import en from './locales/en.json';
 import tr from './locales/tr.json';
+import de from './locales/de.json';
 
-type Language = 'en' | 'tr';
+type Language = 'en' | 'tr' | 'de';
 
 interface I18nContextType {
   language: Language;
@@ -14,7 +15,7 @@ interface I18nContextType {
 
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
-const dictionaries = { en, tr };
+const dictionaries = { en, tr, de };
 
 interface TranslationDict {
   [key: string]: string | TranslationDict | undefined;
@@ -26,16 +27,20 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const storedLang = localStorage.getItem('iz_language') as Language;
-    if (storedLang && (storedLang === 'en' || storedLang === 'tr')) {
+    if (storedLang && (storedLang === 'en' || storedLang === 'tr' || storedLang === 'de')) {
       setLanguageState(storedLang);
       document.cookie = `iz_language=${storedLang};path=/;max-age=31536000`;
+      document.documentElement.lang = storedLang;
     } else {
       // Auto detect from browser
       const browserLang = navigator.language.slice(0, 2).toLowerCase();
-      const detected: Language = browserLang === 'tr' ? 'tr' : 'en';
+      let detected: Language = 'en';
+      if (browserLang === 'tr') detected = 'tr';
+      if (browserLang === 'de') detected = 'de';
       setLanguageState(detected);
       localStorage.setItem('iz_language', detected);
       document.cookie = `iz_language=${detected};path=/;max-age=31536000`;
+      document.documentElement.lang = detected;
     }
     setMounted(true);
   }, []);
@@ -44,8 +49,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     setLanguageState(lang);
     localStorage.setItem('iz_language', lang);
     document.cookie = `iz_language=${lang};path=/;max-age=31536000`;
-    // Reload to apply language to API headers everywhere smoothly
-    window.location.reload();
+    document.documentElement.lang = lang;
   };
 
   const t = (path: string): string => {

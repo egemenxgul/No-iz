@@ -6,13 +6,20 @@ import { api } from '@/lib/api';
 import { wsManager } from '@/lib/websocket';
 import styles from './messages-layout.module.css';
 import { useI18n } from '@/lib/i18n/I18nContext';
-import { Conversation } from '@/types';
+import { Conversation, FriendStoryFeed, Group } from '@/types';
+import StoryViewer from '@/components/StoryViewer';
 
 export default function MessagesLayout({ children }: { children: React.ReactNode }) {
   const { t } = useI18n();
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [stories, setStories] = useState<FriendStoryFeed[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeStoryFeed, setActiveStoryFeed] = useState<number | null>(null);
   const [showNewChat, setShowNewChat] = useState(false);
+  const [showNewGroup, setShowNewGroup] = useState(false);
+  const [groupName, setGroupName] = useState('');
+  const [groupDesc, setGroupDesc] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<{ id: string; username: string; display_name: string; avatar_url: string }[]>([]);
   const [searching, setSearching] = useState(false);
@@ -24,8 +31,14 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
     try {
       const res = await api.messages.conversations();
       setConversations(res.conversations || []);
+      
+      const groupRes = await api.groups.list();
+      setGroups(groupRes.groups || []);
+
+      const storyRes = await api.stories.feed();
+      setStories(storyRes || []);
     } catch (err) {
-      console.error('Failed to fetch conversations:', err);
+      console.error('Failed to fetch data:', err);
     } finally {
       setLoading(false);
     }
@@ -34,7 +47,15 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
   useEffect(() => {
     fetchConversations();
     const off = wsManager.on('new_message', () => { fetchConversations(); });
-    return () => off();
+    const offKey = wsManager.on('group_key_distribution', (payload: any) => {
+       // Save received sender key for a group
+       if (!payload || !payload.group_id || !payload.sender_id || !payload.key) return;
+       const store = JSON.parse(localStorage.getItem('iz_group_keys') || '{}');
+       if (!store[payload.group_id]) store[payload.group_id] = {};
+       store[payload.group_id][payload.sender_id] = payload.key;
+       localStorage.setItem('iz_group_keys', JSON.stringify(store));
+    });
+    return () => { off(); offKey(); };
   }, []);
 
   // Debounced search
@@ -57,6 +78,20 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
     setSearchQuery('');
     setSearchResults([]);
     router.push(`/app/messages/${userId}`);
+  }
+
+  async function createGroup() {
+    if (!groupName.trim()) return;
+    try {
+      const g = await api.groups.create(groupName, groupDesc, false);
+      setShowNewGroup(false);
+      setGroupName('');
+      setGroupDesc('');
+      setGroups(prev => [g, ...prev]);
+      router.push(`/app/groups/${g.id}`);
+    } catch (err) {
+      console.error('Create group failed', err);
+    }
   }
 
   return (
@@ -105,30 +140,102 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
       <aside className={styles.sidebar}>
         <div className={styles.header}>
           <h2 className={styles.title}>{t('app.messages')}</h2>
-          <button
-            className={styles.newChatBtn}
-            title={t('app.new_chat')}
-            id="new-chat-btn"
-            onClick={() => setShowNewChat(true)}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-            </svg>
-          </button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button className={styles.newChatBtn} onClick={() => setShowNewGroup(true)} title={t('app.new_group')}>
+              👥
+            </button>
+            <button className={styles.newChatBtn} onClick={() => setShowNewChat(true)} title={t('app.new_chat')}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 5v14m-7-7h14" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          </div>
         </div>
+
+        {/* New Group Modal */}
+        {showNewGroup && (
+          <div className={styles.modalOverlay} onClick={() => setShowNewGroup(false)}>
+            <div className={styles.modal} onClick={e => e.stopPropagation()}>
+              <div className={styles.modalHeader}>
+                <h3 className={styles.modalTitle}>{t('app.create_group')}</h3>
+                <button className={styles.modalClose} onClick={() => setShowNewGroup(false)}>✕</button>
+              </div>
+              <div className={styles.modalSearch} style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 16 }}>
+                <input
+                  type="text"
+                  className={styles.searchInput}
+                  placeholder={t('app.group_name_placeholder')}
+                  value={groupName}
+                  onChange={e => setGroupName(e.target.value)}
+                  autoFocus
+                />
+                <input
+                  type="text"
+                  className={styles.searchInput}
+                  placeholder={t('app.group_desc')}
+                  value={groupDesc}
+                  onChange={e => setGroupDesc(e.target.value)}
+                />
+                <button 
+                  className={styles.newChatBtn} 
+                  style={{ width: '100%', padding: '12px', background: 'var(--accent)', color: 'white', borderRadius: 12 }}
+                  onClick={createGroup}
+                  disabled={!groupName.trim()}
+                >
+                  {t('app.create')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Stories Ring */}
+        {!loading && stories.length > 0 && (
+          <div className={styles.storyRingContainer}>
+            {stories.map((feed, idx) => (
+              <div key={feed.user_id} className={styles.storyItem} onClick={() => setActiveStoryFeed(idx)}>
+                <div className={styles.storyAvatarWrapper}>
+                  <div className={styles.storyAvatar}>
+                    {feed.display_name?.[0]?.toUpperCase() || feed.username[0].toUpperCase()}
+                  </div>
+                </div>
+                <span className={styles.storyName}>{feed.display_name || feed.username}</span>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className={styles.list}>
           {loading && Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className={`${styles.item} skeleton`} style={{ height: 64, margin: '8px 12px', borderRadius: 12 }} />
           ))}
           
-          {!loading && conversations.length === 0 && (
+          {!loading && conversations.length === 0 && groups.length === 0 && (
             <div className={styles.empty}>
               <div style={{ fontSize: 32, marginBottom: 8 }}>💬</div>
               <div>{t('app.no_chats')}</div>
               <button className={styles.emptyBtn} onClick={() => setShowNewChat(true)}>{t('app.start_chat')}</button>
             </div>
           )}
+
+          {/* Groups list */}
+          {groups.map((g) => (
+            <Link
+              key={g.id}
+              href={`/app/groups/${g.id}`}
+              className={`${styles.item} ${id === g.id ? styles.itemActive : ''}`}
+            >
+              <div className={styles.avatar}>
+                👥
+              </div>
+              <div className={styles.content}>
+                <div className={styles.top}>
+                  <span className={styles.name}>{g.name}</span>
+                </div>
+                <p className={styles.lastMsg}>{g.description || t('app.group')}</p>
+              </div>
+            </Link>
+          ))}
 
           {conversations.map((c) => (
             <Link
@@ -157,6 +264,16 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
       <div className={styles.contentArea}>
         {children}
       </div>
+
+      {/* Story Viewer Overlay */}
+      {activeStoryFeed !== null && (
+        <StoryViewer
+          feed={stories[activeStoryFeed]}
+          onClose={() => setActiveStoryFeed(null)}
+          onNextFeed={activeStoryFeed < stories.length - 1 ? () => setActiveStoryFeed(activeStoryFeed + 1) : undefined}
+          onPrevFeed={activeStoryFeed > 0 ? () => setActiveStoryFeed(activeStoryFeed - 1) : undefined}
+        />
+      )}
     </div>
   );
 }

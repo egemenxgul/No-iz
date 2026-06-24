@@ -27,4 +27,13 @@ class StoryService {
 	Future<void> deleteStory(String storyId) async {
 		await _dio.delete('/api/stories/$storyId');
 	}
+
+	Future<void> markStoryAsViewed(String storyId) async {
+		await _dio.post('/api/stories/$storyId/view');
+	}
+
+	Future<List<dynamic>> getStoryViewers(String storyId) async {
+		final res = await _dio.get('/api/stories/$storyId/viewers');
+		return res.data as List<dynamic>? ?? [];
+	}
 }

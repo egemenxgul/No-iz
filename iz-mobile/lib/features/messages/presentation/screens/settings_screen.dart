@@ -89,7 +89,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       leading: Container(
                         width: 40,
                         height: 40,
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           shape: BoxShape.circle,
                           color: AppColors.accentDim,
                         ),
@@ -111,9 +111,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     leading: Container(
                       width: 40,
                       height: 40,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         shape: BoxShape.circle,
-                        gradient: const LinearGradient(
+                        gradient: LinearGradient(
                           colors: [Color(0xFF06B6D4), Color(0xFF3B82F6)],
                         ),
                       ),
@@ -136,9 +136,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     leading: Container(
                       width: 40,
                       height: 40,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         shape: BoxShape.circle,
-                        gradient: const LinearGradient(
+                        gradient: LinearGradient(
                           colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
                         ),
                       ),
@@ -164,9 +164,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     leading: Container(
                       width: 40,
                       height: 40,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         shape: BoxShape.circle,
-                        gradient: const LinearGradient(
+                        gradient: LinearGradient(
                           colors: [Color(0xFF10B981), Color(0xFF047857)],
                         ),
                       ),
@@ -210,7 +210,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     leading: Container(
                       width: 40,
                       height: 40,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         shape: BoxShape.circle,
                         color: AppColors.bgHover,
                       ),
@@ -237,9 +237,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     leading: Container(
                       width: 40,
                       height: 40,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         shape: BoxShape.circle,
-                        gradient: const LinearGradient(
+                        gradient: LinearGradient(
                           colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
                         ),
                       ),
@@ -254,7 +254,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     leading: Container(
                       width: 40,
                       height: 40,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         shape: BoxShape.circle,
                         color: AppColors.dangerDim,
                       ),

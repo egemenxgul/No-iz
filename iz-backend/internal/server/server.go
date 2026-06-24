@@ -359,6 +359,10 @@ func securityHeadersMiddleware(next http.Handler) http.Handler {
 		w.Header().Set("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
 		// Legacy XSS protection header for older browsers.
 		w.Header().Set("X-XSS-Protection", "1; mode=block")
+		// HTTP Strict Transport Security — enforce HTTPS for 2 years (CWE-319).
+		w.Header().Set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload")
+		// Content-Security-Policy for the API (restricts where resources can be loaded from).
+		w.Header().Set("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'")
 		next.ServeHTTP(w, r)
 	})
 }

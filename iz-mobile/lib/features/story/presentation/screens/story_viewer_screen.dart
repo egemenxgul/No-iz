@@ -98,6 +98,9 @@ class _StoryViewerScreenState extends ConsumerState<StoryViewerScreen>
         });
         _fadeCtrl.forward();
         _startTimer();
+        
+        // Mark as viewed on backend (fire and forget)
+        ref.read(storyProvider.notifier).markStoryAsViewed(story.id);
       }
     } catch (e) {
       if (mounted) {

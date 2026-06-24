@@ -87,6 +87,8 @@ export const api = {
       if (before) q.set('before', before);
       return request<{ messages: import('@/types').Message[] }>(`/api/messages?${q}`);
     },
+    pin: (msgID: string) => request<void>(`/api/messages/${msgID}/pin`, { method: 'POST' }),
+    unpin: (msgID: string) => request<void>(`/api/messages/${msgID}/unpin`, { method: 'POST' }),
   },
 
   // ─── Groups ─────────────────────────────────────────────────────────────────
@@ -135,6 +137,24 @@ export const api = {
   calls: {
     history: () => request<{ calls: import('@/types').Call[] }>('/api/calls'),
     turnConfig: () => request<{ ice_servers: RTCIceServer[] }>('/api/calls/turn'),
+  },
+
+  // ─── Stories ────────────────────────────────────────────────────────────────
+  stories: {
+    feed: () => request<import('@/types').FriendStoryFeed[]>('/api/stories'),
+    view: (storyID: string) => request<void>(`/api/stories/${storyID}/view`, { method: 'POST' }),
+  },
+
+  // ─── Backup ─────────────────────────────────────────────────────────────────
+  backup: {
+    get: () => request<{ encrypted_blob: string; salt: string; created_at: string } | null>('/api/backup').catch(err => {
+      if (err instanceof ApiError && err.status === 404) return null;
+      throw err;
+    }),
+    save: (encryptedBlob: string, salt: string) => request<void>('/api/backup', {
+      method: 'POST',
+      body: JSON.stringify({ encrypted_blob: encryptedBlob, salt })
+    }),
   },
 };
 

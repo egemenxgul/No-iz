@@ -181,6 +181,10 @@ func (h *Handler) readPump(c *Client, conn *websocket.Conn) {
 			h.handleCall(c, "group_leave", raw)
 		case "call_promote":
 			h.handleCall(c, "promote", raw)
+
+		// ── Group Crypto ───────────────────────────────────────────
+		case "group_key_distribution":
+			h.handleGroupKeyDistribution(c, env.Payload)
 		}
 	}
 }
@@ -459,6 +463,28 @@ func (h *Handler) handleSendGroupMessage(c *Client, raw interface{}) {
 		Type:    "group_message_delivered",
 		Payload: map[string]string{"message_id": msgID, "status": "saved"},
 	})
+}
+
+func (h *Handler) handleGroupKeyDistribution(c *Client, raw interface{}) {
+	data, _ := json.Marshal(raw)
+	var p struct {
+		TargetID string `json:"target_id"`
+	}
+	if err := json.Unmarshal(data, &p); err != nil {
+		return
+	}
+	targetID, err := uuid.Parse(p.TargetID)
+	if err != nil {
+		return
+	}
+	
+	// Relay to target
+	type envelope struct {
+		Type    string          `json:"type"`
+		Payload json.RawMessage `json:"payload"`
+	}
+	relay, _ := json.Marshal(envelope{Type: "group_key_distribution", Payload: data})
+	h.hub.Deliver(targetID, relay)
 }
 
 func (h *Handler) handleUserTyping(c *Client, raw interface{}) {

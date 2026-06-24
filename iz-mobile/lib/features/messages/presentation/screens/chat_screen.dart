@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:iz_mobile/core/theme/app_colors.dart';
@@ -36,6 +37,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   bool _isTyping = false;
   DateTime? _lastTypingSent;
+
+  // Sabitlenmiş mesaj navigasyonu — birden fazla pin varsa döngüsel gezinme
+  int _pinnedMessageIndex = 0;
+  final Map<String, GlobalKey> _messageKeys = {};
 
   @override
   void initState() {
@@ -218,6 +223,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     ref.read(chatProvider(widget.otherUserId).notifier).addMessage(msg);
     _controller.clear();
+    HapticFeedback.lightImpact();
 
     if (_isTyping) {
       _isTyping = false;
@@ -282,7 +288,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       body: Column(
         children: [
           if (messages.any((m) => m.isPinned))
-            _buildPinnedMessageBanner(messages.where((m) => m.isPinned).last),
+            _buildPinnedMessageBanner(
+              messages.where((m) => m.isPinned).toList(),
+            ),
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
@@ -291,10 +299,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               itemBuilder: (context, index) {
                 final m = messages[index];
                 final isMe = m.senderId == myUserId;
-                final showDate = index == 0 || 
-                    m.createdAt.difference(messages[index-1].createdAt).inMinutes > 30;
-                
+                final showDate = index == 0 ||
+                    m.createdAt.difference(messages[index - 1].createdAt).inMinutes > 30;
+
+                // Her mesaj için bir GlobalKey — scroll-to-message için
+                _messageKeys[m.id] ??= GlobalKey();
+
                 return Column(
+                  key: _messageKeys[m.id],
                   children: [
                     if (showDate) _buildDateChip(m.createdAt),
                     _MessageBubble(message: m, isMe: isMe),
@@ -316,42 +328,103 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
-  Widget _buildPinnedMessageBanner(MessageModel msg) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: const BoxDecoration(
-        color: AppColors.bgElevated,
-        border: Border(bottom: BorderSide(color: AppColors.glassBorder, width: 0.5)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.push_pin, color: AppColors.accent, size: 16),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Sabitlenmiş Mesaj',
-                  style: TextStyle(color: AppColors.accent, fontSize: 12, fontWeight: FontWeight.bold),
+  Widget _buildPinnedMessageBanner(List<MessageModel> pinnedMsgs) {
+    if (pinnedMsgs.isEmpty) return const SizedBox.shrink();
+
+    // Döngüsel index güvencesi
+    final safeIndex = _pinnedMessageIndex.clamp(0, pinnedMsgs.length - 1);
+    final msg = pinnedMsgs[safeIndex];
+    final hasMultiple = pinnedMsgs.length > 1;
+
+    return GestureDetector(
+      onTap: () {
+        // Banner'a tıklanınca o mesaja kaydır
+        final key = _messageKeys[msg.id];
+        if (key?.currentContext != null) {
+          Scrollable.ensureVisible(
+            key!.currentContext!,
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeOutCubic,
+            alignment: 0.3,
+          );
+        }
+        // Birden fazla pin varsa sonrakine geç
+        if (hasMultiple) {
+          setState(() {
+            _pinnedMessageIndex = (_pinnedMessageIndex + 1) % pinnedMsgs.length;
+          });
+        }
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: const BoxDecoration(
+          color: AppColors.bgElevated,
+          border: Border(bottom: BorderSide(color: AppColors.glassBorder, width: 0.5)),
+        ),
+        child: Row(
+          children: [
+            // Çoklu pin göstergesi — dikey çizgiler
+            if (hasMultiple)
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(pinnedMsgs.length.clamp(0, 4), (i) {
+                    return Container(
+                      width: 3,
+                      height: 8,
+                      margin: const EdgeInsets.symmetric(vertical: 1),
+                      decoration: BoxDecoration(
+                        color: i == safeIndex
+                            ? AppColors.accent
+                            : AppColors.textMuted.withValues(alpha: 0.35),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    );
+                  }),
                 ),
-                Text(
-                  msg.plaintext ?? 'Medya Mesajı',
-                  style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+              ),
+            const Icon(Icons.push_pin, color: AppColors.accent, size: 16),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    hasMultiple
+                        ? 'Sabitlenmiş Mesaj ${safeIndex + 1}/${pinnedMsgs.length}'
+                        : 'Sabitlenmiş Mesaj',
+                    style: const TextStyle(
+                      color: AppColors.accent,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    msg.plaintext ?? 'Medya Mesajı',
+                    style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
-          ),
-          GestureDetector(
-            onTap: () {
-              ref.read(chatProvider(msg.conversationId).notifier).unpinMessage(msg.id);
-            },
-            child: const Icon(Icons.close, color: AppColors.textMuted, size: 18),
-          ),
-        ],
+            GestureDetector(
+              onTap: () {
+                ref.read(chatProvider(msg.conversationId).notifier).unpinMessage(msg.id);
+                // Kalan pin sayısını güncelle
+                if (_pinnedMessageIndex >= pinnedMsgs.length - 1) {
+                  setState(() => _pinnedMessageIndex = 0);
+                }
+              },
+              child: const Padding(
+                padding: EdgeInsets.only(left: 8),
+                child: Icon(Icons.close, color: AppColors.textMuted, size: 18),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1079,7 +1152,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ),
           decoration: BoxDecoration(
             color: AppColors.bgBase.withValues(alpha: 0.8),
-            border: Border(top: BorderSide(color: AppColors.glassBorder, width: 0.5)),
+            border: const Border(top: BorderSide(color: AppColors.glassBorder, width: 0.5)),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -1196,13 +1269,13 @@ class _MessageBubble extends ConsumerWidget {
           Icon(
             Icons.delete_outline,
             size: 16,
-            color: isMe ? Colors.white.withOpacity(0.6) : AppColors.textMuted,
+            color: isMe ? Colors.white.withValues(alpha: 0.6) : AppColors.textMuted,
           ),
           const SizedBox(width: 6),
           Text(
             'Bu mesaj silindi',
             style: GoogleFonts.inter(
-              color: isMe ? Colors.white.withOpacity(0.6) : AppColors.textMuted,
+              color: isMe ? Colors.white.withValues(alpha: 0.6) : AppColors.textMuted,
               fontSize: 14,
               fontStyle: FontStyle.italic,
             ),
@@ -1345,8 +1418,19 @@ class _MessageBubble extends ConsumerWidget {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      // 📌 Sabitlenmiş mesaj ikonu
+                      if (message.isPinned) ...[
+                        Icon(
+                          Icons.push_pin,
+                          size: 11,
+                          color: isMe
+                              ? Colors.white.withValues(alpha: 0.65)
+                              : AppColors.accent.withValues(alpha: 0.8),
+                        ),
+                        const SizedBox(width: 4),
+                      ],
                       Text(
-                        '${message.createdAt.hour.toString().padLeft(2,'0')}:${message.createdAt.minute.toString().padLeft(2, '0')}',
+                        '${message.createdAt.hour.toString().padLeft(2, '0')}:${message.createdAt.minute.toString().padLeft(2, '0')}',
                         style: GoogleFonts.inter(
                           color: isMe ? Colors.white.withValues(alpha: 0.5) : AppColors.textMuted,
                           fontSize: 10,
@@ -1374,7 +1458,7 @@ class _MessageBubble extends ConsumerWidget {
                       if (isMe) ...[
                         const SizedBox(width: 4),
                         _buildStatusTicks(),
-                      ]
+                      ],
                     ],
                   ),
                 ],
@@ -1673,7 +1757,7 @@ class _MessageBubble extends ConsumerWidget {
                     height: 4,
                     margin: const EdgeInsets.only(bottom: 20),
                     decoration: BoxDecoration(
-                      color: AppColors.textMuted.withOpacity(0.4),
+                      color: AppColors.textMuted.withValues(alpha: 0.4),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -1776,6 +1860,8 @@ class _MessageBubble extends ConsumerWidget {
             ),
           ),
         );
+      },
+    );
   }
 
   void _showEditDialog(BuildContext context, WidgetRef ref, MessageModel msg) {

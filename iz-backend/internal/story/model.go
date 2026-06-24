@@ -25,3 +25,20 @@ type FriendStoryFeed struct {
 	AvatarURL   string    `json:"avatar_url"`
 	Stories     []*Story  `json:"stories"`
 }
+
+// StoryView represents a record of a user viewing a story.
+type StoryView struct {
+	ID       uuid.UUID `json:"id"`
+	StoryID  uuid.UUID `json:"story_id"`
+	ViewerID uuid.UUID `json:"viewer_id"`
+	ViewedAt time.Time `json:"viewed_at"`
+}
+
+// StoryViewer holds data for the UI to display who viewed a story.
+type StoryViewer struct {
+	ViewerID    uuid.UUID `json:"viewer_id"`
+	Username    string    `json:"username"`
+	DisplayName string    `json:"display_name"`
+	AvatarURL   string    `json:"avatar_url"`
+	ViewedAt    time.Time `json:"viewed_at"`
+}

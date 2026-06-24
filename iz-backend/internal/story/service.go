@@ -55,3 +55,21 @@ func (s *Service) GetFeed(ctx context.Context, userID uuid.UUID) ([]*FriendStory
 
 	return feed, nil
 }
+
+func (s *Service) MarkStoryAsViewed(ctx context.Context, storyID, viewerID uuid.UUID) error {
+	err := s.repo.InsertStoryView(ctx, storyID, viewerID)
+	if err != nil {
+		s.log.Error().Err(err).Str("story_id", storyID.String()).Str("viewer_id", viewerID.String()).Msg("failed to mark story as viewed")
+		return err
+	}
+	return nil
+}
+
+func (s *Service) GetStoryViewers(ctx context.Context, storyID uuid.UUID) ([]*StoryViewer, error) {
+	viewers, err := s.repo.GetStoryViewers(ctx, storyID)
+	if err != nil {
+		s.log.Error().Err(err).Str("story_id", storyID.String()).Msg("failed to fetch story viewers")
+		return nil, err
+	}
+	return viewers, nil
+}

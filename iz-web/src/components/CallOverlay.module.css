@@ -1,0 +1,207 @@
+.overlay {
+  position: fixed;
+  z-index: 9999;
+  transition: all var(--transition-base);
+}
+
+.overlay.full {
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.overlay.pip {
+  position: fixed;
+  width: 240px;
+  height: 320px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  overflow: hidden;
+  transition: box-shadow 0.2s, transform 0.2s;
+  user-select: none;
+}
+
+.overlay.dragging {
+  opacity: 0.9;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.7);
+  transform: scale(1.02);
+  transition: none !important;
+}
+
+.toast {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ef4444;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  z-index: 10000;
+}
+
+.ringingBox {
+  background: var(--bg-elevated);
+  padding: 32px;
+  border-radius: var(--radius-lg);
+  text-align: center;
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+
+.callerAvatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #6366f1);
+  color: white;
+  font-size: 32px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.4); }
+  70% { box-shadow: 0 0 0 20px rgba(124, 58, 237, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0); }
+}
+
+.ringingText {
+  font-size: 18px;
+  color: var(--text-primary);
+  margin-bottom: 24px;
+  line-height: 1.4;
+}
+
+.ringingActions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.btnAccept, .btnReject, .btnControl {
+  border: none;
+  border-radius: 50px;
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform var(--transition-fast);
+}
+
+.btnAccept {
+  background: #10b981;
+  color: white;
+}
+.btnAccept:hover { transform: scale(1.05); }
+
+.btnReject {
+  background: #ef4444;
+  color: white;
+}
+.btnReject:hover { transform: scale(1.05); }
+
+.btnControl {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 12px;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.btnControl:hover { background: rgba(255, 255, 255, 0.3); }
+
+.callBox {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.videoContainer {
+  position: relative;
+  flex: 1;
+  background: black;
+  overflow: hidden;
+}
+
+.remoteVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.localVideoPip {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 120px;
+  height: 160px;
+  background: #333;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  border: 2px solid rgba(255,255,255,0.2);
+}
+
+.overlay.pip .localVideoPip {
+  width: 60px;
+  height: 80px;
+  bottom: 10px;
+  right: 10px;
+}
+
+.audioContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.pulseAvatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #6366f1);
+  color: white;
+  font-size: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.callDuration {
+  color: white;
+  font-size: 18px;
+}
+
+.controls {
+  position: absolute;
+  bottom: 40px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+}
+
+.overlay.pip .controls {
+  bottom: 16px;
+  gap: 12px;
+}

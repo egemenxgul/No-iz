@@ -525,7 +525,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
                       _ActionButton(
                         label: 'Şimdi Şifreli Yedekle',
                         icon: Icons.cloud_upload_rounded,
-                        gradientColors: [AppColors.accent, AppColors.accentSecondary],
+                        gradientColors: const [AppColors.accent, AppColors.accentSecondary],
                         glowColor: AppColors.accent,
                         onTap: () => _showPasswordDialog(isBackup: true),
                       ),
@@ -533,9 +533,9 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
                       _ActionButton(
                         label: 'Yedekten Geri Yükle',
                         icon: Icons.cloud_download_rounded,
-                        gradientColors: [
-                          const Color(0xFF10B981),
-                          const Color(0xFF059669)
+                        gradientColors: const [
+                          Color(0xFF10B981),
+                          Color(0xFF059669)
                         ],
                         glowColor: const Color(0xFF10B981),
                         onTap: () => _showPasswordDialog(isBackup: false),

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../providers/call_provider.dart';
 import '../../models/call_session.dart';
+import '../../../../core/localization/locale_provider.dart';
 
 class RingingScreen extends ConsumerStatefulWidget {
   final CallSession session;
@@ -164,7 +165,7 @@ class _RingingScreenState extends ConsumerState<RingingScreen>
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              isVideo ? 'Gelen Görüntülü Arama' : 'Gelen Sesli Arama',
+                              isVideo ? context.tr(ref, 'incoming_video_call') : context.tr(ref, 'incoming_voice_call'),
                               style: GoogleFonts.inter(
                                 color: Colors.white.withValues(alpha: 0.9),
                                 fontSize: 13,
@@ -200,7 +201,7 @@ class _RingingScreenState extends ConsumerState<RingingScreen>
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'iz üzerinden aranıyor...',
+                  context.tr(ref, 'calling_via_iz'),
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.45),
                     fontSize: 15,
@@ -299,13 +300,13 @@ class _RingingScreenState extends ConsumerState<RingingScreen>
                     children: [
                       _CallButton(
                         icon: Icons.call_end_rounded,
-                        label: 'Reddet',
+                        label: context.tr(ref, 'reject'),
                         color: const Color(0xFFFF4B6E),
                         onTap: () => ref.read(callProvider.notifier).rejectCall(),
                       ),
                       _CallButton(
                         icon: isVideo ? Icons.videocam_rounded : Icons.call_rounded,
-                        label: 'Cevapla',
+                        label: context.tr(ref, 'answer'),
                         color: const Color(0xFF34D399),
                         onTap: () => ref.read(callProvider.notifier).acceptCall(),
                       ),

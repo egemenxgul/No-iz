@@ -6,6 +6,7 @@ import { wsManager } from '@/lib/websocket';
 import { getAuth } from '@/store/auth';
 import { sendEncrypted, receiveDecrypted, establishSession, loadSessions } from '@/lib/crypto/session';
 import { Message } from '@/types';
+import { webrtcManager } from '@/lib/webrtc';
 import styles from './chat.module.css';
 
 import { useI18n } from '@/lib/i18n/I18nContext';
@@ -17,7 +18,13 @@ export default function ConversationPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput]       = useState('');
   const [loading, setLoading]   = useState(true);
+  
+  const [isTyping, setIsTyping] = useState(false);
+  const [isOnline, setIsOnline] = useState(false);
+  
   const bottomRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastTypingSentRef = useRef<number>(0);
 
   // Load history and decrypt messages
   useEffect(() => {
@@ -26,6 +33,13 @@ export default function ConversationPage() {
       try {
         const r = await api.messages.history(id);
         const msgs = r.messages || [];
+        
+        // Send read receipts for unread msgs from this user
+        msgs.forEach((m: any) => {
+          if (!m.read_at && m.sender_id === id && m.recipient_id === auth?.user_id) {
+            wsManager.send('message_read', { message_id: m.id });
+          }
+        });
         
         // Decrypt messages if possible
         const decryptedMsgs = await Promise.all(msgs.map(async m => {
@@ -47,9 +61,9 @@ export default function ConversationPage() {
     load();
   }, [id]);
 
-  // Subscribe to new messages
+  // Subscribe to new messages and events
   useEffect(() => {
-    return wsManager.on('new_message', async (payloadRaw: unknown) => {
+    const unsubNewMessage = wsManager.on('new_message', async (payloadRaw: unknown) => {
       const payload = payloadRaw as Message;
       if (payload.sender_id === id || payload.recipient_id === id) {
         try {
@@ -58,9 +72,38 @@ export default function ConversationPage() {
         } catch {
           setMessages(prev => [...prev, payload]);
         }
+
+        // Send read receipt if we are the recipient
+        if (payload.recipient_id === auth?.user_id && payload.sender_id === id) {
+          wsManager.send('message_read', { message_id: payload.id });
+        }
       }
     });
-  }, [id]);
+
+    const unsubTyping = wsManager.on('user_typing', (payloadRaw: unknown) => {
+      const p = payloadRaw as any;
+      if (p.sender_id === id) setIsTyping(p.is_typing);
+    });
+
+    const unsubPresence = wsManager.on('presence', (payloadRaw: unknown) => {
+      const p = payloadRaw as any;
+      if (p.user_id === id) setIsOnline(p.online);
+    });
+
+    const unsubRead = wsManager.on('message_read', (payloadRaw: unknown) => {
+      const p = payloadRaw as any;
+      if (p.reader_id === id) {
+        setMessages(prev => prev.map(m => m.id === p.message_id ? { ...m, read_at: new Date().toISOString() } : m));
+      }
+    });
+
+    return () => {
+      unsubNewMessage();
+      unsubTyping();
+      unsubPresence();
+      unsubRead();
+    };
+  }, [id, auth]);
 
   // Scroll to bottom
   useEffect(() => {
@@ -113,12 +156,97 @@ export default function ConversationPage() {
     }
   }
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const val = e.target.value;
+    setInput(val);
+    
+    const now = Date.now();
+    if (val.length > 0 && now - lastTypingSentRef.current > 3000) {
+      wsManager.send('user_typing', { is_typing: true, recipient_id: id });
+      lastTypingSentRef.current = now;
+      
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = setTimeout(() => {
+        wsManager.send('user_typing', { is_typing: false, recipient_id: id });
+        lastTypingSentRef.current = 0;
+      }, 3500);
+    } else if (val.length === 0) {
+      wsManager.send('user_typing', { is_typing: false, recipient_id: id });
+      lastTypingSentRef.current = 0;
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    }
+  };
+
   function handleKey(e: KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    if (e.key === 'Enter' && !e.shiftKey) { 
+      e.preventDefault(); 
+      sendMessage(); 
+      wsManager.send('user_typing', { is_typing: false, recipient_id: id });
+      lastTypingSentRef.current = 0;
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    }
   }
+
+  async function togglePin(msg: Message) {
+    try {
+      if (msg.is_pinned) {
+        await api.messages.unpin(msg.id);
+        setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, is_pinned: false } : m));
+      } else {
+        await api.messages.pin(msg.id);
+        setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, is_pinned: true } : { ...m, is_pinned: false }));
+      }
+    } catch (err) {
+      console.error('Failed to pin/unpin', err);
+    }
+  }
+
+  const pinnedMsg = messages.find(m => m.is_pinned);
 
   return (
     <div className={styles.container}>
+      {/* Chat Header for Calling */}
+      <div className={styles.chatHeader}>
+        <div className={styles.chatHeaderInfo}>
+          <div className={styles.chatHeaderTitle}>{t('app.messages')}</div>
+          <div className={styles.chatHeaderSubtitle}>
+            {isTyping ? (
+              <span className={`${styles['text-accent']} ${styles['font-semibold']} ${styles.italic}`}>{t('typing') || 'yazıyor...'}</span>
+            ) : isOnline ? (
+              <span className={`${styles['text-success']} ${styles['font-semibold']} ${styles.flex} ${styles['items-center']} ${styles['gap-1']}`}>
+                <div style={{width: 6, height: 6, borderRadius: '50%', backgroundColor: '#10b981'}} /> Çevrimiçi
+              </span>
+            ) : null}
+          </div>
+        </div>
+        <div className={styles.chatHeaderActions}>
+          <button className={styles.callBtn} onClick={() => webrtcManager.startCall(id as string, false)} title="Sesli Arama">
+            📞
+          </button>
+          <button className={styles.callBtn} onClick={() => webrtcManager.startCall(id as string, true)} title="Görüntülü Arama">
+            📹
+          </button>
+        </div>
+      </div>
+
+      {/* Pinned Banner */}
+      {pinnedMsg && (
+        <div className={styles.pinnedBanner} onClick={() => {
+          // Optional: Scroll to message logic could be added here
+        }}>
+          <div className={styles.pinnedIcon}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+            </svg>
+          </div>
+          <div className={styles.pinnedContent}>
+            <span className={styles.pinnedLabel}>{t('app.pinned_message') || 'Pinned Message'}</span>
+            <span className={styles.pinnedText}>{pinnedMsg.plaintext ?? atob(pinnedMsg.ciphertext)}</span>
+          </div>
+          <button className={styles.pinBtn} onClick={(e) => { e.stopPropagation(); togglePin(pinnedMsg); }}>✕</button>
+        </div>
+      )}
+
       {/* Messages */}
       <div className={styles.messages}>
         {loading && <div className={styles.loadingCenter}><span className={styles.spinner} /></div>}
@@ -131,9 +259,22 @@ export default function ConversationPage() {
             <span className={styles.bubbleTime}>
               {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               {m.sender_id === auth?.user_id && (
-                <span className={styles.readStatus}>{m.read_at ? '✓✓' : m.delivered_at ? '✓✓' : '✓'}</span>
+                <span className={`${styles.readStatus} ${m.read_at ? styles.statusRead : styles.statusDelivered}`}>
+                  {m.read_at ? (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L7 17l-5-5"></path><path d="M22 10l-5 5-1.5-1.5"></path></svg>
+                  ) : m.delivered_at ? (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L7 17l-5-5"></path><path d="M22 10l-5 5-1.5-1.5"></path></svg>
+                  ) : (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>
+                  )}
+                </span>
               )}
             </span>
+            <button className={styles.pinBtn} title={m.is_pinned ? "Unpin" : "Pin"} onClick={() => togglePin(m)}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+              </svg>
+            </button>
           </div>
         ))}
         <div ref={bottomRef} />
@@ -144,7 +285,7 @@ export default function ConversationPage() {
         <textarea
           className={styles.textarea}
           value={input}
-          onChange={e => setInput(e.target.value)}
+          onChange={handleInputChange}
           onKeyDown={handleKey}
           placeholder={t('app.chat_placeholder')}
           rows={1}

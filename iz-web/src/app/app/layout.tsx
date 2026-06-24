@@ -7,6 +7,7 @@ import { wsManager } from '@/lib/websocket';
 import styles from './layout.module.css';
 
 import { useI18n } from '@/lib/i18n/I18nContext';
+import CallOverlay from '@/components/CallOverlay';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router   = useRouter();
@@ -95,6 +96,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <main className={styles.main}>
         {children}
       </main>
+
+      <CallOverlay />
     </div>
   );
 }

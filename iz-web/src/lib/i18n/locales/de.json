@@ -1,0 +1,162 @@
+{
+  "meta": {
+    "title": "iz — Bleib unsichtbar",
+    "description": "Ende-zu-Ende-verschlüsseltes Messaging, Gruppen- und Community-Plattform.",
+    "keywords": "Messaging, verschlüsselt, Datenschutz, Sicherheit, iz"
+  },
+  "landing": {
+    "login": "Anmelden",
+    "start": "Start",
+    "encrypted": "Ende-zu-Ende verschlüsselt",
+    "hero_title": "Ihre Unterhaltungen",
+    "hero_subtitle": "Bleiben unsichtbar",
+    "hero_desc": "Mit dem Signal-Protokoll verschlüsselte Nachrichten, Gruppenchats, Communities und Audio-/Videoanrufe — der Server sieht nichts.",
+    "cta_start": "Jetzt loslegen",
+    "cta_login": "Anmelden",
+    "stat_encryption": "Verschlüsselung",
+    "stat_access": "Server-Zugriff",
+    "footer": "© 2026 iz. Datenschutz ist ein Recht.",
+    "features": {
+      "signal": {
+        "title": "Signal-Protokoll",
+        "desc": "Der X3DH-Schlüsselaustausch und Double Ratchet stellen sicher, dass jede Nachricht einzigartig verschlüsselt ist."
+      },
+      "instant": {
+        "title": "Instant Messaging",
+        "desc": "Echtzeitnachrichten über WebSocket. Der Server sieht niemals den Inhalt."
+      },
+      "groups": {
+        "title": "Verschlüsselte Gruppen",
+        "desc": "Effizientes Gruppen-Messaging mit Sender Keys für bis zu 5.000 Mitglieder."
+      },
+      "communities": {
+        "title": "Communities",
+        "desc": "Communities mit bis zu 500.000 Mitgliedern, Feeds und Untergruppen."
+      },
+      "calls": {
+        "title": "Audio-/Videoanrufe",
+        "desc": "P2P-Anrufe über WebRTC. Audio und Video laufen nicht über den Server."
+      },
+      "blind": {
+        "title": "Blinder Server",
+        "desc": "Wir können niemals auf Ihre Nachrichteninhalte zugreifen — by design."
+      }
+    }
+  },
+  "login": {
+    "title": "Willkommen zurück",
+    "subtitle": "Melden Sie sich an, um zu iz fortzufahren.",
+    "email_or_username": "E-Mail oder Benutzername",
+    "email_or_username_placeholder": "Benutzername oder E-Mail@...",
+    "password": "Passwort",
+    "password_placeholder": "••••••••",
+    "submit": "Anmelden",
+    "submitting": "Anmelden...",
+    "no_account": "Sie haben noch kein Konto?",
+    "register": "Registrieren",
+    "err_login_failed": "Anmeldung fehlgeschlagen"
+  },
+  "register": {
+    "title": "Konto erstellen",
+    "subtitle": "Treten Sie dem iz-Netzwerk bei.",
+    "display_name": "Anzeigename",
+    "display_name_placeholder": "Max Mustermann",
+    "username": "Benutzername",
+    "username_placeholder": "max_muster",
+    "email": "E-Mail",
+    "email_placeholder": "max@beispiel.com",
+    "password": "Passwort",
+    "password_placeholder": "••••••••",
+    "invite_code": "Einladungscode",
+    "invite_code_placeholder": "8-stelliger Code",
+    "submit": "Registrieren",
+    "submitting": "Registrieren...",
+    "has_account": "Sie haben bereits ein Konto?",
+    "login": "Anmelden",
+    "err_registration_failed": "Registrierung fehlgeschlagen"
+  },
+  "app": {
+    "messages": "Nachrichten",
+    "communities": "Communities",
+    "groups": "Gruppen",
+    "calls": "Anrufe",
+    "settings": "Einstellungen",
+    "new_chat": "Neuer Chat",
+    "search_user": "Benutzernamen suchen...",
+    "searching": "Suchen...",
+    "user_not_found": "Benutzer nicht gefunden",
+    "min_2_chars": "Geben Sie mindestens 2 Zeichen ein",
+    "no_chats": "Noch keine Chats",
+    "start_chat": "Chat starten",
+    "msg_text": "🔒 Nachricht",
+    "msg_file": "📁 Datei",
+    "logout": "Abmelden",
+    "ws_connected": "Verbunden",
+    "ws_connecting": "Verbinden...",
+    "select_chat": "Wählen Sie einen Chat aus der Liste oder suchen Sie jemanden.",
+    "chat_placeholder": "Schreibe eine Nachricht... (Eingabe zum Senden)",
+    "loading": "Wird geladen...",
+    "coming_soon": "Demnächst.",
+    "no_communities": "Keine Communities gefunden.",
+    "not_joined_community": "Sie sind noch keiner Community beigetreten.",
+    "explore": "Entdecken",
+    "members": "Mitglieder",
+    "public": "Öffentlich",
+    "private": "Privat",
+    "pinned": "Angeheftete Nachrichten",
+    "no_pinned": "Keine angehefteten Nachrichten.",
+    "pin_message": "Nachricht anheften",
+    "unpin_message": "Anheften aufheben",
+    "new_group": "Neue Gruppe",
+    "create_group": "Gruppe erstellen",
+    "group_name": "Gruppenname",
+    "group_name_placeholder": "Gruppenname",
+    "group_desc": "Gruppenbeschreibung",
+    "create": "Erstellen",
+    "stories": "Storys",
+    "add_story": "Story hinzufügen",
+    "view_story": "Story ansehen",
+    "call_audio": "Sprachanruf",
+    "call_video": "Videoanruf",
+    "call_incoming": "Eingehender Anruf",
+    "call_end": "Anruf beenden",
+    "call_accept": "Akzeptieren",
+    "call_decline": "Ablehnen",
+    "group": "Gruppe",
+    "group_call_wip": "WebRTC-Gruppenanruf in Arbeit",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "confirm": "Bestätigen",
+    "processing": "Verarbeiten..."
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "privacy": "Datenschutz & Sicherheit",
+    "backup_menu_title": "Ende-zu-Ende verschlüsseltes Backup",
+    "backup_menu_desc": "Sichern Sie Ihre Chats sicher in der Cloud oder stellen Sie sie wieder her",
+    "backup_title": "Ende-zu-Ende verschlüsseltes Backup",
+    "backup_desc": "Da Ihr Chatverlauf Ende-zu-Ende-verschlüsselt ist, speichern unsere Server keine Klartextnachrichten. Sie können Ihre Signal-Protokoll-Schlüssel sicher sichern und auf einem neuen Gerät wiederherstellen.",
+    "backup_status_none": "Kein Backup gefunden.",
+    "backup_status_last": "Letztes Backup: ",
+    "backup_status_checking": "Überprüfen...",
+    "create_backup": "Jetzt sichern",
+    "restore_backup": "Wiederherstellen",
+    "backup_password": "Passwort",
+    "backup_password_desc": "Dieses Passwort wird verwendet, um Ihr Backup durchgehend zu verschlüsseln. Wenn Sie Ihr Passwort vergessen, können Sie Ihre Daten nicht wiederherstellen.",
+    "restore_password_desc": "Bitte geben Sie das Passwort ein, das Sie bei der Erstellung des Backups verwendet haben.",
+    "set_password_title": "Backup-Passwort festlegen",
+    "enter_password_title": "Backup-Passwort eingeben",
+    "please_enter_password": "Bitte geben Sie ein Passwort ein.",
+    "backup_success": "Backup erfolgreich abgeschlossen.",
+    "backup_failed": "Backup fehlgeschlagen.",
+    "restore_success": "Backup erfolgreich wiederhergestellt. Bitte aktualisieren Sie die Seite.",
+    "restore_failed": "Falsches Passwort oder beschädigtes Backup.",
+    "language": "Sprache",
+    "theme": "Design",
+    "notifications": "Benachrichtigungen"
+  },
+  "theme": {
+    "light": "Helles Design",
+    "dark": "Dunkles Design"
+  }
+}

@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { QRCodeSVG } from 'qrcode.react';
 import { saveAuth } from '@/store/auth';
 import { toBase64, generateKeyPair } from '@/lib/crypto/x25519';
+import { decryptQrPayload } from '@/lib/crypto/aes-gcm';
 import styles from '../auth.module.css';
 import ThemeToggle from '@/components/ThemeToggle';
 import LanguageToggle from '@/components/LanguageToggle';
@@ -76,9 +77,25 @@ export default function LoginPage() {
                 const { encrypted_payload } = payload;
                 if (encrypted_payload) {
                    try {
-                       const keysData = JSON.parse(atob(encrypted_payload));
-                       if (keysData.identityKey) {
-                          localStorage.setItem(`KEYS_${authData.user_id}`, btoa(encrypted_payload));
+                       const privKey = localStorage.getItem('qr_login_private_key');
+                       let keysData;
+                       
+                       if (privKey) {
+                           try {
+                               // 1. Try X25519 ECDH decryption
+                               const decryptedStr = await decryptQrPayload(encrypted_payload, privKey);
+                               keysData = JSON.parse(decryptedStr);
+                           } catch (ecdhError) {
+                               console.warn('ECDH decryption failed, falling back to legacy mode:', ecdhError);
+                               keysData = JSON.parse(atob(encrypted_payload));
+                           }
+                       } else {
+                           keysData = JSON.parse(atob(encrypted_payload));
+                       }
+
+                       if (keysData && keysData.identityKey) {
+                          // Re-encode JSON to base64 for local storage format
+                          localStorage.setItem(`KEYS_${authData.user_id}`, btoa(JSON.stringify(keysData)));
                        }
                    } catch(e) {
                        console.warn('Failed to parse keys payload', e);

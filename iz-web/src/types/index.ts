@@ -31,6 +31,7 @@ export interface Message {
   read_at: string | null;
   expires_at: string | null;
   created_at: string;
+  is_pinned?: boolean;
   // Decrypted client-side
   plaintext?: string;
 }
@@ -131,4 +132,22 @@ export interface Conversation {
   is_archived: boolean;
   is_group: boolean;
   last_message_type: string | null;
+}
+
+export interface Story {
+  id: string;
+  user_id: string;
+  media_url: string;
+  caption: string;
+  media_type: string;
+  created_at: string;
+  expires_at: string;
+}
+
+export interface FriendStoryFeed {
+  user_id: string;
+  username: string;
+  display_name: string;
+  avatar_url: string;
+  stories: Story[];
 }

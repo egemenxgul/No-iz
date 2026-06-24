@@ -33,7 +33,20 @@
   display: flex;
   flex-direction: column;
   gap: 3px;
-  animation: fadeIn 150ms ease forwards;
+  animation: slideInUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .bubbleIn  { align-self: flex-start; }
@@ -70,7 +83,12 @@
 .bubbleIn  .bubbleTime { padding-left: 4px; }
 .bubbleOut .bubbleTime { padding-right: 4px; align-self: flex-end; }
 
-.readStatus { color: var(--accent-glow); }
+.readStatus { 
+  display: flex;
+  align-items: center;
+}
+.statusRead { color: #3b82f6; /* Blue for read */ }
+.statusDelivered { color: var(--text-muted); /* Gray for delivered/sent */ }
 
 /* ─── Input Bar ───────────────────────────────────────────────────────────── */
 .inputBar {
@@ -124,4 +142,146 @@
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
+}
+
+/* ─── Pinned Banner ───────────────────────────────────────────────────────── */
+.pinnedBanner {
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  animation: slideDown 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  transform-origin: top;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scaleY(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+}
+
+.pinnedBanner:hover {
+  background: var(--bg-hover);
+  padding-left: 24px;
+}
+
+.pinnedIcon {
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pinnedContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pinnedLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
+.pinnedText {
+  font-size: 13px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─── Message Pin Button ─── */
+.pinBtn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--transition-fast), color var(--transition-fast);
+}
+.bubble:hover .pinBtn {
+  opacity: 1;
+}
+.pinBtn:hover {
+  color: var(--accent);
+}
+
+/* ─── Chat Header (Calling) ─── */
+.chatHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.chatHeaderInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.chatHeaderTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.chatHeaderSubtitle {
+  font-size: 12px;
+  min-height: 18px; /* prevents layout jump */
+}
+
+/* Added global utility-like classes inside module just in case or use them from global */
+.text-accent { color: var(--accent); }
+.text-success { color: #10b981; }
+.font-semibold { font-weight: 600; }
+.italic { font-style: italic; }
+.flex { display: flex; }
+.items-center { align-items: center; }
+.gap-1 { gap: 4px; }
+
+.chatHeaderActions {
+  display: flex;
+  gap: 12px;
+}
+
+.callBtn {
+  background: rgba(124, 58, 237, 0.1);
+  border: 1px solid rgba(124, 58, 237, 0.2);
+  color: var(--text-primary);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-size: 18px;
+}
+.callBtn:hover {
+  background: var(--accent);
+  color: white;
+  transform: scale(1.05);
 }

@@ -1,0 +1,185 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.viewer {
+  width: 100%;
+  max-width: 400px;
+  height: 100vh;
+  max-height: 800px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: #111;
+  overflow: hidden;
+  animation: storyScaleUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  transform-origin: center;
+}
+
+@keyframes storyScaleUp {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@media (min-width: 600px) {
+  .viewer {
+    height: 90vh;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+}
+
+.progressContainer {
+  display: flex;
+  gap: 4px;
+  padding: 12px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+}
+
+.progressBarBg {
+  flex: 1;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progressBarFill {
+  height: 100%;
+  background: #fff;
+  transition: width 0.1s linear;
+}
+
+.header {
+  position: absolute;
+  top: 24px;
+  left: 0;
+  right: 0;
+  padding: 0 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 10;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.name {
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+}
+
+.time {
+  color: rgba(255,255,255,0.7);
+  font-size: 12px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+}
+
+.mediaContainer {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.media {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tapPrev {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 30%;
+  z-index: 5;
+  cursor: pointer;
+}
+
+.tapNext {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 70%;
+  z-index: 5;
+  cursor: pointer;
+}
+
+.captionContainer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 32px 16px 24px;
+  background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+  z-index: 10;
+}
+
+.caption {
+  color: white;
+  font-size: 15px;
+  line-height: 1.4;
+  margin: 0;
+  text-align: center;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+}

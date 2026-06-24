@@ -103,3 +103,44 @@ func (r *Repository) ListActiveFromFriends(ctx context.Context, userID uuid.UUID
 
 	return feeds, rows.Err()
 }
+
+// InsertStoryView records that a user viewed a specific story.
+// Uses ON CONFLICT DO NOTHING so multiple views by the same user don't create duplicates.
+func (r *Repository) InsertStoryView(ctx context.Context, storyID, viewerID uuid.UUID) error {
+	query := `
+		INSERT INTO story_views (story_id, viewer_id)
+		VALUES ($1, $2)
+		ON CONFLICT (story_id, viewer_id) DO NOTHING
+	`
+	_, err := r.db.Exec(ctx, query, storyID, viewerID)
+	return err
+}
+
+// GetStoryViewers returns the list of users who viewed a story.
+func (r *Repository) GetStoryViewers(ctx context.Context, storyID uuid.UUID) ([]*StoryViewer, error) {
+	query := `
+		SELECT 
+			sv.viewer_id, u.username, u.display_name, u.avatar_url, sv.viewed_at
+		FROM story_views sv
+		JOIN users u ON u.id = sv.viewer_id
+		WHERE sv.story_id = $1
+		ORDER BY sv.viewed_at DESC
+	`
+	rows, err := r.db.Query(ctx, query, storyID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var viewers []*StoryViewer
+	for rows.Next() {
+		v := &StoryViewer{}
+		if err := rows.Scan(&v.ViewerID, &v.Username, &v.DisplayName, &v.AvatarURL, &v.ViewedAt); err != nil {
+			return nil, err
+		}
+		viewers = append(viewers, v)
+	}
+
+	return viewers, rows.Err()
+}
+

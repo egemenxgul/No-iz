@@ -11,6 +11,10 @@ import 'package:iz_mobile/features/messages/providers/contacts_provider.dart';
 import 'package:iz_mobile/features/auth/providers/auth_provider.dart';
 import 'package:iz_mobile/features/notification/providers/notification_provider.dart';
 import 'package:iz_mobile/features/story/presentation/screens/story_list_screen.dart';
+import 'package:iz_mobile/features/story/presentation/screens/story_viewer_screen.dart';
+import 'package:iz_mobile/features/story/presentation/screens/create_story_screen.dart';
+import 'package:iz_mobile/features/story/providers/story_provider.dart';
+import 'package:iz_mobile/features/story/models/story_model.dart';
 import 'archived_conversations_screen.dart';
 
 class ConversationListScreen extends StatefulWidget {
@@ -61,6 +65,7 @@ class _ConversationListScreenState extends State<ConversationListScreen>
         final notificationsState = ref.watch(notificationsProvider);
         final hasUnreadNotifications =
             notificationsState.valueOrNull?.any((n) => !n.isRead) ?? false;
+        final storyFeed = ref.watch(storyProvider);
 
         Future.microtask(() {
           ref.read(contactsProvider.notifier).syncContacts();
@@ -139,6 +144,9 @@ class _ConversationListScreenState extends State<ConversationListScreen>
                         _LiquidSliverAppBar(
                           hasUnreadNotifications: hasUnreadNotifications,
                         ),
+                        // ── Story halkaları ─────────────────────────────
+                        if (storyFeed.isNotEmpty)
+                          _buildStoryRings(context, storyFeed, myUserId),
                         _buildSearchBar(context),
                         _buildShortcutStrip(context),
                         _buildTabBar(messageRequests.length),
@@ -263,6 +271,54 @@ class _ConversationListScreenState extends State<ConversationListScreen>
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// Story halkaları — yatay kaydırmalı avatar çemberleri
+  Widget _buildStoryRings(
+    BuildContext context,
+    List<FriendStoryFeedModel> feed,
+    String myUserId,
+  ) {
+    return SliverToBoxAdapter(
+      child: SizedBox(
+        height: 100,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          itemCount: feed.length + 1, // +1 for own story button
+          itemBuilder: (context, index) {
+            if (index == 0) {
+              // Kendi hikaye ekleme butonu
+              return _StoryRingItem(
+                label: 'Hikayem',
+                avatarUrl: null,
+                isOwn: true,
+                hasStory: feed.any((f) => f.userId == myUserId),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CreateStoryScreen()),
+                ),
+              );
+            }
+            final feedItem = feed[index - 1];
+            return _StoryRingItem(
+              label: feedItem.displayName.isNotEmpty
+                  ? feedItem.displayName
+                  : feedItem.username,
+              avatarUrl: feedItem.avatarUrl.isNotEmpty ? feedItem.avatarUrl : null,
+              isOwn: false,
+              hasStory: feedItem.stories.isNotEmpty,
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => StoryViewerScreen(feedItem: feedItem),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -687,12 +743,12 @@ class _ConversationTileState extends ConsumerState<_ConversationTile>
           alignment: Alignment.centerLeft,
           padding: const EdgeInsets.only(left: 22),
         ),
-        secondaryBackground: _DismissBackground(
+        secondaryBackground: const _DismissBackground(
           icon: Icons.archive_outlined,
           label: 'Arşivle',
-          color: const Color(0xFF7C3AED),
+          color: Color(0xFF7C3AED),
           alignment: Alignment.centerRight,
-          padding: const EdgeInsets.only(right: 22),
+          padding: EdgeInsets.only(right: 22),
         ),
         confirmDismiss: (direction) async {
           if (direction == DismissDirection.endToStart) {
@@ -1118,6 +1174,121 @@ class _DismissBackground extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Story Ring Item — Instagram tarzı yuvarlak story avatar
+// ─────────────────────────────────────────────────────────────────────────────
+class _StoryRingItem extends StatelessWidget {
+  final String label;
+  final String? avatarUrl;
+  final bool isOwn;
+  final bool hasStory;
+  final VoidCallback onTap;
+
+  const _StoryRingItem({
+    required this.label,
+    required this.avatarUrl,
+    required this.isOwn,
+    required this.hasStory,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Stack(
+              alignment: Alignment.bottomRight,
+              children: [
+                // Gradient ring
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: hasStory
+                        ? const LinearGradient(
+                            colors: [Color(0xFF6366F1), Color(0xFFEC4899), Color(0xFFF59E0B)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          )
+                        : null,
+                    color: hasStory ? null : AppColors.glassMedium,
+                    border: hasStory
+                        ? null
+                        : Border.all(color: AppColors.glassBorder, width: 1.5),
+                  ),
+                  padding: const EdgeInsets.all(2.5),
+                  child: ClipOval(
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.bgElevated,
+                      ),
+                      padding: const EdgeInsets.all(2),
+                      child: ClipOval(
+                        child: avatarUrl != null && avatarUrl!.isNotEmpty
+                            ? Image.network(
+                                avatarUrl!,
+                                width: 56,
+                                height: 56,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => _defaultAvatar(),
+                              )
+                            : _defaultAvatar(),
+                      ),
+                    ),
+                  ),
+                ),
+                // Kendi hikaye butonu için + işareti
+                if (isOwn)
+                  Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                      ),
+                      border: Border.all(color: AppColors.bgBase, width: 2),
+                    ),
+                    child: const Icon(Icons.add, color: Colors.white, size: 12),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 5),
+            SizedBox(
+              width: 64,
+              child: Text(
+                label,
+                style: GoogleFonts.inter(
+                  color: AppColors.textSecondary,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _defaultAvatar() {
+    return Container(
+      color: AppColors.bgElevated,
+      child: const Icon(Icons.person_rounded, color: AppColors.textMuted, size: 28),
     );
   }
 }

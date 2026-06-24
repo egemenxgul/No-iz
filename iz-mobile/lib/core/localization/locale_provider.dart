@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-enum AppLanguage { tr, en }
+enum AppLanguage { tr, en, de }
 
 class LocaleState {
   final AppLanguage language;
@@ -19,6 +19,8 @@ class LocaleNotifier extends Notifier<LocaleState> {
       final deviceLocale = ui.PlatformDispatcher.instance.locale.languageCode.toLowerCase();
       if (deviceLocale.startsWith('tr')) {
         return AppLanguage.tr;
+      } else if (deviceLocale.startsWith('de')) {
+        return AppLanguage.de;
       }
     } catch (_) {}
     return AppLanguage.en;
@@ -36,17 +38,22 @@ class LocaleNotifier extends Notifier<LocaleState> {
       state = LocaleState(AppLanguage.en);
     } else if (langStr == 'tr') {
       state = LocaleState(AppLanguage.tr);
+    } else if (langStr == 'de') {
+      state = LocaleState(AppLanguage.de);
     } else {
       // First launch, secure storage is empty.
       // Auto-detect and write it to secure storage for future persistence.
       final defaultLang = _getDeviceDefaultLanguage();
-      await _storage.write(key: 'app_language', value: defaultLang == AppLanguage.tr ? 'tr' : 'en');
+      await _storage.write(key: 'app_language', value: defaultLang.name);
       state = LocaleState(defaultLang);
     }
   }
   
   Future<void> toggleLanguage() async {
     if (state.language == AppLanguage.tr) {
+      await _storage.write(key: 'app_language', value: 'de');
+      state = LocaleState(AppLanguage.de);
+    } else if (state.language == AppLanguage.de) {
       await _storage.write(key: 'app_language', value: 'en');
       state = LocaleState(AppLanguage.en);
     } else {
@@ -155,6 +162,30 @@ const _translations = {
     'friendship_rejected': 'Arkadaşlık isteği reddedildi',
     'user_unblocked': 'Kullanıcının engeli kaldırıldı',
     'user_blocked': 'Kullanıcı engellendi',
+    'group': 'Grup',
+    'new_group': 'Yeni Grup',
+    'stories': 'Hikayeler',
+    'messages': 'Mesajlar',
+    'calls': 'Aramalar',
+    'communities': 'Topluluklar',
+    'search': 'Ara...',
+    'cancel': 'İptal',
+    'save': 'Kaydet',
+    'dialing': 'Aranıyor...',
+    'group_video_call': 'Grup Görüntülü Arama',
+    'video_call_started': 'Görüntülü Arama Başlatıldı',
+    'group_voice_call': 'Grup Sesli Arama',
+    'voice_call_started': 'Sesli Arama Başlatıldı',
+    'waiting_participants': 'Katılımcılar bekleniyor...',
+    'add_participant_to_call': 'Aramaya Katılımcı Ekle',
+    'search_contact': 'Kişi ara...',
+    'contact_not_found': 'Kişi bulunamadı',
+    'invited_to_call': 'Aramaya davet edildi',
+    'incoming_video_call': 'Gelen Görüntülü Arama',
+    'incoming_voice_call': 'Gelen Sesli Arama',
+    'calling_via_iz': 'iz üzerinden aranıyor...',
+    'reject': 'Reddet',
+    'answer': 'Cevapla',
   },
   AppLanguage.en: {
     'settings': 'Settings',
@@ -241,5 +272,139 @@ const _translations = {
     'friendship_rejected': 'Friend request rejected',
     'user_unblocked': 'User unblocked successfully',
     'user_blocked': 'User blocked successfully',
+    'group': 'Group',
+    'new_group': 'New Group',
+    'stories': 'Stories',
+    'messages': 'Messages',
+    'calls': 'Calls',
+    'communities': 'Communities',
+    'search': 'Search...',
+    'cancel': 'Cancel',
+    'save': 'Save',
+    'dialing': 'Dialing...',
+    'group_video_call': 'Group Video Call',
+    'video_call_started': 'Video Call Started',
+    'group_voice_call': 'Group Voice Call',
+    'voice_call_started': 'Voice Call Started',
+    'waiting_participants': 'Waiting for participants...',
+    'add_participant_to_call': 'Add Participant to Call',
+    'search_contact': 'Search contact...',
+    'contact_not_found': 'Contact not found',
+    'invited_to_call': 'Invited to call',
+    'incoming_video_call': 'Incoming Video Call',
+    'incoming_voice_call': 'Incoming Voice Call',
+    'calling_via_iz': 'calling via iz...',
+    'reject': 'Decline',
+    'answer': 'Answer',
+  },
+  AppLanguage.de: {
+    'settings': 'Einstellungen',
+    'accounts': 'Konten',
+    'add_account': 'Konto hinzufügen',
+    'profile': 'Profil',
+    'profile_info': 'Profilinformationen',
+    'profile_info_sub': 'Anzeigename, Benutzername',
+    'backup_cloud': 'Backup (Cloud)',
+    'auto_backup': 'Automatisches Backup',
+    'auto_backup_sub': 'Tägliches Backup in die Cloud',
+    'include_media': 'Medien einschließen',
+    'include_media_sub': 'Auch Fotos und Videos sichern',
+    'backup_now': 'Jetzt sichern',
+    'last_backup': 'Letztes Backup: Heute',
+    'privacy_security': 'Datenschutz & Sicherheit',
+    'privacy_sub': 'Ende-zu-Ende-Verschlüsselung',
+    'logout': 'Abmelden',
+    'active': 'Aktiv',
+    'switch_account_tap': 'Zum Wechseln tippen',
+    'profile_details': 'Profildetails',
+    'display_name': 'Anzeigename',
+    'username': 'Benutzername',
+    'about': 'Über',
+    'active_account': 'Aktives Konto',
+    'switch_to_account': 'Zu diesem Konto wechseln',
+    'logout_this_account': 'Von diesem Konto abmelden',
+    'save_changes': 'Änderungen speichern',
+    'username_readonly': 'Ihr Benutzername kann nicht geändert werden.',
+    'saved_successfully': 'Profil erfolgreich aktualisiert!',
+    'error': 'Fehler',
+    'success': 'Erfolg',
+    'choose_avatar': 'Profilbild auswählen',
+    'avatar_url': 'Profilbild-URL',
+    'avatar_presets': 'Vorlagen',
+    'loading': 'Wird geladen...',
+    'language_setting': 'Sprache / Language',
+    'language_current': 'Deutsch (DE)',
+    'err_display_name_length': 'Anzeigename darf nicht leer sein!',
+    'welcome_back': 'Willkommen zurück',
+    'tagline': 'Ende-zu-Ende verschlüsselt und komplett unsichtbar.',
+    'please_fill_field': 'Bitte füllen Sie dieses Feld aus',
+    'please_enter_password': 'Bitte geben Sie Ihr Passwort ein',
+    'login': 'Anmelden',
+    'no_account': 'Sie haben noch kein Konto?',
+    'register': 'Registrieren',
+    'secure_keys_fail': 'Sicheres Schlüsselpaar konnte nicht generiert werden',
+    'registration_success': 'Registrierung erfolgreich! Sie können sich jetzt anmelden.',
+    'create_new_account': 'Neues Konto erstellen',
+    'security_keys_notice': 'Zu Ihrer Sicherheit werden Verschlüsselungsschlüssel auf Ihrem Gerät generiert.',
+    'please_enter_username': 'Bitte geben Sie einen Benutzernamen ein',
+    'username_min_length': 'Der Benutzername muss mindestens 3 Zeichen lang sein',
+    'email': 'E-Mail',
+    'please_enter_email': 'Bitte geben Sie Ihre E-Mail-Adresse ein',
+    'valid_email_error': 'Bitte geben Sie eine gültige E-Mail-Adresse ein',
+    'please_enter_display_name': 'Bitte geben Sie Ihren Anzeigenamen ein',
+    'password': 'Passwort',
+    'password_min_length': 'Das Passwort muss mindestens 8 Zeichen lang sein',
+    'invite_code': 'Einladungscode',
+    'please_enter_invite_code': 'Bitte geben Sie Ihren Einladungscode ein',
+    'phone_number': 'Telefonnummer',
+    'phone_number_optional': 'Telefonnummer (Optional)',
+    'phone_number_invalid': 'Bitte geben Sie eine gültige Telefonnummer ein',
+    'select_contact': 'Kontakt auswählen',
+    'contacts': 'Kontakte',
+    'no_contacts_found': 'Keine Kontakte gefunden',
+    'invite_friend': 'Einladen',
+    'phonebook_contacts': 'Meine Kontakte',
+    'invite': 'Einladen',
+    'invited': 'Eingeladen',
+    'global_search': 'Alle Benutzer suchen',
+    'friends': 'Freunde',
+    'requests': 'Anfragen',
+    'blocked': 'Blockiert',
+    'no_friends_yet': 'Noch keine Freunde',
+    'no_requests_yet': 'Keine ausstehenden Anfragen',
+    'no_blocked_yet': 'Keine blockierten Benutzer',
+    'unblock': 'Blockierung aufheben',
+    'accept': 'Akzeptieren',
+    'reject': 'Ablehnen',
+    'block': 'Blockieren',
+    'social_hub': 'Soziales',
+    'friendship_accepted': 'Freundschaftsanfrage akzeptiert',
+    'friendship_rejected': 'Freundschaftsanfrage abgelehnt',
+    'user_unblocked': 'Benutzer erfolgreich entsperrt',
+    'user_blocked': 'Benutzer erfolgreich blockiert',
+    'group': 'Gruppe',
+    'new_group': 'Neue Gruppe',
+    'stories': 'Storys',
+    'messages': 'Nachrichten',
+    'calls': 'Anrufe',
+    'communities': 'Communities',
+    'search': 'Suchen...',
+    'cancel': 'Abbrechen',
+    'save': 'Speichern',
+    'dialing': 'Wird angerufen...',
+    'group_video_call': 'Gruppen-Videoanruf',
+    'video_call_started': 'Videoanruf gestartet',
+    'group_voice_call': 'Gruppen-Sprachanruf',
+    'voice_call_started': 'Sprachanruf gestartet',
+    'waiting_participants': 'Warten auf Teilnehmer...',
+    'add_participant_to_call': 'Teilnehmer zum Anruf hinzufügen',
+    'search_contact': 'Kontakt suchen...',
+    'contact_not_found': 'Kontakt nicht gefunden',
+    'invited_to_call': 'Zum Anruf eingeladen',
+    'incoming_video_call': 'Eingehender Videoanruf',
+    'incoming_voice_call': 'Eingehender Sprachanruf',
+    'calling_via_iz': 'Wird über iz angerufen...',
+    'reject': 'Ablehnen',
+    'answer': 'Antworten',
   }
 };

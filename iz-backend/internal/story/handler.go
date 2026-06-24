@@ -28,6 +28,8 @@ func (h *Handler) Routes() chi.Router {
 	r.Post("/", h.Create)
 	r.Get("/", h.GetFeed)
 	r.Delete("/{storyID}", h.Delete)
+	r.Post("/{storyID}/view", h.ViewStory)
+	r.Get("/{storyID}/viewers", h.GetViewers)
 
 	return r
 }
@@ -127,6 +129,62 @@ func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.jsonResponse(w, http.StatusOK, map[string]string{"status": "deleted"})
+}
+
+func (h *Handler) ViewStory(w http.ResponseWriter, r *http.Request) {
+	myIDStr, ok := auth.UserIDFromContext(r.Context())
+	if !ok {
+		h.errorResponse(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+	myID, err := uuid.Parse(myIDStr)
+	if err != nil {
+		h.errorResponse(w, http.StatusUnauthorized, "invalid user ID")
+		return
+	}
+
+	storyIDStr := chi.URLParam(r, "storyID")
+	storyID, err := uuid.Parse(storyIDStr)
+	if err != nil {
+		h.errorResponse(w, http.StatusBadRequest, "invalid story ID")
+		return
+	}
+
+	err = h.svc.MarkStoryAsViewed(r.Context(), storyID, myID)
+	if err != nil {
+		h.errorResponse(w, http.StatusInternalServerError, "failed to mark story as viewed")
+		return
+	}
+
+	h.jsonResponse(w, http.StatusOK, map[string]string{"status": "viewed"})
+}
+
+func (h *Handler) GetViewers(w http.ResponseWriter, r *http.Request) {
+	_, ok := auth.UserIDFromContext(r.Context())
+	if !ok {
+		h.errorResponse(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+	// Note: You could restrict this to only the story owner if needed.
+	
+	storyIDStr := chi.URLParam(r, "storyID")
+	storyID, err := uuid.Parse(storyIDStr)
+	if err != nil {
+		h.errorResponse(w, http.StatusBadRequest, "invalid story ID")
+		return
+	}
+
+	viewers, err := h.svc.GetStoryViewers(r.Context(), storyID)
+	if err != nil {
+		h.errorResponse(w, http.StatusInternalServerError, "failed to fetch story viewers")
+		return
+	}
+
+	if viewers == nil {
+		viewers = []*StoryViewer{}
+	}
+
+	h.jsonResponse(w, http.StatusOK, viewers)
 }
 
 // Helpers
