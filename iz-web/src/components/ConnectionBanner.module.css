@@ -1,0 +1,68 @@
+/* ConnectionBanner — animasyonlu çevrimdışı uyarı */
+.banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  animation: slideDown 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  backdrop-filter: blur(12px);
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.disconnected {
+  background: rgba(239, 68, 68, 0.9);
+  color: white;
+  border-bottom: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.reconnecting {
+  background: rgba(245, 158, 11, 0.9);
+  color: white;
+  border-bottom: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: white;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.7); }
+}
+
+.text {
+  letter-spacing: 0.01em;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  animation: spin 1s linear infinite;
+  opacity: 0.8;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

@@ -21,6 +21,12 @@ export default function ConversationPage() {
   
   const [isTyping, setIsTyping] = useState(false);
   const [isOnline, setIsOnline] = useState(false);
+
+  // UX-1: Infinite scroll state
+  const [hasMore, setHasMore]           = useState(true);
+  const [loadingMore, setLoadingMore]   = useState(false);
+  const oldestCursorRef                 = useRef<string | undefined>(undefined);
+  const scrollAreaRef                   = useRef<HTMLDivElement>(null);
   
   const bottomRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -52,6 +58,11 @@ export default function ConversationPage() {
         }));
 
         setMessages(decryptedMsgs.reverse());
+        // UX-1: Track oldest message for cursor pagination
+        if (decryptedMsgs.length > 0) {
+          oldestCursorRef.current = msgs[msgs.length - 1].created_at;
+        }
+        setHasMore(msgs.length >= 50);
       } catch (err) {
         console.error(err);
       } finally {
@@ -60,6 +71,39 @@ export default function ConversationPage() {
     }
     load();
   }, [id]);
+
+  // UX-1: Load older messages when scrolled to top
+  async function loadMore() {
+    if (loadingMore || !hasMore || !oldestCursorRef.current) return;
+    setLoadingMore(true);
+    const prevScrollHeight = scrollAreaRef.current?.scrollHeight ?? 0;
+    try {
+      const r = await api.messages.history(id, oldestCursorRef.current);
+      const msgs = r.messages || [];
+      if (msgs.length === 0) { setHasMore(false); return; }
+
+      const decryptedMsgs = await Promise.all(msgs.map(async (m: Message) => {
+        try { return { ...m, plaintext: await receiveDecrypted(id, m) }; }
+        catch { return m; }
+      }));
+
+      setMessages(prev => [...decryptedMsgs.reverse(), ...prev]);
+      oldestCursorRef.current = msgs[msgs.length - 1].created_at;
+      setHasMore(msgs.length >= 50);
+
+      // Restore scroll position so user doesn't jump
+      requestAnimationFrame(() => {
+        if (scrollAreaRef.current) {
+          const newScrollHeight = scrollAreaRef.current.scrollHeight;
+          scrollAreaRef.current.scrollTop = newScrollHeight - prevScrollHeight;
+        }
+      });
+    } catch (err) {
+      console.error('Load more failed:', err);
+    } finally {
+      setLoadingMore(false);
+    }
+  }
 
   // Subscribe to new messages and events
   useEffect(() => {
@@ -129,12 +173,12 @@ export default function ConversationPage() {
       // 2. Encrypt
       const encrypted = await sendEncrypted(id, input.trim());
 
-      // 3. Send over WebSocket
-      wsManager.send('send_message', {
+      // 3. Send over WebSocket — with outbound queue fallback (UX-2)
+      const sent = wsManager.send('send_message', {
         recipient_id: id,
         ...encrypted,
         msg_type: 'text',
-      });
+      }, true); // persistOnOffline = true
 
       // Optimistic update
       setMessages(prev => [...prev, {
@@ -149,7 +193,9 @@ export default function ConversationPage() {
         read_at: null,
         expires_at: null,
         created_at: new Date().toISOString(),
-      }]);
+        // UX-2: mark as pending if queued
+        _pending: !sent,
+      } as Message & { _pending?: boolean }]);
       setInput('');
     } catch (err) {
       console.error('Send failed:', err);
@@ -247,8 +293,26 @@ export default function ConversationPage() {
         </div>
       )}
 
-      {/* Messages */}
-      <div className={styles.messages}>
+      {/* Messages — UX-1: infinite scroll via onScroll */}
+      <div
+        className={styles.messages}
+        ref={scrollAreaRef}
+        onScroll={(e) => {
+          const el = e.currentTarget;
+          if (el.scrollTop < 80 && hasMore && !loadingMore) loadMore();
+        }}
+      >
+        {/* Load more indicator */}
+        {loadingMore && (
+          <div style={{ textAlign: 'center', padding: '8px', opacity: 0.5, fontSize: '12px' }}>
+            <span className={styles.spinner} style={{ width: 14, height: 14 }} /> Eski mesajlar yükleniyor...
+          </div>
+        )}
+        {!hasMore && messages.length > 0 && (
+          <div style={{ textAlign: 'center', padding: '8px', opacity: 0.35, fontSize: '11px' }}>
+            {t('app.no_more_messages') || 'Sohbetin başlı — daha eski mesaj yok'}
+          </div>
+        )}
         {loading && <div className={styles.loadingCenter}><span className={styles.spinner} /></div>}
         {messages.map(m => (
           <div
@@ -258,7 +322,11 @@ export default function ConversationPage() {
             <span className={styles.bubbleText}>{m.plaintext ?? <span style={{opacity: 0.4, fontStyle: 'italic', fontSize: '13px'}}>{t('encrypted_placeholder') || 'Şifreli — oturum anahtarı bulunamadı'}</span>}</span>
             <span className={styles.bubbleTime}>
               {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              {m.sender_id === auth?.user_id && (
+              {/* UX-2: pending icon for offline-queued messages */}
+              {(m as Message & { _pending?: boolean })._pending && (
+                <span title="Gönderilmeyi bekliyor" style={{ marginLeft: 4, opacity: 0.6 }}>⏳</span>
+              )}
+              {m.sender_id === auth?.user_id && !(m as Message & { _pending?: boolean })._pending && (
                 <span className={`${styles.readStatus} ${m.read_at ? styles.statusRead : styles.statusDelivered}`}>
                   {m.read_at ? (
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L7 17l-5-5"></path><path d="M22 10l-5 5-1.5-1.5"></path></svg>

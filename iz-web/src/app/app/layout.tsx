@@ -8,6 +8,7 @@ import styles from './layout.module.css';
 
 import { useI18n } from '@/lib/i18n/I18nContext';
 import CallOverlay from '@/components/CallOverlay';
+import ConnectionBanner from '@/components/ConnectionBanner';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router   = useRouter();
@@ -98,6 +99,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </main>
 
       <CallOverlay />
+      <ConnectionBanner />
     </div>
   );
 }

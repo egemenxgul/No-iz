@@ -3,7 +3,15 @@
 import React, { useState, useRef } from 'react';
 import styles from './Backup.module.css';
 import { exportAndUploadBackup, exportToFile, downloadAndRestoreBackup, importFromFile } from '@/lib/crypto/backup';
-import { FiDownloadCloud, FiUploadCloud, FiDownload, FiUpload, FiLock, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+
+// Inline SVG icons — no external package needed
+const FiDownloadCloud = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>;
+const FiUploadCloud = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>;
+const FiDownload = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>;
+const FiUpload = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>;
+const FiLock = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>;
+const FiCheckCircle = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>;
+const FiAlertCircle = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>;
 
 export default function BackupSettingsPage() {
   const [backupPassword, setBackupPassword] = useState('');
@@ -115,14 +123,14 @@ export default function BackupSettingsPage() {
 
       {status && (
         <div className={`${styles.alert} ${status.type === 'success' ? styles.alertSuccess : styles.alertError}`}>
-          {status.type === 'success' ? <FiCheckCircle size={20} /> : <FiAlertCircle size={20} />}
+          {status.type === 'success' ? <FiCheckCircle /> : <FiAlertCircle />}
           <span>{status.message}</span>
         </div>
       )}
 
       <div className={styles.card}>
         <h2 className={styles.cardTitle}>
-          <FiUploadCloud className="text-accent" /> Yedek Oluştur
+          <FiUploadCloud /> Yedek Oluştur
         </h2>
         <p className={styles.subtitle} style={{ marginBottom: '1.5rem' }}>
           Tüm verilerinizi şifreleyerek buluta yükleyebilir veya bilgisayarınıza dosya olarak indirebilirsiniz. 
@@ -160,7 +168,7 @@ export default function BackupSettingsPage() {
 
       <div className={styles.card}>
         <h2 className={styles.cardTitle}>
-          <FiDownloadCloud className="text-success" /> Yedekten Geri Yükle
+          <FiDownloadCloud /> Yedekten Geri YüKle
         </h2>
         <p className={styles.subtitle} style={{ marginBottom: '1.5rem' }}>
           Yeni bir cihazda oturum açtığınızda veya verileriniz silindiğinde önceki yedeğinizi geri yükleyebilirsiniz.
@@ -181,7 +189,7 @@ export default function BackupSettingsPage() {
           className={`${styles.fileDropzone} ${selectedFile ? styles.hasFile : ''}`}
           onClick={() => fileInputRef.current?.click()}
         >
-          <FiLock className={styles.fileIcon} />
+          <FiLock />
           {selectedFile ? (
             <div>
               <div className={styles.fileName}>{selectedFile.name}</div>

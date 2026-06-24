@@ -1,5 +1,6 @@
 import { getToken } from '@/store/auth';
 import { WSEnvelope } from '@/types';
+import { outboundQueue } from './outbound-queue';
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? 'wss://api.no-iz.app/api/ws';
 
@@ -25,6 +26,14 @@ class WebSocketManager {
       this.reconnectDelay = 1000;
       this.emit('__connected', null);
       this.startPing();
+      // UX-2: Flush any messages that were queued while offline
+      outboundQueue.flush((type, payload) => {
+        if (this.ws?.readyState === WebSocket.OPEN) {
+          this.ws.send(JSON.stringify({ type, payload }));
+          return true;
+        }
+        return false;
+      });
     };
 
     this.ws.onmessage = (ev) => {
@@ -53,10 +62,20 @@ class WebSocketManager {
     this.ws = null;
   }
 
-  send(type: string, payload: unknown) {
+  /**
+   * Sends a WS message. If the socket is not open, the message is persisted
+   * to the outbound queue and will be retried automatically on reconnect.
+   * Returns true if the message was sent immediately, false if queued.
+   */
+  send(type: string, payload: unknown, persistOnOffline = false): boolean {
     if (this.ws?.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify({ type, payload }));
+      return true;
     }
+    if (persistOnOffline) {
+      outboundQueue.enqueue(type, payload as Record<string, unknown>);
+    }
+    return false;
   }
 
   on(event: string, handler: EventHandler) {
@@ -95,3 +114,4 @@ class WebSocketManager {
 
 // Singleton
 export const wsManager = new WebSocketManager();
+
