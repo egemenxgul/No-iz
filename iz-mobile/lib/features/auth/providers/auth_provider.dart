@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import 'apple_auth_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../core/network/dio_provider.dart';
@@ -183,6 +185,56 @@ class AuthNotifier extends Notifier<AuthState> {
         tempToken: null,
         userId: userId,
       );
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  Future<void> loginWithApple() async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final appleAuth = ref.read(appleAuthServiceProvider);
+      final data = await appleAuth.signInWithApple();
+
+      final String token = data['access_token'];
+      final String refreshToken = data['refresh_token'];
+      final String userId = data['user_id'];
+      final String username = data['username'];
+      final String displayName = data['display_name'] ?? username;
+      final String avatarUrl = data['avatar_url'] ?? '';
+      final bool isNewUser = data['is_new_user'] ?? false;
+
+      await _storage.write(key: 'access_token', value: token);
+      await _storage.write(key: 'refresh_token', value: refreshToken);
+      await _storage.write(key: 'user_id', value: userId);
+
+      final newAccount = AccountInfo(
+        id: userId,
+        username: username,
+        displayName: displayName,
+        avatarUrl: avatarUrl,
+        bio: '',
+      );
+
+      await ref.read(accountProvider.notifier).addOrUpdateAccount(
+        newAccount,
+        accessToken: token,
+        refreshToken: refreshToken,
+      );
+
+      state = state.copyWith(
+        isLoading: false,
+        isAuthenticated: true,
+        isInitialized: true,
+        userId: userId,
+      );
+
+      // If this is a new Apple user, we should generate their signal keys here
+      // This happens automatically in the chat provider initialization, but 
+      // we log it for tracking.
+      if (isNewUser) {
+        debugPrint('[AppleAuth] New user registered via Apple. Key generation will follow.');
+      }
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }

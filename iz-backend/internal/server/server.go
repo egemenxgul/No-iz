@@ -128,6 +128,9 @@ func (s *Server) Router() http.Handler {
 	r.With(loginRL.Middleware).Post("/api/auth/login/2fa", authHandler.Login2FA)
 	r.With(refreshRL.Middleware).Post("/api/auth/refresh", authHandler.RefreshToken)
 	r.Get("/api/auth/qr-poll", authHandler.PollQRAuth) // HTTPS Polling endpoint for QR Auth
+	r.Post("/api/auth/apple", authHandler.AppleSignIn)
+	r.With(loginRL.Middleware).Post("/api/auth/forgot-password", authHandler.ForgotPassword)
+	r.With(loginRL.Middleware).Post("/api/auth/reset-password", authHandler.ResetPassword)
 
 	// ── Protected routes ───────────────────────────────────────────
 	r.Group(func(r chi.Router) {

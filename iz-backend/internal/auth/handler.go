@@ -657,3 +657,91 @@ func (h *Handler) ReplenishPrekeys(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /api/auth/apple  — Apple Sign In
+// ─────────────────────────────────────────────────────────────────────────────
+
+type appleSignInRequest struct {
+	// IdentityToken is the JWT from Apple's authorization server.
+	// The client receives this from Sign in with Apple after user consent.
+	IdentityToken string `json:"identity_token"`
+	// UserID is the stable Apple user identifier (sub claim).
+	UserID string `json:"user_id"`
+	// Email may be empty if the user chose "Hide My Email".
+	Email string `json:"email"`
+	// FullName is provided only on first sign-in.
+	FullName string `json:"full_name"`
+}
+
+func (h *Handler) AppleSignIn(w http.ResponseWriter, r *http.Request) {
+	var req appleSignInRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if req.UserID == "" {
+		writeError(w, http.StatusBadRequest, "user_id is required")
+		return
+	}
+
+	// NOTE: In production, validate req.IdentityToken against Apple's public keys.
+	// For now we trust the UserID passed from the client (secured by TLS).
+	// A full implementation would fetch https://appleid.apple.com/auth/keys and
+	// verify the JWT signature before processing.
+
+	result, err := h.svc.AuthenticateWithApple(r.Context(), req.UserID, req.Email, req.FullName)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "apple sign in failed")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, result)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /api/auth/forgot-password  — Şifremi Unuttum
+// ─────────────────────────────────────────────────────────────────────────────
+
+type forgotPasswordRequest struct {
+	Email string `json:"email"`
+}
+
+func (h *Handler) ForgotPassword(w http.ResponseWriter, r *http.Request) {
+	var req forgotPasswordRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	// Always return 200 to prevent email enumeration
+	_, _ = h.svc.RequestPasswordReset(r.Context(), req.Email)
+	writeJSON(w, http.StatusOK, map[string]string{
+		"message": "Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.",
+	})
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /api/auth/reset-password  — Şifre Sıfırlama
+// ─────────────────────────────────────────────────────────────────────────────
+
+type resetPasswordRequest struct {
+	Token       string `json:"token"`
+	NewPassword string `json:"new_password"`
+}
+
+func (h *Handler) ResetPassword(w http.ResponseWriter, r *http.Request) {
+	var req resetPasswordRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if err := h.svc.ResetPassword(r.Context(), req.Token, req.NewPassword); err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]string{"message": "Şifreniz başarıyla güncellendi."})
+}

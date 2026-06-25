@@ -367,119 +367,55 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
 
                         const SizedBox(height: 28),
 
-                        // ── Form Card ────────────────────────────
-                        _RegisterCard(
-                          children: [
-                            _SectionLabel(label: 'Hesap Bilgileri', icon: Icons.person_outline_rounded),
-                            const SizedBox(height: 16),
-                            IzTextField(
-                              label: context.tr(ref, 'username'),
-                              hint: 'izmobile',
-                              controller: _usernameController,
-                              validator: (val) {
-                                if (val == null || val.trim().isEmpty) {
-                                  return context.tr(ref, 'please_enter_username');
-                                }
-                                if (val.trim().length < 3) {
-                                  return context.tr(ref, 'username_min_length');
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 18),
-                            IzTextField(
-                              label: context.tr(ref, 'display_name'),
-                              hint: 'İz Mobil',
-                              controller: _displayNameController,
-                              validator: (val) {
-                                if (val == null || val.trim().isEmpty) {
-                                  return context.tr(ref, 'please_enter_display_name');
-                                }
-                                return null;
-                              },
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        _RegisterCard(
-                          children: [
-                            _SectionLabel(label: 'İletişim', icon: Icons.mail_outline_rounded),
-                            const SizedBox(height: 16),
-                            IzTextField(
-                              label: context.tr(ref, 'email'),
-                              hint: 'info@no-iz.app',
-                              controller: _emailController,
-                              validator: (val) {
-                                if (val == null || val.trim().isEmpty) {
-                                  return context.tr(ref, 'please_enter_email');
-                                }
-                                if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(val.trim())) {
-                                  return context.tr(ref, 'valid_email_error');
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 18),
-                            IzTextField(
-                              label: context.tr(ref, 'phone_number_optional'),
-                              hint: '+905321112233',
-                              controller: _phoneController,
-                              validator: (val) {
-                                if (val != null && val.trim().isNotEmpty) {
-                                  if (!RegExp(r'^\+?[1-9]\d{1,14}$').hasMatch(val.trim())) {
-                                    return context.tr(ref, 'phone_number_invalid');
-                                  }
-                                }
-                                return null;
-                              },
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        _RegisterCard(
-                          children: [
-                            _SectionLabel(label: 'Güvenlik', icon: Icons.security_outlined),
-                            const SizedBox(height: 16),
-                            IzTextField(
-                              label: context.tr(ref, 'password'),
-                              hint: '••••••••',
-                              isPassword: true,
-                              controller: _passwordController,
-                              validator: (val) {
-                                if (val == null || val.isEmpty) {
-                                  return context.tr(ref, 'please_enter_password');
-                                }
-                                if (val.length < 8) {
-                                  return context.tr(ref, 'password_min_length');
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 18),
-                            IzTextField(
-                              label: context.tr(ref, 'invite_code'),
-                              hint: 'HELLO / MERHABA',
-                              controller: _inviteCodeController,
-                              validator: (val) {
-                                if (val == null || val.trim().isEmpty) {
-                                  return context.tr(ref, 'please_enter_invite_code');
-                                }
-                                return null;
-                              },
-                            ),
-                          ],
+                        // ── Form Content ────────────────────────────
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          child: _currentStep == 0 ? _buildStep1() : _buildStep2(),
                         ),
 
                         const SizedBox(height: 32),
 
-                        IzButton(
-                          label: context.tr(ref, 'register'),
-                          isLoading: _isLoading,
-                          onPressed: _handleRegister,
+                        // ── Actions ───────────────────────────────
+                        Row(
+                          children: [
+                            if (_currentStep > 0) ...[
+                              Expanded(
+                                flex: 1,
+                                child: IzButton(
+                                  label: 'Geri',
+                                  backgroundColor: AppColors.glassMedium,
+                                  textColor: AppColors.textPrimary,
+                                  onPressed: () {
+                                    setState(() => _currentStep--);
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                            ],
+                            Expanded(
+                              flex: 2,
+                              child: IzButton(
+                                label: _currentStep == _totalSteps - 1 
+                                    ? context.tr(ref, 'register') 
+                                    : 'Devam Et',
+                                isLoading: _isLoading,
+                                onPressed: () {
+                                  if (_currentStep == 0) {
+                                    // Sadece adım 1 form alanlarını doğrula
+                                    // Form anahtarımız tüm sayfayı kapsıyor, o yüzden manuel validation:
+                                    if (_usernameController.text.trim().length >= 3 && 
+                                        _displayNameController.text.trim().isNotEmpty) {
+                                      setState(() => _currentStep++);
+                                    } else {
+                                      _formKey.currentState!.validate(); // Hataları göster
+                                    }
+                                  } else {
+                                    _handleRegister();
+                                  }
+                                },
+                              ),
+                            ),
+                          ],
                         ),
 
                         const SizedBox(height: 24),
@@ -526,6 +462,111 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
           ),
         ],
       ),
+  }
+
+  Widget _buildStep1() {
+    return _RegisterCard(
+      key: const ValueKey('step1'),
+      children: [
+        _SectionLabel(label: 'Kimlik Bilgileri', icon: Icons.person_outline_rounded),
+        const SizedBox(height: 16),
+        IzTextField(
+          label: context.tr(ref, 'display_name'),
+          hint: 'İz Mobil',
+          controller: _displayNameController,
+          textInputAction: TextInputAction.next,
+          validator: (val) {
+            if (val == null || val.trim().isEmpty) {
+              return context.tr(ref, 'please_enter_display_name');
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 18),
+        IzTextField(
+          label: context.tr(ref, 'username'),
+          hint: 'izmobile',
+          controller: _usernameController,
+          textInputAction: TextInputAction.done,
+          onFieldSubmitted: (_) {
+            if (_usernameController.text.trim().length >= 3 && 
+                _displayNameController.text.trim().isNotEmpty) {
+              setState(() => _currentStep++);
+            }
+          },
+          validator: (val) {
+            if (val == null || val.trim().isEmpty) {
+              return context.tr(ref, 'please_enter_username');
+            }
+            if (val.trim().length < 3) {
+              return context.tr(ref, 'username_min_length');
+            }
+            return null;
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStep2() {
+    return Column(
+      key: const ValueKey('step2'),
+      children: [
+        _RegisterCard(
+          children: [
+            _SectionLabel(label: 'İletişim & Güvenlik', icon: Icons.shield_outlined),
+            const SizedBox(height: 16),
+            IzTextField(
+              label: context.tr(ref, 'email'),
+              hint: 'info@no-iz.app',
+              controller: _emailController,
+              textInputType: TextInputType.emailAddress,
+              textInputAction: TextInputAction.next,
+              validator: (val) {
+                if (val == null || val.trim().isEmpty) {
+                  return context.tr(ref, 'please_enter_email');
+                }
+                if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(val.trim())) {
+                  return context.tr(ref, 'valid_email_error');
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 18),
+            IzTextField(
+              label: context.tr(ref, 'password'),
+              hint: '••••••••',
+              isPassword: true,
+              controller: _passwordController,
+              textInputAction: TextInputAction.next,
+              validator: (val) {
+                if (val == null || val.isEmpty) {
+                  return context.tr(ref, 'please_enter_password');
+                }
+                if (val.length < 8) {
+                  return context.tr(ref, 'password_min_length');
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 18),
+            IzTextField(
+              label: context.tr(ref, 'invite_code'),
+              hint: 'HELLO / MERHABA',
+              controller: _inviteCodeController,
+              textInputAction: TextInputAction.done,
+              onFieldSubmitted: (_) => _handleRegister(),
+              validator: (val) {
+                if (val == null || val.trim().isEmpty) {
+                  return context.tr(ref, 'please_enter_invite_code');
+                }
+                return null;
+              },
+            ),
+          ],
+        ),
+        // Telefon numarasını opsiyonel olarak alta alabiliriz
+      ],
     );
   }
 }

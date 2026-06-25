@@ -1214,4 +1214,156 @@ func (s *Service) UpdatePrivacySettings(ctx context.Context, userID string, sett
 	return nil
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Apple Sign In
+// ─────────────────────────────────────────────────────────────────────────────
 
+// AppleAuthResult is returned after a successful Apple Sign In.
+type AppleAuthResult struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	UserID       string `json:"user_id"`
+	Username     string `json:"username"`
+	DisplayName  string `json:"display_name"`
+	AvatarURL    string `json:"avatar_url"`
+	IsNewUser    bool   `json:"is_new_user"`
+}
+
+// AuthenticateWithApple upserts the user identified by their Apple subject ID
+// and returns a standard JWT token pair. It does NOT validate the Apple
+// identity token here — that must be done in the handler layer before calling
+// this method (or via a middleware).
+func (s *Service) AuthenticateWithApple(ctx context.Context, appleUserID, email, displayName string) (*AppleAuthResult, error) {
+	if appleUserID == "" {
+		return nil, fmt.Errorf("apple_user_id is required")
+	}
+
+	var userID uuid.UUID
+	var username, storedEmail, avatarURL string
+	isNewUser := false
+
+	// 1. Look up existing user by apple_id
+	err := s.db.QueryRow(ctx,
+		`SELECT id, username, email, avatar_url FROM users WHERE apple_id = $1 AND is_deleted = FALSE`,
+		appleUserID,
+	).Scan(&userID, &username, &storedEmail, &avatarURL)
+
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return nil, fmt.Errorf("apple lookup: %w", err)
+	}
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		// 2. New user — auto-generate username
+		isNewUser = true
+		userID = uuid.New()
+		short := strings.ReplaceAll(userID.String()[:8], "-", "")
+		username = "apple_" + short
+
+		if displayName == "" {
+			displayName = "iz User"
+		}
+
+		// Insert new user (no password — Apple users authenticate via Apple)
+		_, err = s.db.Exec(ctx, `
+			INSERT INTO users (id, username, email, display_name, apple_id, password_hash, created_at, updated_at)
+			VALUES ($1, $2, $3, $4, $5, '', NOW(), NOW())
+		`, userID, username, email, displayName, appleUserID)
+		if err != nil {
+			return nil, fmt.Errorf("apple create user: %w", err)
+		}
+	}
+
+	// 3. Issue tokens
+	accessToken, refreshToken, err := s.issueTokens(ctx, userID.String(), "", false)
+	if err != nil {
+		return nil, fmt.Errorf("apple issue tokens: %w", err)
+	}
+
+	return &AppleAuthResult{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		UserID:       userID.String(),
+		Username:     username,
+		DisplayName:  displayName,
+		AvatarURL:    avatarURL,
+		IsNewUser:    isNewUser,
+	}, nil
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Password Reset (Şifremi Unuttum)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// RequestPasswordReset generates a reset token and stores it. The caller is
+// responsible for sending the email. Returns the token so the caller can
+// deliver it (email, push, etc.).
+func (s *Service) RequestPasswordReset(ctx context.Context, email string) (token string, err error) {
+	email = strings.TrimSpace(strings.ToLower(email))
+	if email == "" {
+		return "", fmt.Errorf("email is required")
+	}
+
+	// Check user exists
+	var userID uuid.UUID
+	err = s.db.QueryRow(ctx,
+		`SELECT id FROM users WHERE email = $1 AND is_deleted = FALSE AND is_banned = FALSE`,
+		email,
+	).Scan(&userID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		// Return no error to avoid email enumeration
+		return "", nil
+	}
+	if err != nil {
+		return "", fmt.Errorf("reset lookup: %w", err)
+	}
+
+	// Generate secure random token
+	b := make([]byte, 32)
+	if _, err = rand.Read(b); err != nil {
+		return "", fmt.Errorf("generate token: %w", err)
+	}
+	token = base64.URLEncoding.EncodeToString(b)
+	expires := time.Now().Add(30 * time.Minute)
+
+	_, err = s.db.Exec(ctx, `
+		UPDATE users SET password_reset_token = $1, password_reset_expires_at = $2 WHERE id = $3`,
+		token, expires, userID)
+	if err != nil {
+		return "", fmt.Errorf("save reset token: %w", err)
+	}
+	return token, nil
+}
+
+// ResetPassword validates the token and sets the new password.
+func (s *Service) ResetPassword(ctx context.Context, token, newPassword string) error {
+	if token == "" || len(newPassword) < 8 {
+		return fmt.Errorf("invalid reset request")
+	}
+
+	var userID uuid.UUID
+	var expiresAt time.Time
+	err := s.db.QueryRow(ctx, `
+		SELECT id, password_reset_expires_at FROM users
+		WHERE password_reset_token = $1 AND is_deleted = FALSE`,
+		token,
+	).Scan(&userID, &expiresAt)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return fmt.Errorf("invalid or expired token")
+	}
+	if err != nil {
+		return fmt.Errorf("reset lookup: %w", err)
+	}
+	if time.Now().After(expiresAt) {
+		return fmt.Errorf("token expired")
+	}
+
+	hash, _ := s.hashPassword(newPassword)
+	_, err = s.db.Exec(ctx, `
+		UPDATE users
+		SET password_hash = $1, password_reset_token = NULL, password_reset_expires_at = NULL, updated_at = NOW()
+		WHERE id = $2`, hash, userID)
+	if err != nil {
+		return fmt.Errorf("update password: %w", err)
+	}
+	return nil
+}

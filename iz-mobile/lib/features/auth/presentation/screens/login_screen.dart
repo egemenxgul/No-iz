@@ -7,7 +7,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:iz_mobile/core/theme/app_colors.dart';
 import 'package:iz_mobile/core/localization/locale_provider.dart';
 import 'package:iz_mobile/features/auth/providers/auth_provider.dart';
+import 'package:iz_mobile/features/auth/providers/apple_auth_service.dart';
 import '../widgets/auth_widgets.dart';
+import '../widgets/forgot_password_sheet.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -426,8 +428,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                   : [
                                       IzTextField(
                                         label: context.tr(ref, 'username'),
-                                        hint: context.tr(ref, 'username'),
+                                        hint: 'Kullanıcı adı veya e-posta',
                                         controller: _idController,
+                                        textInputAction: TextInputAction.next,
                                         validator: (val) {
                                           if (val == null || val.trim().isEmpty) {
                                             return context.tr(ref, 'please_fill_field');
@@ -441,12 +444,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                         hint: '••••••••',
                                         isPassword: true,
                                         controller: _passwordController,
+                                        textInputAction: TextInputAction.done,
+                                        onFieldSubmitted: (_) => _handleLogin(),
                                         validator: (val) {
                                           if (val == null || val.trim().isEmpty) {
                                             return context.tr(ref, 'please_enter_password');
                                           }
                                           return null;
                                         },
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Align(
+                                        alignment: Alignment.centerRight,
+                                        child: GestureDetector(
+                                          onTap: () => ForgotPasswordSheet.show(context),
+                                          child: Text(
+                                            'Şifremi Unuttum',
+                                            style: GoogleFonts.inter(
+                                              color: AppColors.accentLight,
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
                                       ),
                                     ],
                             ),
@@ -459,6 +479,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                             label: context.tr(ref, 'login'),
                             isLoading: ref.watch(authProvider).isLoading,
                             onPressed: _handleLogin,
+                          ),
+
+                          const SizedBox(height: 24),
+                          
+                          // ── Apple Sign In Button ─────────────────
+                          FutureBuilder<bool>(
+                            future: ref.read(appleAuthServiceProvider).isAvailable(),
+                            builder: (context, snapshot) {
+                              if (snapshot.data == true) {
+                                return IzButton(
+                                  label: 'Apple ile Giriş Yap',
+                                  icon: Icons.apple,
+                                  backgroundColor: Colors.white,
+                                  textColor: Colors.black,
+                                  onPressed: () => ref.read(authProvider.notifier).loginWithApple(),
+                                );
+                              }
+                              return const SizedBox.shrink();
+                            },
                           ),
 
                           const SizedBox(height: 28),
