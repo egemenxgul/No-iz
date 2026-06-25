@@ -30,6 +30,7 @@ import 'package:iz_mobile/features/story/presentation/screens/create_story_scree
 import 'package:iz_mobile/features/story/models/story_model.dart';
 import 'package:iz_mobile/features/backup/presentation/screens/backup_screen.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
+import 'package:flutter_callkit_incoming/entities/call_event.dart';
 import 'package:iz_mobile/core/services/callkit_service.dart';
 
 void main() async {

@@ -462,6 +462,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
           ),
         ],
       ),
+    );
   }
 
   Widget _buildStep1() {

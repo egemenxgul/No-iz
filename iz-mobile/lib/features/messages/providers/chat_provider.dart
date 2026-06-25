@@ -70,13 +70,11 @@ final messageRepositoryProvider = Provider((ref) {
 });
 
 // Modern Notifier for current conversation's messages in Riverpod 3.0
-class ChatNotifier extends Notifier<List<MessageModel>> {
-  final String conversationId;
-  
-  ChatNotifier(this.conversationId);
+class ChatNotifier extends FamilyNotifier<List<MessageModel>, String> {
+  String get conversationId => arg;
 
   @override
-  List<MessageModel> build() {
+  List<MessageModel> build(String arg) {
     loadMessages();
     return [];
   }
@@ -1059,9 +1057,9 @@ class ChatNotifier extends Notifier<List<MessageModel>> {
   }
 }
 
-// Correct Family Provider syntax for Riverpod 3.0
+// Correct Family Provider syntax for Riverpod
 final chatProvider = NotifierProvider.family<ChatNotifier, List<MessageModel>, String>(
-  (conversationId) => ChatNotifier(conversationId),
+  ChatNotifier.new,
 );
 
 // Modern Notifier for all conversations
@@ -1158,14 +1156,12 @@ class ConversationNotifier extends Notifier<List<ConversationModel>> {
 
 final conversationProvider = NotifierProvider<ConversationNotifier, List<ConversationModel>>(ConversationNotifier.new);
 
-class TypingNotifier extends Notifier<bool> {
-  final String userId;
+class TypingNotifier extends FamilyNotifier<bool, String> {
+  String get userId => arg;
   Timer? _timer;
 
-  TypingNotifier(this.userId);
-
   @override
-  bool build() {
+  bool build(String arg) {
     ref.onDispose(() {
       _timer?.cancel();
     });
@@ -1185,6 +1181,6 @@ class TypingNotifier extends Notifier<bool> {
 }
 
 final typingProvider = NotifierProvider.family<TypingNotifier, bool, String>(
-  (userId) => TypingNotifier(userId),
+  TypingNotifier.new,
 );
 
