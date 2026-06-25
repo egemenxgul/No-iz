@@ -205,3 +205,90 @@
   bottom: 16px;
   gap: 12px;
 }
+
+.videoGrid {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  gap: 8px;
+  padding: 8px;
+}
+
+.gridOne {
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+}
+
+.gridTwo {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr;
+}
+
+.gridMany {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-rows: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.videoCell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: #222;
+}
+
+.remoteVideoGrid {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.localVideoGrid {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.localVideoFloatingWrap {
+  position: absolute;
+  bottom: 100px;
+  right: 20px;
+  width: 120px;
+  height: 160px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  z-index: 10;
+  background: #000;
+}
+
+.localVideoPipWrap {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  width: 60px;
+  height: 80px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  z-index: 10;
+  background: #000;
+}
+
+.waitingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #aaa;
+  font-size: 16px;
+  width: 100%;
+  height: 100%;
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
+}
+
+.controlOff {
+  background: rgba(239, 68, 68, 0.8) !important;
+  color: white;
+}

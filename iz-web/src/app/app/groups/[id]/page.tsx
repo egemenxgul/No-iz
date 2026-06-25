@@ -150,11 +150,35 @@ export default function GroupChatPage() {
       <div className={styles.chatHeader}>
         <div className={styles.chatHeaderTitle}>{group?.name || t('app.group')}</div>
         <div className={styles.chatHeaderActions}>
-          {/* Note: WebRTC Group Calls (Mesh) use the same startCall but we pass group ID or specific members. 
-              The backend handles group_call_offer using GroupSvc.
-          */}
-          <button className={styles.callBtn} onClick={() => alert(t('app.group_call_wip'))} title={t('app.group_call')}>
+          <button 
+            className={styles.callBtn} 
+            onClick={async () => {
+              try {
+                const res = await api.groups.members(id as string);
+                const participants = res.members.map((m: any) => m.id).filter((mid: string) => mid !== auth?.user_id);
+                webrtcManager.startGroupCall(id as string, participants, false);
+              } catch (e) {
+                console.error('Failed to start group call', e);
+              }
+            }} 
+            title="Sesli Arama"
+          >
             📞
+          </button>
+          <button 
+            className={styles.callBtn} 
+            onClick={async () => {
+              try {
+                const res = await api.groups.members(id as string);
+                const participants = res.members.map((m: any) => m.id).filter((mid: string) => mid !== auth?.user_id);
+                webrtcManager.startGroupCall(id as string, participants, true);
+              } catch (e) {
+                console.error('Failed to start group video call', e);
+              }
+            }} 
+            title="Görüntülü Arama"
+          >
+            📹
           </button>
         </div>
       </div>

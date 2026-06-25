@@ -5,23 +5,46 @@ import { useI18n } from '@/lib/i18n/I18nContext';
 import { useRingtone } from '@/hooks/useRingtone';
 import styles from './CallOverlay.module.css';
 
+function VideoTile({ stream, isLocal, muted, isPip }: { stream: MediaStream | null, isLocal: boolean, muted: boolean, isPip?: boolean }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [stream]);
+
+  if (!stream) return null;
+
+  return (
+    <video 
+      ref={videoRef} 
+      autoPlay 
+      playsInline 
+      muted={muted} 
+      className={isLocal ? (isPip ? styles.localVideoPip : styles.localVideoGrid) : styles.remoteVideoGrid} 
+    />
+  );
+}
+
 export default function CallOverlay() {
   const { t } = useI18n();
   const { playRingtone, stopRingtone } = useRingtone();
 
-  const [callState, setCallState] = useState<CallState>({ status: 'idle' });
+  const [callState, setCallState] = useState<CallState>({ status: 'idle', remoteStreams: new Map(), participants: [] });
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
-  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+  const [remoteStreamsMap, setRemoteStreamsMap] = useState<Map<string, MediaStream>>(new Map());
   const [isPip, setIsPip] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  
+  // Track mute/video status locally
+  const [isMuted, setIsMuted] = useState(false);
+  const [isVideoOff, setIsVideoOff] = useState(false);
 
   // Dragging state for PiP
-  const [position, setPosition] = useState({ x: window.innerWidth - 264, y: window.innerHeight - 344 });
+  const [position, setPosition] = useState({ x: typeof window !== 'undefined' ? window.innerWidth - 264 : 0, y: typeof window !== 'undefined' ? window.innerHeight - 344 : 0 });
   const [isDragging, setIsDragging] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
-
-  const localVideoRef = useRef<HTMLVideoElement>(null);
-  const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     webrtcManager.events.onStateChange = (state) => {
@@ -34,15 +57,15 @@ export default function CallOverlay() {
       
       if (state.status === 'ended') {
         setIsPip(false);
+        setIsMuted(false);
+        setIsVideoOff(false);
       }
     };
     webrtcManager.events.onLocalStream = (stream) => {
       setLocalStream(stream);
-      if (localVideoRef.current) localVideoRef.current.srcObject = stream;
     };
-    webrtcManager.events.onRemoteStream = (stream) => {
-      setRemoteStream(stream);
-      if (remoteVideoRef.current) remoteVideoRef.current.srcObject = stream;
+    webrtcManager.events.onRemoteStreamsChange = (streams) => {
+      setRemoteStreamsMap(streams);
     };
     webrtcManager.events.onError = (err) => {
       setErrorMsg(err);
@@ -52,13 +75,7 @@ export default function CallOverlay() {
     return () => {
       webrtcManager.events = {};
     };
-  }, []);
-
-  // Update refs when streams change (React issue with media streams)
-  useEffect(() => {
-    if (localVideoRef.current && localStream) localVideoRef.current.srcObject = localStream;
-    if (remoteVideoRef.current && remoteStream) remoteVideoRef.current.srcObject = remoteStream;
-  }, [localStream, remoteStream]);
+  }, [playRingtone, stopRingtone]);
 
   // PiP Drag Handlers
   const handleMouseDown = (e: ReactMouseEvent) => {
@@ -76,9 +93,8 @@ export default function CallOverlay() {
     let newX = e.clientX - dragOffset.current.x;
     let newY = e.clientY - dragOffset.current.y;
     
-    // Bounds check
-    const maxX = window.innerWidth - 240; // width
-    const maxY = window.innerHeight - 320; // height
+    const maxX = window.innerWidth - 240;
+    const maxY = window.innerHeight - 320;
     if (newX < 0) newX = 0;
     if (newX > maxX) newX = maxX;
     if (newY < 0) newY = 0;
@@ -105,7 +121,6 @@ export default function CallOverlay() {
     };
   }, [isDragging]);
 
-  // Handle window resize for PiP bounds
   useEffect(() => {
     const handleResize = () => {
       if (isPip) {
@@ -119,9 +134,25 @@ export default function CallOverlay() {
     return () => window.removeEventListener('resize', handleResize);
   }, [isPip]);
 
+  const toggleMute = () => {
+    setIsMuted(prev => {
+      webrtcManager.toggleAudio(prev);
+      return !prev;
+    });
+  };
+
+  const toggleVideoOff = () => {
+    setIsVideoOff(prev => {
+      webrtcManager.toggleVideo(prev);
+      return !prev;
+    });
+  };
+
   if (callState.status === 'idle' && !errorMsg) return null;
 
   const overlayStyle = isPip ? { left: position.x, top: position.y, cursor: isDragging ? 'grabbing' : 'grab' } : {};
+  const remoteStreamsList = Array.from(remoteStreamsMap.values());
+  const gridClass = remoteStreamsList.length > 2 ? styles.gridMany : (remoteStreamsList.length === 2 ? styles.gridTwo : styles.gridOne);
 
   return (
     <div 
@@ -137,7 +168,7 @@ export default function CallOverlay() {
             {callState.callerName?.[0]?.toUpperCase() || '?'}
           </div>
           <div className={styles.ringingText}>
-            {t('incomingCall') || 'Gelen Arama...'}<br/>
+            {callState.isGroupCall ? 'Gelen Grup Araması...' : (t('incomingCall') || 'Gelen Arama...')}<br/>
             <strong>{callState.callerName}</strong>
           </div>
           <div className={styles.ringingActions}>
@@ -156,21 +187,46 @@ export default function CallOverlay() {
         <div className={styles.callBox}>
           {callState.isVideo ? (
             <div className={styles.videoContainer}>
-              <video ref={remoteVideoRef} autoPlay playsInline className={styles.remoteVideo} />
-              <video ref={localVideoRef} autoPlay playsInline muted className={styles.localVideoPip} />
+              <div className={`${styles.videoGrid} ${gridClass}`}>
+                {remoteStreamsList.length === 0 && (
+                  <div className={styles.waitingContainer}>
+                    <span>Diğer katılımcılar bekleniyor...</span>
+                  </div>
+                )}
+                {remoteStreamsList.map((stream, idx) => (
+                  <div key={idx} className={styles.videoCell}>
+                    <VideoTile stream={stream} isLocal={false} muted={false} />
+                  </div>
+                ))}
+              </div>
+              
+              {/* Local video usually in corner for 1-1, or as PIP corner if PIP mode */}
+              <div className={isPip ? styles.localVideoPipWrap : styles.localVideoFloatingWrap}>
+                 <VideoTile stream={localStream} isLocal={true} muted={true} isPip={isPip} />
+              </div>
             </div>
           ) : (
             <div className={styles.audioContainer}>
               <div className={styles.pulseAvatar}>{callState.callerName?.[0]?.toUpperCase() || 'A'}</div>
               <div className={styles.callDuration}>
                 {callState.status === 'connecting' ? (t('connecting') || 'Bağlanıyor...') : (t('callStarted') || 'Görüşme Başladı')}
+                {callState.isGroupCall && ` (${remoteStreamsList.length + 1} Katılımcı)`}
               </div>
-              <audio ref={remoteVideoRef} autoPlay />
-              <audio ref={localVideoRef} autoPlay muted />
+              {remoteStreamsList.map((stream, idx) => (
+                <VideoTile key={idx} stream={stream} isLocal={false} muted={false} /> // Using VideoTile for audio streams implicitly
+              ))}
             </div>
           )}
 
           <div className={styles.controls}>
+            <button className={`${styles.btnControl} ${isMuted ? styles.controlOff : ''}`} onClick={toggleMute} title="Mikrofonu Kapat/Aç">
+              {isMuted ? '🔇' : '🎤'}
+            </button>
+            {callState.isVideo && (
+              <button className={`${styles.btnControl} ${isVideoOff ? styles.controlOff : ''}`} onClick={toggleVideoOff} title="Kamerayı Kapat/Aç">
+                {isVideoOff ? '📹 ❌' : '📹'}
+              </button>
+            )}
             <button className={styles.btnControl} onClick={() => setIsPip(!isPip)} title={isPip ? 'Büyüt' : 'Küçült'}>
               {isPip ? '⤢' : '⤡'}
             </button>
