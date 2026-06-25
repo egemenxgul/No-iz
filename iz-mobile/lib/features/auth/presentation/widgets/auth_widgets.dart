@@ -141,6 +141,7 @@ class IzButton extends StatefulWidget {
   final bool isOutlined;
   final IconData? icon;
   final Color? backgroundColor;
+  final Color? textColor;
 
   const IzButton({
     super.key,
@@ -150,6 +151,7 @@ class IzButton extends StatefulWidget {
     this.isOutlined = false,
     this.icon,
     this.backgroundColor,
+    this.textColor,
   });
 
   @override
@@ -229,7 +231,7 @@ class _IzButtonState extends State<IzButton> with SingleTickerProviderStateMixin
                       Text(
                         widget.label,
                         style: GoogleFonts.inter(
-                          color: Colors.white,
+                          color: widget.textColor ?? Colors.white,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           letterSpacing: 0.3,
