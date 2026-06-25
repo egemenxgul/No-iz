@@ -100,7 +100,7 @@ class WebSocketManager {
   }
 
   private startPing() {
-    this.pingTimer = setInterval(() => this.send('ping', null), 25_000);
+    this.pingTimer = setInterval(() => this.send('ping', null), 45_000);
   }
 
   private stopPing() {
