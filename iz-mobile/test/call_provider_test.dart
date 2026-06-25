@@ -149,22 +149,10 @@ class FakeAuthNotifier extends Notifier<AuthState> implements AuthNotifier {
   AuthState build() => AuthState(userId: 'test_user');
   
   @override
-  Future<void> init() async {}
-  
-  @override
-  Future<void> register(String email, String password, String displayName) async {}
-  
-  @override
-  Future<void> login(String email, String password) async {}
+  Future<void> login(String id, String password) async {}
   
   @override
   Future<void> logout() async {}
-
-  @override
-  Future<void> verifyTotp(String code) async {}
-
-  @override
-  Future<void> deleteAccount() async {}
 
   @override
   Future<void> login2FA(String code) async {}
