@@ -9,6 +9,9 @@ import 'package:iz_mobile/features/call/models/call_session.dart';
 import 'package:iz_mobile/features/call/providers/call_provider.dart';
 import 'package:iz_mobile/features/messages/providers/chat_provider.dart';
 import 'package:iz_mobile/features/messages/providers/message_model.dart';
+import 'package:iz_mobile/features/messages/providers/message_repository.dart';
+import 'package:iz_mobile/features/auth/providers/auth_provider.dart';
+
 
 class FakeWebrtcService extends Fake implements WebrtcService {
   bool initialized = false;
@@ -131,6 +134,48 @@ class FakeConversationNotifier extends ConversationNotifier {
   Future<void> loadConversations() async {}
 }
 
+class FakeMessageRepository extends Fake implements MessageRepository {
+  @override
+  Future<void> saveMessage(MessageModel message) async {}
+  
+  @override
+  Future<List<MessageModel>> getMessages(String conversationId, {int limit = 50, int offset = 0}) async {
+    return [];
+  }
+}
+
+class FakeAuthNotifier extends Notifier<AuthState> implements AuthNotifier {
+  @override
+  AuthState build() => AuthState(userId: 'test_user');
+  
+  @override
+  Future<void> init() async {}
+  
+  @override
+  Future<void> register(String email, String password, String displayName) async {}
+  
+  @override
+  Future<void> login(String email, String password) async {}
+  
+  @override
+  Future<void> logout() async {}
+
+  @override
+  Future<void> verifyTotp(String code) async {}
+
+  @override
+  Future<void> deleteAccount() async {}
+
+  @override
+  Future<void> login2FA(String code) async {}
+
+  @override
+  Future<void> loginWithApple() async {}
+
+  @override
+  void setSession({required bool isAuthenticated, String? userId}) {}
+}
+
 void main() {
   group('CallProvider Unit Tests', () {
     late ProviderContainer container;
@@ -146,6 +191,8 @@ void main() {
           webrtcServiceProvider.overrideWithValue(fakeWebrtc),
           webSocketProvider.overrideWithValue(fakeWs),
           conversationProvider.overrideWith(FakeConversationNotifier.new),
+          messageRepositoryProvider.overrideWithValue(FakeMessageRepository()),
+          authProvider.overrideWith(FakeAuthNotifier.new),
         ],
       );
     });
