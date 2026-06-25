@@ -8,6 +8,9 @@ class IzTextField extends StatefulWidget {
   final bool isPassword;
   final TextEditingController? controller;
   final String? Function(String?)? validator;
+  final TextInputAction? textInputAction;
+  final TextInputType? textInputType;
+  final void Function(String)? onFieldSubmitted;
 
   const IzTextField({
     super.key,
@@ -16,6 +19,9 @@ class IzTextField extends StatefulWidget {
     this.isPassword = false,
     this.controller,
     this.validator,
+    this.textInputAction,
+    this.textInputType,
+    this.onFieldSubmitted,
   });
 
   @override
@@ -68,6 +74,9 @@ class _IzTextFieldState extends State<IzTextField> {
               controller: widget.controller,
               obscureText: widget.isPassword ? _obscureText : false,
               validator: widget.validator,
+              textInputAction: widget.textInputAction,
+              keyboardType: widget.textInputType,
+              onFieldSubmitted: widget.onFieldSubmitted,
               style: GoogleFonts.inter(
                 color: AppColors.textPrimary,
                 fontSize: 15,
@@ -130,6 +139,8 @@ class IzButton extends StatefulWidget {
   final VoidCallback onPressed;
   final bool isLoading;
   final bool isOutlined;
+  final IconData? icon;
+  final Color? backgroundColor;
 
   const IzButton({
     super.key,
@@ -137,6 +148,8 @@ class IzButton extends StatefulWidget {
     required this.onPressed,
     this.isLoading = false,
     this.isOutlined = false,
+    this.icon,
+    this.backgroundColor,
   });
 
   @override
@@ -182,47 +195,47 @@ class _IzButtonState extends State<IzButton> with SingleTickerProviderStateMixin
           height: 54,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
-            gradient: LinearGradient(
-              colors: widget.isLoading
-                  ? [AppColors.bgHover, AppColors.bgHover]
-                  : widget.isOutlined
-                      ? [Colors.transparent, Colors.transparent]
-                      : [
-                          AppColors.accent,
-                          AppColors.accentSecondary,
-                        ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            border: widget.isOutlined ? Border.all(color: AppColors.glassBorder, width: 1.5) : null,
-            boxShadow: widget.isLoading || widget.isOutlined
+            color: widget.backgroundColor ?? (widget.isOutlined ? Colors.transparent : AppColors.accent),
+            border: widget.isOutlined
+                ? Border.all(color: AppColors.glassBorder.withValues(alpha: 0.3), width: 1.5)
+                : null,
+            boxShadow: widget.isOutlined || widget.backgroundColor != null
                 ? []
                 : [
                     BoxShadow(
                       color: AppColors.accent.withValues(alpha: 0.3),
-                      blurRadius: 20,
+                      blurRadius: 16,
                       offset: const Offset(0, 4),
-                    ),
+                    )
                   ],
           ),
           child: Center(
             child: widget.isLoading
-                ? SizedBox(
+                ? const SizedBox(
                     height: 24,
                     width: 24,
                     child: CircularProgressIndicator(
+                      color: Colors.white,
                       strokeWidth: 2.5,
-                      color: widget.isOutlined ? AppColors.accent : Colors.white,
                     ),
                   )
-                : Text(
-                    widget.label,
-                    style: GoogleFonts.inter(
-                      color: widget.isOutlined ? AppColors.textPrimary : Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
-                    ),
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (widget.icon != null) ...[
+                        Icon(widget.icon, color: Colors.white, size: 20),
+                        const SizedBox(width: 8),
+                      ],
+                      Text(
+                        widget.label,
+                        style: GoogleFonts.inter(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ],
                   ),
           ),
         ),

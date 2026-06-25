@@ -184,7 +184,6 @@ const _translations = {
     'incoming_video_call': 'Gelen Görüntülü Arama',
     'incoming_voice_call': 'Gelen Sesli Arama',
     'calling_via_iz': 'iz üzerinden aranıyor...',
-    'reject': 'Reddet',
     'answer': 'Cevapla',
   },
   AppLanguage.en: {
@@ -293,8 +292,7 @@ const _translations = {
     'invited_to_call': 'Invited to call',
     'incoming_video_call': 'Incoming Video Call',
     'incoming_voice_call': 'Incoming Voice Call',
-    'calling_via_iz': 'calling via iz...',
-    'reject': 'Decline',
+    'calling_via_iz': 'Calling via iz...',
     'answer': 'Answer',
   },
   AppLanguage.de: {
@@ -404,7 +402,6 @@ const _translations = {
     'incoming_video_call': 'Eingehender Videoanruf',
     'incoming_voice_call': 'Eingehender Sprachanruf',
     'calling_via_iz': 'Wird über iz angerufen...',
-    'reject': 'Ablehnen',
     'answer': 'Antworten',
   }
 };

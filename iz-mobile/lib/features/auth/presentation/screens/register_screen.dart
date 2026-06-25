@@ -656,7 +656,7 @@ class _StepIndicator extends StatelessWidget {
 // ── Register Card ─────────────────────────────────────────────────────────────
 class _RegisterCard extends StatelessWidget {
   final List<Widget> children;
-  const _RegisterCard({required this.children});
+  const _RegisterCard({super.key, required this.children});
 
   @override
   Widget build(BuildContext context) {

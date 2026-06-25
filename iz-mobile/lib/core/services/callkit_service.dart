@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
+import 'package:flutter_callkit_incoming/entities/entities.dart';
 import 'package:uuid/uuid.dart';
 
 /// UX-8: CallKit (iOS) + ConnectionService (Android) entegrasyonu.
@@ -37,7 +38,7 @@ class CallKitService {
           subtitle: 'Cevapsız arama',
           callbackText: 'Geri ara',
         ),
-        android: const AndroidParams(
+        android: AndroidParams(
           isCustomNotification: true,
           isShowLogo: false,
           ringtonePath: 'system_ringtone_default',
@@ -48,7 +49,7 @@ class CallKitService {
           incomingCallNotificationChannelName: 'Gelen Aramalar',
           missedCallNotificationChannelName: 'Cevapsız Aramalar',
         ),
-        ios: const IOSParams(
+        ios: IOSParams(
           iconName: 'CallKitLogo',
           handleType: '',
           supportsVideo: true,
@@ -117,7 +118,7 @@ class CallKitService {
         duration: 45000,
         textAccept: 'Kabul Et',
         textDecline: 'Kapat',
-        android: const AndroidParams(
+        android: AndroidParams(
           isCustomNotification: false,
           isShowLogo: false,
           backgroundColor: '#0A0A0A',
@@ -126,7 +127,7 @@ class CallKitService {
           incomingCallNotificationChannelName: 'Aramalar',
           missedCallNotificationChannelName: 'Cevapsız Aramalar',
         ),
-        ios: const IOSParams(
+        ios: IOSParams(
           iconName: 'CallKitLogo',
           handleType: '',
           supportsVideo: true,
