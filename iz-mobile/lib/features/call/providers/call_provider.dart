@@ -10,6 +10,7 @@ import '../../messages/providers/chat_provider.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../messages/providers/message_model.dart';
 import '../../messages/providers/message_repository.dart';
+import '../../../core/services/callkit_service.dart';
 
 final webrtcServiceProvider = Provider<WebrtcService>((ref) {
   final service = WebrtcService();
@@ -115,6 +116,15 @@ class CallNotifier extends Notifier<CallSession?> {
         'call_type': type == CallType.audio ? 'audio' : 'video',
         'sdp': offer.sdp,
       });
+
+      // UX-8: Register outgoing call in CallKit/ConnectionService
+      final callKitId = const Uuid().v4();
+      await CallKitService().startOutgoingCall(
+        callId: callKitId,
+        calleeName: peerName,
+        calleeHandle: peerId,
+        isVideo: type == CallType.video,
+      );
 
       if (kDebugMode) debugPrint('[CallProvider] Call offer sent to $peerId');
     } catch (e) {

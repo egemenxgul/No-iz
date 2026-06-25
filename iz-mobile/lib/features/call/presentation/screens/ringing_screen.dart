@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../providers/call_provider.dart';
 import '../../models/call_session.dart';
 import '../../../../core/localization/locale_provider.dart';
+import '../../../../core/services/callkit_service.dart';
 
 class RingingScreen extends ConsumerStatefulWidget {
   final CallSession session;
@@ -20,6 +21,8 @@ class _RingingScreenState extends ConsumerState<RingingScreen>
   late AnimationController _pulseController;
   late AnimationController _breathController;
   late Animation<double> _breathAnim;
+
+  String? _callKitId;
 
   @override
   void initState() {
@@ -37,12 +40,30 @@ class _RingingScreenState extends ConsumerState<RingingScreen>
     _breathAnim = Tween<double>(begin: 0.97, end: 1.03).animate(
       CurvedAnimation(parent: _breathController, curve: Curves.easeInOut),
     );
+
+    // UX-8: Show native CallKit / ConnectionService incoming call UI
+    _showCallKit();
+  }
+
+  Future<void> _showCallKit() async {
+    final session = widget.session;
+    _callKitId = session.callId.isNotEmpty ? session.callId : CallKitService.newCallId();
+    await CallKitService().showIncomingCall(
+      callId: _callKitId!,
+      callerName: session.peerName,
+      callerHandle: session.peerId,
+      isVideo: session.type == CallType.video,
+    );
   }
 
   @override
   void dispose() {
     _pulseController.dispose();
     _breathController.dispose();
+    // End the CallKit UI when screen is dismissed
+    if (_callKitId != null) {
+      CallKitService().endCall(_callKitId!);
+    }
     super.dispose();
   }
 

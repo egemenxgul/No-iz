@@ -711,6 +711,30 @@ func (s *Service) storePrekeys(ctx context.Context, userID uuid.UUID, keys []One
 	return nil
 }
 
+// GetPrekeysCount returns the number of remaining one-time prekeys for the given user.
+func (s *Service) GetPrekeysCount(ctx context.Context, userID uuid.UUID) (int, error) {
+	var count int
+	err := s.db.QueryRow(ctx,
+		`SELECT COUNT(*) FROM user_prekeys WHERE user_id = $1 AND used = false`,
+		userID,
+	).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("get prekeys count: %w", err)
+	}
+	return count, nil
+}
+
+// ReplenishPrekeys stores additional one-time prekeys supplied by the client.
+func (s *Service) ReplenishPrekeys(ctx context.Context, userID uuid.UUID, keys []OneTimePrekey) error {
+	if len(keys) == 0 {
+		return fmt.Errorf("no prekeys provided")
+	}
+	if len(keys) > 200 {
+		return fmt.Errorf("too many prekeys: max 200 per request")
+	}
+	return s.storePrekeys(ctx, userID, keys)
+}
+
 // ────────────────────────────────────────────────────────────────
 // Password helpers
 // ────────────────────────────────────────────────────────────────

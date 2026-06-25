@@ -1075,6 +1075,29 @@ class ConversationNotifier extends Notifier<List<ConversationModel>> {
   Future<void> loadConversations() async {
     final repo = ref.read(messageRepositoryProvider);
     state = await repo.getConversations();
+
+    // UX-9: Otomatik PreKey Yenileme
+    // Sunucudaki prekey sayısı 10'un altına düşerse 50 adet yeni prekey yükle.
+    _replenishPrekeysIfNeeded();
+  }
+
+  Future<void> _replenishPrekeysIfNeeded() async {
+    try {
+      final authService = ref.read(authServiceProvider);
+      final identityManager = ref.read(identityManagerProvider);
+
+      final count = await authService.getPrekeysCount();
+      if (count < 0) return; // API error, skip silently
+      
+      if (count < 10) {
+        debugPrint('[PreKey] Kalan prekey sayısı: $count — 50 adet yeni prekey yükleniyor...');
+        final newKeys = await identityManager.generateOneTimePrekeys(50);
+        await authService.replenishPrekeys(newKeys);
+        debugPrint('[PreKey] 50 adet prekey başarıyla yüklendi.');
+      }
+    } catch (e) {
+      debugPrint('[PreKey] Yenileme hatası: $e');
+    }
   }
 
   Future<void> toggleMute(String conversationId) async {

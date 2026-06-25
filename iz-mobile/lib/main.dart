@@ -29,6 +29,8 @@ import 'package:iz_mobile/features/story/presentation/screens/story_viewer_scree
 import 'package:iz_mobile/features/story/presentation/screens/create_story_screen.dart';
 import 'package:iz_mobile/features/story/models/story_model.dart';
 import 'package:iz_mobile/features/backup/presentation/screens/backup_screen.dart';
+import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
+import 'package:iz_mobile/core/services/callkit_service.dart';
 
 void main() async {
   // Required before any async work in main().
@@ -52,6 +54,20 @@ void main() async {
       child: IzApp(),
     ),
   );
+
+  // UX-8: Listen to CallKit accept/decline events from native UI
+  FlutterCallkitIncoming.onEvent.listen((event) {
+    if (event == null) return;
+    switch (event.event) {
+      case Event.actionCallDecline:
+      case Event.actionCallEnded:
+        // CallKit dismiss — end call if still active
+        CallKitService().endAllCalls();
+        break;
+      default:
+        break;
+    }
+  });
 }
 
 // Global navigator key for secure and direct routing (e.g. forced logouts)

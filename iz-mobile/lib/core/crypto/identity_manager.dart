@@ -64,4 +64,41 @@ class IdentityManager {
       'signed_prekey': await _storage.read(key: _keySignedPreKeyPub) ?? '',
     };
   }
+
+  /// Generates [count] new one-time prekeys for Signal Protocol.
+  /// Each key is a fresh X25519 key pair; only the public key is returned.
+  /// The private keys are stored in secure storage under their key ID.
+  Future<List<Map<String, dynamic>>> generateOneTimePrekeys(int count) async {
+    final keys = <Map<String, dynamic>>[];
+
+    // Load the current highest key ID from storage to avoid collisions
+    final lastIdStr = await _storage.read(key: '_otpk_last_id') ?? '0';
+    int nextId = int.parse(lastIdStr) + 1;
+
+    for (int i = 0; i < count; i++) {
+      final keyPair = await _crypto.generateKeyPair();
+      final pub = await keyPair.extractPublicKey();
+      final priv = await keyPair.extractPrivateKeyBytes();
+      final keyId = nextId + i;
+
+      // Store private key securely
+      await _storage.write(
+        key: '_otpk_priv_$keyId',
+        value: base64Encode(priv),
+      );
+
+      keys.add({
+        'key_id': keyId,
+        'public_key': base64Encode(pub.bytes),
+      });
+    }
+
+    // Persist last ID
+    await _storage.write(
+      key: '_otpk_last_id',
+      value: '${nextId + count - 1}',
+    );
+
+    return keys;
+  }
 }

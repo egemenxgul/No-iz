@@ -16,6 +16,7 @@ import 'package:iz_mobile/features/story/presentation/screens/create_story_scree
 import 'package:iz_mobile/features/story/providers/story_provider.dart';
 import 'package:iz_mobile/features/story/models/story_model.dart';
 import 'archived_conversations_screen.dart';
+import 'search_screen.dart';
 
 class ConversationListScreen extends StatefulWidget {
   const ConversationListScreen({super.key});
@@ -267,6 +268,21 @@ class _ConversationListScreenState extends State<ConversationListScreen>
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const ArchivedConversationsScreen()),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _ShortcutChip(
+                icon: Icons.search_rounded,
+                label: 'Ara',
+                iconColor: const Color(0xFF34D399),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF10B981), Color(0xFF059669)],
+                ),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const MessageSearchScreen()),
                 ),
               ),
             ),

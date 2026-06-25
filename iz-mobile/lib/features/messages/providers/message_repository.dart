@@ -349,4 +349,60 @@ class MessageRepository {
       whereArgs: [messageId],
     );
   }
+
+  /// UX-11: Client-side mesaj arama.
+  /// [query] arama terimi, [conversationId] null ise tüm sohbetlerde arar.
+  /// Hem 1-1 mesajlar hem grup mesajları içinde plaintext arama yapar.
+  Future<List<Map<String, dynamic>>> searchMessages(
+    String query, {
+    String? conversationId,
+  }) async {
+    if (query.trim().isEmpty) return [];
+    final db = await _getDb();
+    final pattern = '%${query.trim()}%';
+    final results = <Map<String, dynamic>>[];
+
+    // Search in 1-1 messages
+    final whereClause = conversationId != null
+        ? 'plaintext LIKE ? AND conversation_id = ?'
+        : 'plaintext LIKE ?';
+    final whereArgs = conversationId != null ? [pattern, conversationId] : [pattern];
+
+    final msgs = await db.query(
+      'messages',
+      where: whereClause,
+      whereArgs: whereArgs,
+      orderBy: 'created_at DESC',
+      limit: 50,
+    );
+    for (final m in msgs) {
+      results.add({...m, '_source': 'direct'});
+    }
+
+    // Search in group messages
+    final gmWhere = conversationId != null
+        ? 'plaintext LIKE ? AND group_id = ?'
+        : 'plaintext LIKE ?';
+    final gmArgs = conversationId != null ? [pattern, conversationId] : [pattern];
+
+    final groupMsgs = await db.query(
+      'group_messages',
+      where: gmWhere,
+      whereArgs: gmArgs,
+      orderBy: 'created_at DESC',
+      limit: 50,
+    );
+    for (final m in groupMsgs) {
+      results.add({...m, '_source': 'group', 'conversation_id': m['group_id']});
+    }
+
+    // Sort combined results by created_at descending
+    results.sort((a, b) {
+      final aTime = a['created_at']?.toString() ?? '';
+      final bTime = b['created_at']?.toString() ?? '';
+      return bTime.compareTo(aTime);
+    });
+
+    return results.take(50).toList();
+  }
 }

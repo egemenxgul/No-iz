@@ -154,6 +154,10 @@ func (s *Server) Router() http.Handler {
 		// Device Registration (Push Notification Tokens)
 		r.Post("/api/devices/register", authHandler.RegisterDevice)
 
+		// PreKey management (Signal Protocol one-time prekey replenishment)
+		r.Get("/api/auth/prekeys/count", authHandler.GetPrekeysCount)
+		r.Post("/api/auth/prekeys", authHandler.ReplenishPrekeys)
+
 		// Change password & email — rate-limited
 		r.With(changePwRL.Middleware).Post("/api/auth/change-password", authHandler.ChangePassword)
 		r.With(changeEmailRL.Middleware).Post("/api/auth/change-email", authHandler.ChangeEmail)

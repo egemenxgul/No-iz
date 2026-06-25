@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 	"github.com/no-iz/iz-backend/pkg/i18n"
 )
 
@@ -599,3 +600,60 @@ func (h *Handler) QRLinkDevice(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"status": "linked"})
 }
 
+// ────────────────────────────────────────────────────────────────
+// GET /api/auth/prekeys/count — returns remaining prekey count
+// POST /api/auth/prekeys — replenish one-time prekey pool
+// ────────────────────────────────────────────────────────────────
+
+func (h *Handler) GetPrekeysCount(w http.ResponseWriter, r *http.Request) {
+	userIDStr, ok := UserIDFromContext(r.Context())
+	if !ok {
+		writeError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid user id")
+		return
+	}
+	count, err := h.svc.GetPrekeysCount(r.Context(), userID)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to get prekey count")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]int{"count": count})
+}
+
+type replenishPrekeysRequest struct {
+	OneTimePrekeys []prekeyRequest `json:"one_time_prekeys"`
+}
+
+func (h *Handler) ReplenishPrekeys(w http.ResponseWriter, r *http.Request) {
+	userIDStr, ok := UserIDFromContext(r.Context())
+	if !ok {
+		writeError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid user id")
+		return
+	}
+
+	var req replenishPrekeysRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	prekeys := make([]OneTimePrekey, len(req.OneTimePrekeys))
+	for i, pk := range req.OneTimePrekeys {
+		prekeys[i] = OneTimePrekey{KeyID: pk.KeyID, PublicKey: pk.PublicKey}
+	}
+
+	if err := h.svc.ReplenishPrekeys(r.Context(), userID, prekeys); err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+}

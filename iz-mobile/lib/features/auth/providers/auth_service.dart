@@ -220,4 +220,26 @@ class AuthService {
       throw _parseError(e, 'QR bağlantısı kurulamadı');
     }
   }
+
+  /// Returns the number of remaining unused one-time prekeys on the server.
+  Future<int> getPrekeysCount() async {
+    try {
+      final response = await _dio.get('/api/auth/prekeys/count');
+      return (response.data['count'] as num?)?.toInt() ?? 0;
+    } on DioException catch (_) {
+      return -1; // Treat error as unknown, don't crash
+    }
+  }
+
+  /// Uploads additional one-time prekeys to the server.
+  /// [keys] is a list of maps with `key_id` (int) and `public_key` (base64 String).
+  Future<void> replenishPrekeys(List<Map<String, dynamic>> keys) async {
+    try {
+      await _dio.post('/api/auth/prekeys', data: {
+        'one_time_prekeys': keys,
+      });
+    } on DioException catch (e) {
+      throw _parseError(e, 'PreKey yüklenemedi');
+    }
+  }
 }

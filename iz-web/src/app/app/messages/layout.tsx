@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
@@ -8,6 +8,15 @@ import styles from './messages-layout.module.css';
 import { useI18n } from '@/lib/i18n/I18nContext';
 import { Conversation, FriendStoryFeed, Group } from '@/types';
 import StoryViewer from '@/components/StoryViewer';
+
+// ── Persistence helpers for archived conversations (local only) ──
+const ARCHIVE_KEY = 'iz_archived_convs';
+function getArchivedIds(): Set<string> {
+  try { return new Set(JSON.parse(localStorage.getItem(ARCHIVE_KEY) || '[]')); } catch { return new Set(); }
+}
+function setArchivedIds(ids: Set<string>) {
+  localStorage.setItem(ARCHIVE_KEY, JSON.stringify([...ids]));
+}
 
 export default function MessagesLayout({ children }: { children: React.ReactNode }) {
   const { t } = useI18n();
@@ -23,9 +32,16 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<{ id: string; username: string; display_name: string; avatar_url: string }[]>([]);
   const [searching, setSearching] = useState(false);
+  const [showArchive, setShowArchive] = useState(false);
+  const [archivedIds, setArchivedIdsState] = useState<Set<string>>(new Set());
+  const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number; convId: string } | null>(null);
   const { id } = useParams();
   const router = useRouter();
   const searchRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  useEffect(() => {
+    setArchivedIdsState(getArchivedIds());
+  }, []);
 
   const fetchConversations = async () => {
     try {
@@ -48,14 +64,15 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
     fetchConversations();
     const off = wsManager.on('new_message', () => { fetchConversations(); });
     const offKey = wsManager.on('group_key_distribution', (payload: any) => {
-       // Save received sender key for a group
        if (!payload || !payload.group_id || !payload.sender_id || !payload.key) return;
        const store = JSON.parse(localStorage.getItem('iz_group_keys') || '{}');
        if (!store[payload.group_id]) store[payload.group_id] = {};
        store[payload.group_id][payload.sender_id] = payload.key;
        localStorage.setItem('iz_group_keys', JSON.stringify(store));
     });
-    return () => { off(); offKey(); };
+    const closeCtx = () => setCtxMenu(null);
+    document.addEventListener('click', closeCtx);
+    return () => { off(); offKey(); document.removeEventListener('click', closeCtx); };
   }, []);
 
   // Debounced search
@@ -94,8 +111,42 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
     }
   }
 
+  const toggleArchive = useCallback((convId: string) => {
+    setArchivedIdsState(prev => {
+      const next = new Set(prev);
+      if (next.has(convId)) next.delete(convId); else next.add(convId);
+      setArchivedIds(next);
+      return next;
+    });
+    setCtxMenu(null);
+  }, []);
+
+  const handleCtxMenu = (e: React.MouseEvent, convId: string) => {
+    e.preventDefault();
+    setCtxMenu({ x: e.clientX, y: e.clientY, convId });
+  };
+
+  const activeConvs = conversations.filter(c => !archivedIds.has(c.other_user_id));
+  const archivedConvs = conversations.filter(c => archivedIds.has(c.other_user_id));
+
   return (
     <div className={styles.container}>
+      {/* Context Menu */}
+      {ctxMenu && (
+        <div
+          style={{ position: 'fixed', top: ctxMenu.y, left: ctxMenu.x, background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 10, padding: '4px 0', zIndex: 9999, minWidth: 160, boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }}
+          onClick={e => e.stopPropagation()}
+        >
+          <button
+            id={`ctx-archive-${ctxMenu.convId}`}
+            onClick={() => toggleArchive(ctxMenu.convId)}
+            style={{ display: 'block', width: '100%', padding: '10px 16px', background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', textAlign: 'left', fontSize: 14 }}
+          >
+            {archivedIds.has(ctxMenu.convId) ? '📤 Arşivden Çıkar' : '📥 Arşivle'}
+          </button>
+        </div>
+      )}
+
       {/* New Chat Modal */}
       {showNewChat && (
         <div className={styles.modalOverlay} onClick={() => { setShowNewChat(false); setSearchQuery(''); setSearchResults([]); }}>
@@ -210,7 +261,7 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
             <div key={i} className={`${styles.item} skeleton`} style={{ height: 64, margin: '8px 12px', borderRadius: 12 }} />
           ))}
           
-          {!loading && conversations.length === 0 && groups.length === 0 && (
+          {!loading && activeConvs.length === 0 && groups.length === 0 && archivedConvs.length === 0 && (
             <div className={styles.empty}>
               <div style={{ fontSize: 32, marginBottom: 8 }}>💬</div>
               <div>{t('app.no_chats')}</div>
@@ -237,11 +288,13 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
             </Link>
           ))}
 
-          {conversations.map((c) => (
+          {/* Active conversations */}
+          {activeConvs.map((c) => (
             <Link
               key={c.other_user_id}
               href={`/app/messages/${c.other_user_id}`}
               className={`${styles.item} ${id === c.other_user_id ? styles.itemActive : ''}`}
+              onContextMenu={e => handleCtxMenu(e, c.other_user_id)}
             >
               <div className={styles.avatar}>
                 {c.other_display_name?.[0]?.toUpperCase() || c.other_username?.[0]?.toUpperCase()}
@@ -257,6 +310,46 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
               </div>
             </Link>
           ))}
+
+          {/* Archive section */}
+          {archivedConvs.length > 0 && (
+            <>
+              <button
+                id="archive-toggle-btn"
+                onClick={() => setShowArchive(v => !v)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '10px 16px',
+                  background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer',
+                  fontSize: 13, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase',
+                  borderTop: '1px solid var(--border)', marginTop: 4,
+                }}
+              >
+                <span>📥</span>
+                <span>Arşiv ({archivedConvs.length})</span>
+                <span style={{ marginLeft: 'auto', transition: 'transform 0.2s', transform: showArchive ? 'rotate(180deg)' : 'none' }}>▾</span>
+              </button>
+              {showArchive && archivedConvs.map((c) => (
+                <Link
+                  key={c.other_user_id}
+                  href={`/app/messages/${c.other_user_id}`}
+                  className={`${styles.item} ${id === c.other_user_id ? styles.itemActive : ''}`}
+                  style={{ opacity: 0.7 }}
+                  onContextMenu={e => handleCtxMenu(e, c.other_user_id)}
+                >
+                  <div className={styles.avatar}>
+                    {c.other_display_name?.[0]?.toUpperCase() || c.other_username?.[0]?.toUpperCase()}
+                  </div>
+                  <div className={styles.content}>
+                    <div className={styles.top}>
+                      <span className={styles.name}>{c.other_display_name || c.other_username}</span>
+                      <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>📥</span>
+                    </div>
+                    <p className={styles.lastMsg}>{c.last_message_type === 'text' ? t('app.msg_text') : t('app.msg_file')}</p>
+                  </div>
+                </Link>
+              ))}
+            </>
+          )}
         </div>
       </aside>
 
