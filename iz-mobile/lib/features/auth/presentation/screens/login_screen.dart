@@ -538,13 +538,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                           const SizedBox(height: 40),
 
                           // ── Security badges ───────────────────────
-                          Row(
+                          const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               _SecurityBadge(icon: Icons.lock_outline_rounded, label: 'E2E Şifreli'),
-                              const SizedBox(width: 16),
+                              SizedBox(width: 16),
                               _SecurityBadge(icon: Icons.visibility_off_outlined, label: 'Gizlilik'),
-                              const SizedBox(width: 16),
+                              SizedBox(width: 16),
                               _SecurityBadge(icon: Icons.shield_outlined, label: 'Signal Protokol'),
                             ],
                           ),

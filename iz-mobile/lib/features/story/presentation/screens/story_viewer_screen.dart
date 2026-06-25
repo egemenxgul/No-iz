@@ -305,7 +305,7 @@ class _StoryViewerScreenState extends ConsumerState<StoryViewerScreen>
                                           : 0.0,
                                   backgroundColor:
                                       Colors.white.withValues(alpha: 0.25),
-                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                  valueColor: const AlwaysStoppedAnimation<Color>(
                                     AppColors.accent,
                                   ),
                                   minHeight: 3,
@@ -326,7 +326,7 @@ class _StoryViewerScreenState extends ConsumerState<StoryViewerScreen>
                           // Avatar
                           Container(
                             padding: const EdgeInsets.all(2),
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               shape: BoxShape.circle,
                               gradient: LinearGradient(
                                 colors: [
@@ -449,7 +449,7 @@ class _StoryViewerScreenState extends ConsumerState<StoryViewerScreen>
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        SizedBox(
+        const SizedBox(
           width: 44,
           height: 44,
           child: CircularProgressIndicator(

@@ -8,7 +8,6 @@ import 'package:cryptography/cryptography.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:iz_mobile/features/auth/providers/auth_provider.dart';
 import 'package:iz_mobile/features/auth/providers/account_provider.dart';
-import 'package:iz_mobile/features/auth/providers/auth_service.dart';
 
 // ────────────────────────────────────────────────────────────────────────────
 // QR Tarayıcı Ekranı — Web'e Bağlan

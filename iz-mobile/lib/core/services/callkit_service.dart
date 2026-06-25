@@ -32,13 +32,13 @@ class CallKitService {
         duration: 45000, // 45 seconds ringing timeout
         textAccept: 'Kabul Et',
         textDecline: 'Reddet',
-        missedCallNotification: NotificationParams(
+        missedCallNotification: const NotificationParams(
           showNotification: true,
           isShowCallback: true,
           subtitle: 'Cevapsız arama',
           callbackText: 'Geri ara',
         ),
-        android: AndroidParams(
+        android: const AndroidParams(
           isCustomNotification: true,
           isShowLogo: false,
           ringtonePath: 'system_ringtone_default',
@@ -49,7 +49,7 @@ class CallKitService {
           incomingCallNotificationChannelName: 'Gelen Aramalar',
           missedCallNotificationChannelName: 'Cevapsız Aramalar',
         ),
-        ios: IOSParams(
+        ios: const IOSParams(
           iconName: 'CallKitLogo',
           handleType: '',
           supportsVideo: true,
@@ -118,7 +118,7 @@ class CallKitService {
         duration: 45000,
         textAccept: 'Kabul Et',
         textDecline: 'Kapat',
-        android: AndroidParams(
+        android: const AndroidParams(
           isCustomNotification: false,
           isShowLogo: false,
           backgroundColor: '#0A0A0A',
@@ -127,7 +127,7 @@ class CallKitService {
           incomingCallNotificationChannelName: 'Aramalar',
           missedCallNotificationChannelName: 'Cevapsız Aramalar',
         ),
-        ios: IOSParams(
+        ios: const IOSParams(
           iconName: 'CallKitLogo',
           handleType: '',
           supportsVideo: true,

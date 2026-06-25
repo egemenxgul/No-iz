@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:iz_mobile/core/theme/app_colors.dart';
 import 'package:iz_mobile/core/theme/app_theme.dart';
 import 'package:iz_mobile/features/auth/providers/account_provider.dart';
 
@@ -40,7 +41,7 @@ class AccountSwitcherSheet extends ConsumerWidget {
                 child: acc.avatarUrl == null || acc.avatarUrl!.isEmpty ? Text(avatarChar) : null,
               ),
               title: Text(acc.displayName ?? acc.username),
-              trailing: isActive ? const Icon(Icons.check, color: AppTheme.primaryColor) : null,
+              trailing: isActive ? const Icon(Icons.check, color: AppColors.accent) : null,
               onTap: () {
                 if (!isActive) {
                   ref.read(accountProvider.notifier).switchAccount(acc.id);

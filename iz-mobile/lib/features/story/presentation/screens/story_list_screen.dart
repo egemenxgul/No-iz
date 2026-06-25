@@ -240,7 +240,7 @@ class _MyStatusCard extends StatelessWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: hasStory
-                            ? LinearGradient(
+                            ? const LinearGradient(
                                 colors: [
                                   AppColors.accent,
                                   AppColors.accentSecondary,
@@ -413,7 +413,7 @@ class _StoryTile extends StatelessWidget {
                     padding: const EdgeInsets.all(2.5),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: LinearGradient(
+                      gradient: const LinearGradient(
                         colors: [AppColors.accent, AppColors.accentSecondary],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,

@@ -14,7 +14,6 @@ import 'package:iz_mobile/core/theme/glass_widgets.dart';
 import 'package:iz_mobile/features/messages/providers/chat_provider.dart';
 import 'package:iz_mobile/features/auth/providers/auth_provider.dart';
 import 'package:iz_mobile/features/messages/providers/message_model.dart';
-import 'package:iz_mobile/features/messages/providers/contacts_provider.dart';
 
 class CreateGroupScreen extends ConsumerStatefulWidget {
   const CreateGroupScreen({super.key});
@@ -106,7 +105,6 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
   @override
   Widget build(BuildContext context) {
     final conversations = ref.watch(conversationProvider);
-    final contactsState = ref.watch(contactsProvider);
 
     // List confirmed friends (accepted conversations that are not groups)
     final friendsList = conversations.where((c) {
@@ -323,7 +321,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
           // Loading overlay
           if (_isLoading)
             Container(
-              color: Colors.black.withOpacity(0.5),
+              color: Colors.black.withValues(alpha: 0.5),
               child: const Center(
                 child: CircularProgressIndicator(color: AppColors.accent),
               ),

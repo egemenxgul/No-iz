@@ -243,7 +243,7 @@ class _CreateCommunityScreenState extends ConsumerState<CreateCommunityScreen> {
                             style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 12),
                           ),
                           value: _isPublic,
-                          activeColor: AppColors.accent,
+                          activeThumbColor: AppColors.accent,
                           inactiveTrackColor: AppColors.bgHover,
                           contentPadding: EdgeInsets.zero,
                           onChanged: (val) {
@@ -262,7 +262,7 @@ class _CreateCommunityScreenState extends ConsumerState<CreateCommunityScreen> {
 
           if (_isLoading)
             Container(
-              color: Colors.black.withOpacity(0.5),
+              color: Colors.black.withValues(alpha: 0.5),
               child: const Center(child: CircularProgressIndicator(color: AppColors.accent)),
             ),
         ],

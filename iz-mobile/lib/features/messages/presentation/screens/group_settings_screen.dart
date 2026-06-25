@@ -547,7 +547,7 @@ class _GroupSettingsScreenState extends ConsumerState<GroupSettingsScreen> {
 
           if (_isLoading)
             Container(
-              color: Colors.black.withOpacity(0.4),
+              color: Colors.black.withValues(alpha: 0.4),
               child: const Center(child: CircularProgressIndicator(color: AppColors.accent)),
             ),
         ],

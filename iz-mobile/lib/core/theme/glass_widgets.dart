@@ -97,7 +97,7 @@ class LiquidGlassCard extends StatelessWidget {
                         top: 0, left: 0, right: 0,
                         height: 40,
                         child: Container(
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
                                 AppColors.prismRose,
@@ -213,7 +213,7 @@ class LiquidGlassSheet extends StatelessWidget {
                   ],
                 ),
                 borderRadius: radius,
-                border: Border(
+                border: const Border(
                   top: BorderSide(color: AppColors.glassBorderStrong, width: 0.8),
                   left: BorderSide(color: AppColors.glassBorder, width: 0.4),
                   right: BorderSide(color: AppColors.glassBorder, width: 0.4),

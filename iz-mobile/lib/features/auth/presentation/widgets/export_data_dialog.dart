@@ -28,7 +28,7 @@ class _ExportDataDialogState extends ConsumerState<ExportDataDialog> {
   Future<void> _exportData() async {
     try {
       final data = await ref.read(authServiceProvider).exportData();
-      final encoder = const JsonEncoder.withIndent('  ');
+      const encoder = JsonEncoder.withIndent('  ');
       final prettyString = encoder.convert(data);
       
       setState(() {

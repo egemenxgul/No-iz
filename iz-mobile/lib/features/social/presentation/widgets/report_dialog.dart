@@ -88,13 +88,13 @@ class _ReportDialogState extends ConsumerState<ReportDialog> {
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
       child: AlertDialog(
-        backgroundColor: const Color(0xFF1E1E38).withOpacity(0.85),
+        backgroundColor: const Color(0xFF1E1E38).withValues(alpha: 0.85),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),
           side: BorderSide(color: Colors.redAccent.withValues(alpha: 0.2)),
         ),
-        title: Row(
-          children: const [
+        title: const Row(
+          children: [
             Icon(Icons.report_problem, color: Colors.redAccent),
             SizedBox(width: 12),
             Text(
@@ -117,7 +117,7 @@ class _ReportDialogState extends ConsumerState<ReportDialog> {
                   children: [
                     Text(
                       'Bu platform üyesini şikayet etme nedeninizi seçin ve ayrıntıları girin.',
-                      style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 13),
+                      style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 13),
                     ),
                     const SizedBox(height: 20),
                     
@@ -127,7 +127,7 @@ class _ReportDialogState extends ConsumerState<ReportDialog> {
                       decoration: BoxDecoration(
                         color: const Color(0xFF0F0F1A),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white.withOpacity(0.1)),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
@@ -160,7 +160,7 @@ class _ReportDialogState extends ConsumerState<ReportDialog> {
                       maxLines: 4,
                       decoration: InputDecoration(
                         hintText: 'Durumu detaylandırın...',
-                        hintStyle: TextStyle(color: Colors.white.withOpacity(0.4)),
+                        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4)),
                         filled: true,
                         fillColor: const Color(0xFF0F0F1A),
                         border: OutlineInputBorder(

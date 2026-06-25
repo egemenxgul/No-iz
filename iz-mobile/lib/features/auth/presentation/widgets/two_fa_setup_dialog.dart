@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:iz_mobile/core/theme/app_colors.dart';
-import 'package:iz_mobile/core/localization/locale_provider.dart';
 import 'package:iz_mobile/features/auth/providers/auth_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'auth_widgets.dart';

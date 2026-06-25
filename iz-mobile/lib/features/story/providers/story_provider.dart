@@ -1,6 +1,4 @@
 import 'dart:convert';
-import 'dart:math';
-import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,7 +10,6 @@ import '../../../core/network/dio_provider.dart';
 import '../../../core/crypto/crypto_providers.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../auth/providers/account_provider.dart';
-import '../../messages/providers/chat_provider.dart';
 import '../../messages/providers/media_upload_service.dart';
 import '../models/story_model.dart';
 import 'story_service.dart';
@@ -253,8 +250,6 @@ class StoryNotifier extends Notifier<List<FriendStoryFeedModel>> {
   }
 }
 
-// ignore: unused_import
-final _ = Random.secure; // keep dart:math reference
 
 final storyProvider =
     NotifierProvider<StoryNotifier, List<FriendStoryFeedModel>>(

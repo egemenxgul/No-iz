@@ -49,7 +49,7 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(context.tr(ref, 'error_occurred') ?? 'Ayarlar yüklenirken bir hata oluştu.'),
+            content: Text(context.tr(ref, 'error_occurred')),
             backgroundColor: AppColors.danger,
           ),
         );
@@ -74,7 +74,7 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(context.tr(ref, 'error_occurred') ?? 'Ayarlar kaydedilemedi.'),
+            content: Text(context.tr(ref, 'error_occurred')),
             backgroundColor: AppColors.danger,
           ),
         );
@@ -92,7 +92,7 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         title: Text(
-          context.tr(ref, 'privacy_security') ?? 'Gizlilik & Güvenlik',
+          context.tr(ref, 'privacy_security'),
           style: GoogleFonts.outfit(
             fontWeight: FontWeight.w800,
             fontSize: 20,
@@ -126,7 +126,7 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
                   padding: const EdgeInsets.fromLTRB(16, 110, 16, 40),
                   physics: const BouncingScrollPhysics(),
                   children: [
-                    _sectionTitle(context.tr(ref, 'privacy_security') ?? 'Gizlilik Seçenekleri'),
+                    _sectionTitle(context.tr(ref, 'privacy_security')),
                     _GlassSection(
                       children: [
                         _SwitchTile(
@@ -134,8 +134,8 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
                           iconGradient: const LinearGradient(
                             colors: [Color(0xFFF59E0B), Color(0xFFF97316)],
                           ),
-                          title: context.tr(ref, 'hide_last_seen') ?? 'Son Görülmeyi Gizle',
-                          subtitle: context.tr(ref, 'hide_last_seen_sub') ?? 'Son görülme zamanınızı kimse göremez.',
+                          title: context.tr(ref, 'hide_last_seen'),
+                          subtitle: context.tr(ref, 'hide_last_seen_sub'),
                           value: _hideLastSeen,
                           onChanged: (v) {
                             setState(() => _hideLastSeen = v);
@@ -150,8 +150,8 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
                           iconGradient: const LinearGradient(
                             colors: [Color(0xFF3B82F6), Color(0xFF06B6D4)],
                           ),
-                          title: context.tr(ref, 'hide_online') ?? 'Çevrimiçi Durumunu Gizle',
-                          subtitle: context.tr(ref, 'hide_online_sub') ?? 'Aktif olduğunuzda çevrimiçi görünmezsiniz.',
+                          title: context.tr(ref, 'hide_online'),
+                          subtitle: context.tr(ref, 'hide_online_sub'),
                           value: _hideOnline,
                           onChanged: (v) {
                             setState(() => _hideOnline = v);
@@ -166,8 +166,8 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
                           iconGradient: const LinearGradient(
                             colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
                           ),
-                          title: context.tr(ref, 'hide_typing') ?? 'Yazıyor Bilgisini Gizle',
-                          subtitle: context.tr(ref, 'hide_typing_sub') ?? 'Mesaj yazarken "Yazıyor..." bilgisi gizlenir.',
+                          title: context.tr(ref, 'hide_typing'),
+                          subtitle: context.tr(ref, 'hide_typing_sub'),
                           value: _hideTyping,
                           onChanged: (v) {
                             setState(() => _hideTyping = v);
@@ -182,8 +182,8 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
                           iconGradient: const LinearGradient(
                             colors: [Color(0xFF10B981), Color(0xFF34D399)],
                           ),
-                          title: context.tr(ref, 'hide_read') ?? 'Okundu Bilgisini Gizle',
-                          subtitle: context.tr(ref, 'hide_read_sub') ?? 'Okundu mavi tıkları diğer kullanıcılara iletilmez.',
+                          title: context.tr(ref, 'hide_read'),
+                          subtitle: context.tr(ref, 'hide_read_sub'),
                           value: _hideReadReceipts,
                           onChanged: (v) {
                             setState(() => _hideReadReceipts = v);
@@ -195,7 +195,7 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
                       ],
                     ),
                     const SizedBox(height: 28),
-                    _sectionTitle(context.tr(ref, 'account_security') ?? 'Hesap Güvenliği'),
+                    _sectionTitle(context.tr(ref, 'account_security')),
                     _GlassSection(
                       children: [
                         _GlassTile(
@@ -210,8 +210,8 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
                             ),
                             child: const Icon(Icons.password_outlined, color: Colors.white, size: 20),
                           ),
-                          title: context.tr(ref, 'change_password') ?? 'Şifremi Değiştir',
-                          subtitle: context.tr(ref, 'change_password_sub') ?? 'Hesap şifrenizi güvenli bir şekilde güncelleyin.',
+                          title: context.tr(ref, 'change_password'),
+                          subtitle: context.tr(ref, 'change_password_sub'),
                           onTap: () {
                             showDialog(
                               context: context,
@@ -296,8 +296,7 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       child: Text(
-                        context.tr(ref, 'privacy_mutuality_note') ?? 
-                        '* Karşılıklılık İlkesi: Gizlilik seçeneklerinizi kapatırsanız, diğer kullanıcıların da ilgili bilgilerini göremezsiniz (WhatsApp tarzı).',
+                        context.tr(ref, 'privacy_mutuality_note'),
                         style: GoogleFonts.inter(
                           color: AppColors.textMuted,
                           fontSize: 12,
@@ -422,7 +421,7 @@ class _SwitchTile extends StatelessWidget {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: AppColors.accent,
+            activeThumbColor: AppColors.accent,
             activeTrackColor: AppColors.accentDim,
           ),
         ],

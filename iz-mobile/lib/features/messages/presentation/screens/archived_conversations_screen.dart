@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/chat_provider.dart';
-import '../../providers/message_model.dart';
 import 'chat_screen.dart';
 
 class ArchivedConversationsScreen extends ConsumerWidget {
@@ -35,7 +34,7 @@ class ArchivedConversationsScreen extends ConsumerWidget {
                     Icon(
                       Icons.archive_outlined,
                       size: 64,
-                      color: Colors.cyanAccent.withOpacity(0.3),
+                      color: Colors.cyanAccent.withValues(alpha: 0.3),
                     ),
                     const SizedBox(height: 16),
                     const Text(
@@ -59,7 +58,7 @@ class ArchivedConversationsScreen extends ConsumerWidget {
                       key: Key(conv.id),
                       background: Container(
                         decoration: BoxDecoration(
-                          color: Colors.purple.withOpacity(0.8),
+                          color: Colors.purple.withValues(alpha: 0.8),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         alignment: Alignment.centerLeft,
@@ -68,7 +67,7 @@ class ArchivedConversationsScreen extends ConsumerWidget {
                       ),
                       secondaryBackground: Container(
                         decoration: BoxDecoration(
-                          color: Colors.purple.withOpacity(0.8),
+                          color: Colors.purple.withValues(alpha: 0.8),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         alignment: Alignment.centerRight,
@@ -92,10 +91,10 @@ class ArchivedConversationsScreen extends ConsumerWidget {
                       },
                       child: Container(
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1E1E38).withOpacity(0.4),
+                          color: const Color(0xFF1E1E38).withValues(alpha: 0.4),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: Colors.white.withOpacity(0.05),
+                            color: Colors.white.withValues(alpha: 0.05),
                           ),
                         ),
                         child: ListTile(
@@ -129,7 +128,7 @@ class ArchivedConversationsScreen extends ConsumerWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.5),
+                                color: Colors.white.withValues(alpha: 0.5),
                                 fontSize: 13,
                               ),
                             ),

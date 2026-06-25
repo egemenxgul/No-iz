@@ -84,14 +84,14 @@ class AppColors {
   );
 
   /// Warm prismatic glass gradient — inner face of the glass
-  static LinearGradient liquidGlassFaceGradient = LinearGradient(
+  static LinearGradient liquidGlassFaceGradient = const LinearGradient(
     colors: [
-      const Color(0x20FFFFFF),
-      const Color(0x08FFFFFF),
-      const Color(0x12FFFFFF),
+      Color(0x20FFFFFF),
+      Color(0x08FFFFFF),
+      Color(0x12FFFFFF),
     ],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    stops: const [0.0, 0.55, 1.0],
+    stops: [0.0, 0.55, 1.0],
   );
 }

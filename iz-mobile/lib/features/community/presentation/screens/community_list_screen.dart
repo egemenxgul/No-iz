@@ -73,7 +73,7 @@ class _CommunityListScreenState extends ConsumerState<CommunityListScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('"${name}" topluluğuna katıldınız!')),
+          SnackBar(content: Text('"$name" topluluğuna katıldınız!')),
         );
       }
     } catch (e) {

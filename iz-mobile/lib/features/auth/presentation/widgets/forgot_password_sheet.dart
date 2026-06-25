@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:iz_mobile/core/theme/app_colors.dart';
-import 'package:iz_mobile/core/localization/locale_provider.dart';
-import 'package:dio/dio.dart';
 import '../../../../core/network/dio_provider.dart';
 import 'auth_widgets.dart';
 
@@ -84,7 +82,7 @@ class _ForgotPasswordSheetState extends ConsumerState<ForgotPasswordSheet> {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: AppColors.textMuted.withOpacity(0.3),
+              color: AppColors.textMuted.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(2),
             ),
           ),

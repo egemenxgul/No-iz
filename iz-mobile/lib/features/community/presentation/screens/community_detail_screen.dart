@@ -170,7 +170,7 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('"${groupName}" grubuna katıldınız!')),
+          SnackBar(content: Text('"$groupName" grubuna katıldınız!')),
         );
         context.push('/app/messages/$groupId');
       }
@@ -195,14 +195,14 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
       builder: (context) => BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: AlertDialog(
-          backgroundColor: AppColors.bgSurface.withOpacity(0.85),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22), side: BorderSide(color: AppColors.glassBorder, width: 0.5)),
+          backgroundColor: AppColors.bgSurface.withValues(alpha: 0.85),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22), side: const BorderSide(color: AppColors.glassBorder, width: 0.5)),
           title: Text(
             'Topluluktan Ayrıl',
             style: GoogleFonts.outfit(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
           ),
           content: Text(
-            '"${name}" topluluğundan ayrılmak istediğinize emin misiniz?',
+            '"$name" topluluğundan ayrılmak istediğinize emin misiniz?',
             style: GoogleFonts.inter(color: AppColors.textSecondary),
           ),
           actions: [
@@ -234,7 +234,7 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('"${name}" topluluğundan ayrıldınız.')),
+          SnackBar(content: Text('"$name" topluluğundan ayrıldınız.')),
         );
         context.pop();
       }
@@ -264,10 +264,10 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
         builder: (context, setModalState) => BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
           child: AlertDialog(
-            backgroundColor: AppColors.bgSurface.withOpacity(0.9),
+            backgroundColor: AppColors.bgSurface.withValues(alpha: 0.9),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
-              side: BorderSide(color: AppColors.glassBorder, width: 0.5),
+              side: const BorderSide(color: AppColors.glassBorder, width: 0.5),
             ),
             title: Row(
               children: [
@@ -297,7 +297,7 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
                         hintText: 'Başlık',
                         hintStyle: GoogleFonts.inter(color: AppColors.textMuted, fontSize: 14),
                         filled: true,
-                        fillColor: AppColors.bgBase.withOpacity(0.5),
+                        fillColor: AppColors.bgBase.withValues(alpha: 0.5),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       ),
@@ -312,7 +312,7 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
                         hintText: 'Ne düşünüyorsun?',
                         hintStyle: GoogleFonts.inter(color: AppColors.textMuted, fontSize: 14),
                         filled: true,
-                        fillColor: AppColors.bgBase.withOpacity(0.5),
+                        fillColor: AppColors.bgBase.withValues(alpha: 0.5),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       ),
@@ -405,7 +405,7 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.glassDark.withOpacity(0.3),
+                    color: AppColors.glassDark.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(color: AppColors.glassBorder, width: 0.5),
                   ),
@@ -413,10 +413,10 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
                     indicatorSize: TabBarIndicatorSize.tab,
                     dividerColor: Colors.transparent,
                     indicator: BoxDecoration(
-                      color: AppColors.accent.withOpacity(0.25),
+                      color: AppColors.accent.withValues(alpha: 0.25),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: AppColors.accentBorder.withOpacity(0.4),
+                        color: AppColors.accentBorder.withValues(alpha: 0.4),
                         width: 0.5,
                       ),
                     ),
@@ -441,12 +441,12 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
             Positioned(
               top: -60,
               left: -40,
-              child: _AmbientBlob(color: AppColors.accent.withOpacity(0.12), size: 300),
+              child: _AmbientBlob(color: AppColors.accent.withValues(alpha: 0.12), size: 300),
             ),
             Positioned(
               bottom: -60,
               right: -40,
-              child: _AmbientBlob(color: AppColors.accentSecondary.withOpacity(0.08), size: 280),
+              child: _AmbientBlob(color: AppColors.accentSecondary.withValues(alpha: 0.08), size: 280),
             ),
 
             if (_isLoadingDetails)
@@ -487,7 +487,7 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
 
             if (_isActionLoading)
               Container(
-                color: Colors.black.withOpacity(0.55),
+                color: Colors.black.withValues(alpha: 0.55),
                 child: const Center(child: CircularProgressIndicator(color: AppColors.accent)),
               ),
           ],
@@ -558,7 +558,7 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
                     children: [
                       CircleAvatar(
                         radius: 20,
-                        backgroundColor: AppColors.accent.withOpacity(0.15),
+                        backgroundColor: AppColors.accent.withValues(alpha: 0.15),
                         child: Text(
                           initial,
                           style: GoogleFonts.outfit(color: AppColors.accentLight, fontWeight: FontWeight.bold, fontSize: 14),
@@ -580,9 +580,9 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                     decoration: BoxDecoration(
-                                      color: AppColors.danger.withOpacity(0.15),
+                                      color: AppColors.danger.withValues(alpha: 0.15),
                                       borderRadius: BorderRadius.circular(4),
-                                      border: Border.all(color: AppColors.danger.withOpacity(0.5), width: 0.5),
+                                      border: Border.all(color: AppColors.danger.withValues(alpha: 0.5), width: 0.5),
                                     ),
                                     child: Text(
                                       'Yönetici',
@@ -594,9 +594,9 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                     decoration: BoxDecoration(
-                                      color: AppColors.accent.withOpacity(0.15),
+                                      color: AppColors.accent.withValues(alpha: 0.15),
                                       borderRadius: BorderRadius.circular(4),
-                                      border: Border.all(color: AppColors.accent.withOpacity(0.5), width: 0.5),
+                                      border: Border.all(color: AppColors.accent.withValues(alpha: 0.5), width: 0.5),
                                     ),
                                     child: Text(
                                       'Moderatör',
@@ -737,7 +737,7 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
                     children: [
                       CircleAvatar(
                         radius: 22,
-                        backgroundColor: AppColors.accent.withOpacity(0.15),
+                        backgroundColor: AppColors.accent.withValues(alpha: 0.15),
                         child: Text(
                           initial,
                           style: GoogleFonts.outfit(color: AppColors.accentLight, fontWeight: FontWeight.bold, fontSize: 16),
@@ -769,7 +769,7 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
                           text: 'Sohbet',
                           textColor: AppColors.accentLight,
                           backgroundColor: Colors.transparent,
-                          borderColor: AppColors.accentBorder.withOpacity(0.5),
+                          borderColor: AppColors.accentBorder.withValues(alpha: 0.5),
                           onTap: () => context.push('/app/messages/$groupId'),
                         )
                       else
@@ -802,7 +802,7 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppColors.success.withOpacity(0.15),
+                  color: AppColors.success.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.volume_up_rounded, color: AppColors.success, size: 20),
@@ -859,9 +859,9 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: AppColors.bgSurface.withOpacity(0.9),
+            color: AppColors.bgSurface.withValues(alpha: 0.9),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            border: Border(top: BorderSide(color: AppColors.glassBorder, width: 0.5)),
+            border: const Border(top: BorderSide(color: AppColors.glassBorder, width: 0.5)),
           ),
           child: SafeArea(
             child: Column(
@@ -873,7 +873,7 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: AppColors.textMuted.withOpacity(0.3),
+                      color: AppColors.textMuted.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -884,7 +884,7 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.success.withOpacity(0.15),
+                        color: AppColors.success.withValues(alpha: 0.15),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(Icons.volume_up_rounded, color: AppColors.success, size: 28),
@@ -927,8 +927,8 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
                             children: [
                               CircleAvatar(
                                 radius: 24,
-                                backgroundColor: AppColors.accent.withOpacity(0.2),
-                                child: Text('U${index + 1}', style: TextStyle(color: AppColors.accentLight, fontWeight: FontWeight.bold)),
+                                backgroundColor: AppColors.accent.withValues(alpha: 0.2),
+                                child: Text('U${index + 1}', style: const TextStyle(color: AppColors.accentLight, fontWeight: FontWeight.bold)),
                               ),
                               const SizedBox(height: 6),
                               Text('User ${index + 1}', style: GoogleFonts.inter(color: AppColors.textPrimary, fontSize: 11)),
@@ -974,7 +974,6 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
   Widget _buildAboutTab() {
     if (_community == null) return const SizedBox.shrink();
 
-    final name = _community!['name'] as String? ?? '';
     final slug = _community!['slug'] as String? ?? '';
     final desc = _community!['description'] as String? ?? '';
     final memberCount = _community!['member_count'] as int? ?? 0;
@@ -1034,7 +1033,7 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
           child: ElevatedButton.icon(
             onPressed: _onLeaveCommunity,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.danger.withOpacity(0.15),
+              backgroundColor: AppColors.danger.withValues(alpha: 0.15),
               foregroundColor: AppColors.danger,
               side: const BorderSide(color: AppColors.danger, width: 0.5),
               padding: const EdgeInsets.symmetric(vertical: 14),
@@ -1078,8 +1077,8 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.accent.withOpacity(0.08),
-              border: Border.all(color: AppColors.accentBorder.withOpacity(0.15), width: 0.5),
+              color: AppColors.accent.withValues(alpha: 0.08),
+              border: Border.all(color: AppColors.accentBorder.withValues(alpha: 0.15), width: 0.5),
             ),
             child: Icon(icon, size: 32, color: AppColors.accentLight),
           ),

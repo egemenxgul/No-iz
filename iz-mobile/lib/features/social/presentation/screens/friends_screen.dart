@@ -11,7 +11,6 @@ import 'package:iz_mobile/core/theme/app_colors.dart';
 import 'package:iz_mobile/core/theme/glass_widgets.dart';
 import 'package:iz_mobile/core/localization/locale_provider.dart';
 import 'package:iz_mobile/features/messages/providers/chat_provider.dart';
-import 'package:iz_mobile/features/messages/providers/contacts_provider.dart';
 import 'package:iz_mobile/features/auth/providers/auth_provider.dart';
 import 'package:iz_mobile/features/messages/providers/message_model.dart';
 

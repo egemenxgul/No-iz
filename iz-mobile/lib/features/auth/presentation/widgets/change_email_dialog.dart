@@ -32,11 +32,11 @@ class _ChangeEmailDialogState extends ConsumerState<ChangeEmailDialog> {
     final newEmail = _emailController.text.trim();
 
     if (password.isEmpty || newEmail.isEmpty) {
-      _showError(context.tr(ref, 'err_all_fields_required') ?? 'Tüm alanları doldurun');
+      _showError(context.tr(ref, 'err_all_fields_required'));
       return;
     }
     if (!newEmail.contains('@')) {
-      _showError(context.tr(ref, 'err_invalid_email') ?? 'Geçersiz e-posta formatı');
+      _showError(context.tr(ref, 'err_invalid_email'));
       return;
     }
 
@@ -50,7 +50,7 @@ class _ChangeEmailDialogState extends ConsumerState<ChangeEmailDialog> {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(context.tr(ref, 'success') ?? 'E-posta başarıyla değiştirildi.'),
+            content: Text(context.tr(ref, 'success')),
             backgroundColor: AppColors.success,
           ),
         );
@@ -99,7 +99,7 @@ class _ChangeEmailDialogState extends ConsumerState<ChangeEmailDialog> {
                   children: [
                     Container(
                       padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: AppColors.accentDim,
                         shape: BoxShape.circle,
                       ),
@@ -108,7 +108,7 @@ class _ChangeEmailDialogState extends ConsumerState<ChangeEmailDialog> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        context.tr(ref, 'change_email') ?? 'E-posta Değiştir',
+                        context.tr(ref, 'change_email'),
                         style: GoogleFonts.outfit(
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
@@ -121,7 +121,7 @@ class _ChangeEmailDialogState extends ConsumerState<ChangeEmailDialog> {
                 const SizedBox(height: 24),
                 
                 Text(
-                  context.tr(ref, 'change_email_info') ?? 'Güvenliğiniz için mevcut şifrenizi girmeniz gerekmektedir.',
+                  context.tr(ref, 'change_email_info'),
                   style: GoogleFonts.inter(
                     color: AppColors.textMuted,
                     fontSize: 12,
@@ -148,7 +148,7 @@ class _ChangeEmailDialogState extends ConsumerState<ChangeEmailDialog> {
                           ),
                           child: Center(
                             child: Text(
-                              context.tr(ref, 'cancel') ?? 'İptal',
+                              context.tr(ref, 'cancel'),
                               style: GoogleFonts.inter(
                                 color: AppColors.textPrimary,
                                 fontWeight: FontWeight.w600,
@@ -178,7 +178,7 @@ class _ChangeEmailDialogState extends ConsumerState<ChangeEmailDialog> {
                                     child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                                   )
                                 : Text(
-                                    context.tr(ref, 'save') ?? 'Kaydet',
+                                    context.tr(ref, 'save'),
                                     style: GoogleFonts.inter(
                                       color: Colors.white,
                                       fontWeight: FontWeight.w700,
@@ -209,7 +209,7 @@ class _ChangeEmailDialogState extends ConsumerState<ChangeEmailDialog> {
           textInputAction: TextInputAction.next,
           style: const TextStyle(color: AppColors.textPrimary),
           decoration: InputDecoration(
-            hintText: context.tr(ref, 'current_password') ?? 'Mevcut Şifre',
+            hintText: context.tr(ref, 'current_password'),
             hintStyle: const TextStyle(color: AppColors.textMuted),
             filled: true,
             fillColor: AppColors.glassLight,
@@ -240,7 +240,7 @@ class _ChangeEmailDialogState extends ConsumerState<ChangeEmailDialog> {
           textInputAction: TextInputAction.done,
           style: const TextStyle(color: AppColors.textPrimary),
           decoration: InputDecoration(
-            hintText: context.tr(ref, 'new_email') ?? 'Yeni E-posta',
+            hintText: context.tr(ref, 'new_email'),
             hintStyle: const TextStyle(color: AppColors.textMuted),
             filled: true,
             fillColor: AppColors.glassLight,

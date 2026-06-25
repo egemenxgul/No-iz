@@ -544,7 +544,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
 
                 // ── Change Email ───────────────────────────────────────
                 if (isActive) ...[
-                  _fieldLabel(context.tr(ref, 'email_address') ?? 'E-posta Adresi'),
+                  _fieldLabel(context.tr(ref, 'email_address')),
                   GestureDetector(
                     onTap: _isLoading
                         ? null
@@ -567,7 +567,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
                           const SizedBox(width: 14),
                           Expanded(
                             child: Text(
-                              context.tr(ref, 'change_email') ?? 'E-posta Adresimi Değiştir',
+                              context.tr(ref, 'change_email'),
                               style: GoogleFonts.inter(
                                 color: AppColors.textPrimary,
                                 fontSize: 16,

@@ -37,15 +37,15 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
     final confirmPass = _confirmPasswordController.text.trim();
 
     if (oldPass.isEmpty || newPass.isEmpty || confirmPass.isEmpty) {
-      _showError(context.tr(ref, 'err_all_fields_required') ?? 'Tüm alanları doldurun');
+      _showError(context.tr(ref, 'err_all_fields_required'));
       return;
     }
     if (newPass.length < 8) {
-      _showError(context.tr(ref, 'err_password_length') ?? 'Şifre en az 8 karakter olmalıdır');
+      _showError(context.tr(ref, 'err_password_length'));
       return;
     }
     if (newPass != confirmPass) {
-      _showError(context.tr(ref, 'err_passwords_not_match') ?? 'Yeni şifreler eşleşmiyor');
+      _showError(context.tr(ref, 'err_passwords_not_match'));
       return;
     }
 
@@ -59,7 +59,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(context.tr(ref, 'success') ?? 'Şifre başarıyla değiştirildi.'),
+            content: Text(context.tr(ref, 'success')),
             backgroundColor: AppColors.success,
           ),
         );
@@ -108,7 +108,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                   children: [
                     Container(
                       padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: AppColors.accentDim,
                         shape: BoxShape.circle,
                       ),
@@ -117,7 +117,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        context.tr(ref, 'change_password') ?? 'Şifremi Değiştir',
+                        context.tr(ref, 'change_password'),
                         style: GoogleFonts.outfit(
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
@@ -131,7 +131,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                 
                 _buildField(
                   controller: _oldPasswordController,
-                  hintText: context.tr(ref, 'current_password') ?? 'Mevcut Şifre',
+                  hintText: context.tr(ref, 'current_password'),
                   obscure: _obscureOld,
                   onToggleObscure: () => setState(() => _obscureOld = !_obscureOld),
                 ),
@@ -139,7 +139,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                 
                 _buildField(
                   controller: _newPasswordController,
-                  hintText: context.tr(ref, 'new_password') ?? 'Yeni Şifre',
+                  hintText: context.tr(ref, 'new_password'),
                   obscure: _obscureNew,
                   onToggleObscure: () => setState(() => _obscureNew = !_obscureNew),
                 ),
@@ -147,7 +147,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                 
                 _buildField(
                   controller: _confirmPasswordController,
-                  hintText: context.tr(ref, 'confirm_new_password') ?? 'Yeni Şifre (Tekrar)',
+                  hintText: context.tr(ref, 'confirm_new_password'),
                   obscure: _obscureConfirm,
                   onToggleObscure: () => setState(() => _obscureConfirm = !_obscureConfirm),
                   isLast: true,
@@ -167,7 +167,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                           ),
                           child: Center(
                             child: Text(
-                              context.tr(ref, 'cancel') ?? 'İptal',
+                              context.tr(ref, 'cancel'),
                               style: GoogleFonts.inter(
                                 color: AppColors.textPrimary,
                                 fontWeight: FontWeight.w600,
@@ -197,7 +197,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                                     child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                                   )
                                 : Text(
-                                    context.tr(ref, 'save') ?? 'Kaydet',
+                                    context.tr(ref, 'save'),
                                     style: GoogleFonts.inter(
                                       color: Colors.white,
                                       fontWeight: FontWeight.w700,

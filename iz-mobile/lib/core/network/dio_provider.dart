@@ -152,7 +152,7 @@ Future<void> _handleForceLogout() async {
   
   // Safe fallback to force navigation to login using root navigator key
   final context = rootNavigatorKey.currentContext;
-  if (context != null) {
+  if (context != null && context.mounted) {
     context.go('/login');
   }
 }

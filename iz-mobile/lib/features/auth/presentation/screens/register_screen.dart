@@ -81,7 +81,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
 
     try {
       final crypto = CryptoService();
-      final storage = const FlutterSecureStorage();
+      const storage = FlutterSecureStorage();
       final identityManager = IdentityManager(crypto, storage);
 
       // 1. Generate Signal Keys for the new user locally
@@ -237,8 +237,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                   Positioned(
                     top: -60 + o1,
                     left: -80,
-                    child: _Orb(
-                      color: const Color(0xFF8B5CF6),
+                    child: const _Orb(
+                      color: Color(0xFF8B5CF6),
                       size: 320,
                       opacity: 0.18,
                     ),
@@ -246,8 +246,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                   Positioned(
                     bottom: -40 + o2,
                     right: -60,
-                    child: _Orb(
-                      color: const Color(0xFF6366F1),
+                    child: const _Orb(
+                      color: Color(0xFF6366F1),
                       size: 280,
                       opacity: 0.15,
                     ),
@@ -255,8 +255,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                   Positioned(
                     top: size.height * 0.4 + o1 * 0.5,
                     right: -20,
-                    child: _Orb(
-                      color: const Color(0xFF06B6D4),
+                    child: const _Orb(
+                      color: Color(0xFF06B6D4),
                       size: 160,
                       opacity: 0.07,
                     ),
@@ -469,7 +469,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
     return _RegisterCard(
       key: const ValueKey('step1'),
       children: [
-        _SectionLabel(label: 'Kimlik Bilgileri', icon: Icons.person_outline_rounded),
+        const _SectionLabel(label: 'Kimlik Bilgileri', icon: Icons.person_outline_rounded),
         const SizedBox(height: 16),
         IzTextField(
           label: context.tr(ref, 'display_name'),
@@ -515,7 +515,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
       children: [
         _RegisterCard(
           children: [
-            _SectionLabel(label: 'İletişim & Güvenlik', icon: Icons.shield_outlined),
+            const _SectionLabel(label: 'İletişim & Güvenlik', icon: Icons.shield_outlined),
             const SizedBox(height: 16),
             IzTextField(
               label: context.tr(ref, 'email'),

@@ -477,7 +477,6 @@ class ChatNotifier extends FamilyNotifier<List<MessageModel>, String> {
               if (m.id == targetId) {
                 final reactionsMap = m.reactionsMap;
                 if (action == 'add') {
-                  final list = reactionsMap[emoji];
                   reactionsMap[emoji] = msg.senderId;
                 } else {
                   reactionsMap.remove(emoji);
@@ -990,13 +989,11 @@ class ChatNotifier extends FamilyNotifier<List<MessageModel>, String> {
 
       final otherUserId = conversationId;
       final bobBundle = await authService.getUserBundle(otherUserId);
-      final x3dhResult = await sessionManager.establishSession(
+      await sessionManager.establishSession(
         conversationId: conversationId,
         aliceIdentityKeyPair: aliceIdentityKeyPair,
         bobBundle: bobBundle,
       );
-
-      final aliceIdentityPub = (await identityManager.getPublicBundle())['identity_key'];
 
       final reactionPlaintext = jsonEncode({
         'type': 'reaction',

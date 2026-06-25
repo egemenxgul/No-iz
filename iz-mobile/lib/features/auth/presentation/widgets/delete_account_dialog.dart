@@ -43,6 +43,7 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
       if (!mounted) return;
       // Logout and navigate to auth screen
       await ref.read(authProvider.notifier).logout();
+      if (!mounted) return;
       context.go('/auth');
     } catch (e) {
       setState(() {

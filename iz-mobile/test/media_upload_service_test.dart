@@ -85,7 +85,7 @@ void main() {
     });
 
     test('AES-GCM Local Binary Encryption and Decryption Flow works perfectly', () async {
-      final originalString = 'Highly confidential E2EE message payload';
+      const originalString = 'Highly confidential E2EE message payload';
       final originalData = Uint8List.fromList(utf8.encode(originalString));
 
       // 1. Generate key

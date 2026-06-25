@@ -184,6 +184,7 @@ class NotificationListScreen extends ConsumerWidget {
                   try {
                     await ref.read(notificationsProvider.notifier).markAllAsRead();
                   } catch (e) {
+                    if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Hata: $e')),
                     );
@@ -260,6 +261,7 @@ class _NotificationTile extends ConsumerWidget {
         try {
           await ref.read(notificationsProvider.notifier).delete(notification.id);
         } catch (e) {
+          if (!context.mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Silme başarısız oldu: $e')),
           );

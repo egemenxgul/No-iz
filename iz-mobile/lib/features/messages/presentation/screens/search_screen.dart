@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../providers/message_repository.dart';
 import '../../providers/chat_provider.dart';
 import 'package:go_router/go_router.dart';
 
@@ -69,7 +68,7 @@ class _MessageSearchScreenState extends ConsumerState<MessageSearchScreen> {
           decoration: InputDecoration(
             hintText: 'Mesajlarda ara...',
             border: InputBorder.none,
-            hintStyle: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.5)),
+            hintStyle: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
           ),
           onChanged: (v) {
             Future.delayed(const Duration(milliseconds: 300), () => _search(v));
@@ -94,10 +93,10 @@ class _MessageSearchScreenState extends ConsumerState<MessageSearchScreen> {
     if (_controller.text.trim().length < 2 && _results.isEmpty) {
       return Center(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Icon(Icons.search_rounded, size: 64, color: theme.colorScheme.onSurface.withOpacity(0.2)),
+          Icon(Icons.search_rounded, size: 64, color: theme.colorScheme.onSurface.withValues(alpha: 0.2)),
           const SizedBox(height: 16),
           Text('Aramak için en az 2 karakter girin',
-              style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.5))),
+              style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
         ]),
       );
     }
@@ -105,10 +104,10 @@ class _MessageSearchScreenState extends ConsumerState<MessageSearchScreen> {
     if (_results.isEmpty) {
       return Center(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Icon(Icons.search_off_rounded, size: 64, color: theme.colorScheme.onSurface.withOpacity(0.2)),
+          Icon(Icons.search_off_rounded, size: 64, color: theme.colorScheme.onSurface.withValues(alpha: 0.2)),
           const SizedBox(height: 16),
           Text('"${_controller.text}" için sonuç bulunamadı',
-              style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.5))),
+              style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
         ]),
       );
     }
@@ -125,7 +124,7 @@ class _MessageSearchScreenState extends ConsumerState<MessageSearchScreen> {
         try { dt = DateTime.parse(createdAt).toLocal(); } catch (_) {}
         return ListTile(
           leading: CircleAvatar(
-            backgroundColor: theme.colorScheme.primary.withOpacity(0.15),
+            backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.15),
             child: Icon(isGroup ? Icons.group_rounded : Icons.person_rounded,
                 color: theme.colorScheme.primary, size: 20),
           ),
@@ -135,7 +134,7 @@ class _MessageSearchScreenState extends ConsumerState<MessageSearchScreen> {
           trailing: dt != null
               ? Text('${dt.day}/${dt.month}\n${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}',
                   textAlign: TextAlign.right,
-                  style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurface.withOpacity(0.5)))
+                  style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurface.withValues(alpha: 0.5)))
               : null,
           onTap: () { if (convId.isNotEmpty) context.push('/app/messages/$convId'); },
         );
@@ -152,7 +151,7 @@ class _HighlightText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final base = TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.6), fontSize: 13);
+    final base = TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.6), fontSize: 13);
     if (query.isEmpty) return Text(text, maxLines: 1, overflow: TextOverflow.ellipsis, style: base);
     final idx = text.toLowerCase().indexOf(query.toLowerCase());
     if (idx < 0) return Text(text, maxLines: 1, overflow: TextOverflow.ellipsis, style: base);
@@ -163,7 +162,7 @@ class _HighlightText extends StatelessWidget {
         TextSpan(text: text.substring(0, idx)),
         TextSpan(text: text.substring(idx, idx + query.length),
             style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold,
-                backgroundColor: theme.colorScheme.primary.withOpacity(0.1))),
+                backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1))),
         TextSpan(text: text.substring(idx + query.length)),
       ]),
     );
