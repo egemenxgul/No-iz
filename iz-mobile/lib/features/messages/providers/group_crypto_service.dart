@@ -5,12 +5,12 @@ import 'package:cryptography/cryptography.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
-import '../../core/network/dio_provider.dart';
+import '../../../core/network/dio_provider.dart';
 import '../../../core/crypto/crypto_providers.dart';
 import '../../../core/crypto/session_manager.dart';
 import '../../../core/crypto/identity_manager.dart';
 import '../../auth/providers/auth_provider.dart';
-
+import '../../auth/providers/auth_service.dart';
 final groupCryptoServiceProvider = Provider<GroupCryptoService>((ref) {
   return GroupCryptoService(
     dio: ref.watch(dioProvider),
@@ -178,11 +178,10 @@ class GroupCryptoService {
             try {
               final encKey = record['encrypted_key'];
               final decryptedSenderKey = await sessionManager.decryptMessage(
-                conversationId: senderId, // The 1-1 session is keyed by senderId
-                ciphertextBase64: encKey['ciphertext'],
-                aliceIdentityKeyBase64: encKey['alice_identity_key'],
-                aliceEphemeralKeyBase64: encKey['alice_ephemeral_key'],
-                msgType: encKey['msg_type'] ?? 'text',
+                senderId, // The 1-1 session is keyed by senderId
+                encKey['ciphertext'],
+                encKey['alice_ephemeral_key'],
+                encKey['counter'] ?? 0,
               );
               
               if (decryptedSenderKey != null && decryptedSenderKey.isNotEmpty) {

@@ -362,8 +362,8 @@ class ChatNotifier extends FamilyNotifier<List<MessageModel>, String> {
         'media_url': uploadResult.url,
         'media_key': uploadResult.mediaKeyBase64,
         'filename': filename,
-        'mime_type': uploadMime,   // actual stored type (may differ after compress)
-        'size': uploadSize,        // compressed size in bytes
+        'mime_type': mimeType,   // actual stored type (may differ after compress)
+        'size': fileSize,        // compressed size in bytes
       });
 
       // 4. Encrypt with Signal Protocol (Double Ratchet)
@@ -536,7 +536,7 @@ class ChatNotifier extends FamilyNotifier<List<MessageModel>, String> {
             );
             final decryptedMsg = msg.copyWith(
               plaintext: plaintext,
-              isRead: true,
+              readAt: DateTime.now(),
             );
             final repo = ref.read(messageRepositoryProvider);
             await repo.saveMessage(decryptedMsg);

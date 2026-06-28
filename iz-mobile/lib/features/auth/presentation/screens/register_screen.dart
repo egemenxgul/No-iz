@@ -426,7 +426,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                           children: [
                             Row(
                               children: [
-                                Expanded(child: Divider(color: AppColors.borderDim)),
+                                Expanded(child: Divider(color: AppColors.border)),
                                 Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 12),
                                   child: Text(
@@ -434,7 +434,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                                     style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 13),
                                   ),
                                 ),
-                                Expanded(child: Divider(color: AppColors.borderDim)),
+                                Expanded(child: Divider(color: AppColors.border)),
                               ],
                             ),
                             const SizedBox(height: 20),
@@ -745,7 +745,7 @@ class _SectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, color: AppColors.accentPrimary, size: 20),
+        Icon(icon, color: AppColors.accent, size: 20),
         const SizedBox(width: 8),
         Text(
           label,
@@ -775,9 +775,9 @@ class _SocialButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: AppColors.glassDim,
+          color: AppColors.glassDark,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.borderDim),
+          border: Border.all(color: AppColors.border),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,

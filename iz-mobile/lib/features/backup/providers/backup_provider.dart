@@ -7,6 +7,7 @@ import '../../../core/database/database_service.dart';
 import '../../auth/providers/account_provider.dart';
 import '../../messages/providers/chat_provider.dart';
 import '../../../core/crypto/crypto_providers.dart';
+import '../../../core/providers/settings_provider.dart';
 import 'backup_service.dart';
 
 class BackupState {

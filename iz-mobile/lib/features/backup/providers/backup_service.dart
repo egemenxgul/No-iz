@@ -24,6 +24,8 @@ class BackupService {
 			}
 			rethrow;
 		}
+	Future<void> saveVaultMessages(List<Map<String, dynamic>> messages) async {
+		await _dio.post('/api/vault', data: {'messages': messages});
 	}
 }
 

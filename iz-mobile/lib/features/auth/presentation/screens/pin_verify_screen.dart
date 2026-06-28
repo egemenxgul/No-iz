@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../core/theme/colors.dart';
-import '../../../core/network/dio_provider.dart';
-import '../providers/crypto_service.dart';
-import '../providers/identity_manager.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/network/dio_provider.dart';
+import '../../../../core/crypto/crypto_service.dart';
+import '../../../../core/crypto/identity_manager.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class PinVerifyScreen extends ConsumerStatefulWidget {
@@ -120,9 +120,9 @@ class _PinVerifyScreenState extends ConsumerState<PinVerifyScreen> {
       width: 16,
       height: 16,
       decoration: BoxDecoration(
-        color: isFilled ? AppColors.accentPrimary : AppColors.glassDim,
+        color: isFilled ? AppColors.accent : AppColors.glassDark,
         shape: BoxShape.circle,
-        border: isFilled ? null : Border.all(color: AppColors.borderDim),
+        border: isFilled ? null : Border.all(color: AppColors.border),
       ),
     );
   }
@@ -206,7 +206,7 @@ class _PinVerifyScreenState extends ConsumerState<PinVerifyScreen> {
               ),
               const SizedBox(height: 20),
               if (_isLoading)
-                const CircularProgressIndicator(color: AppColors.accentPrimary),
+                const CircularProgressIndicator(color: AppColors.accent),
               const SizedBox(height: 16),
               TextButton(
                 onPressed: _resetPin,

@@ -242,6 +242,7 @@ class _MinimizedCallWidgetState extends ConsumerState<MinimizedCallWidget> with 
             ],
           ),
         ),
+        ),
       ),
     );
   }

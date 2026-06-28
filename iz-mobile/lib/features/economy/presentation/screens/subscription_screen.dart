@@ -56,7 +56,7 @@ class SubscriptionScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white12),
       ),
@@ -95,9 +95,9 @@ class SubscriptionScreen extends ConsumerWidget {
       margin: const EdgeInsets.only(top: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.orange.withOpacity(0.1),
+        color: Colors.orange.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.orangeAccent.withOpacity(0.5)),
+        border: Border.all(color: Colors.orangeAccent.withValues(alpha: 0.5)),
       ),
       child: Row(
         children: [
@@ -123,7 +123,7 @@ class SubscriptionScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isCurrent ? Colors.deepPurple.withOpacity(0.2) : Colors.white.withOpacity(0.05),
+        color: isCurrent ? Colors.deepPurple.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: isCurrent ? Colors.deepPurpleAccent : Colors.white12, width: isCurrent ? 2 : 1),
       ),
