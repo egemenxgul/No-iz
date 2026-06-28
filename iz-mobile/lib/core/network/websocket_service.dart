@@ -35,7 +35,7 @@ class WebSocketService {
   Timer? _pongTimeoutTimer;
 
   // ── Connectivity ──────────────────────────────────────────────────
-  StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
+  // StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
 
   // ── Callbacks ─────────────────────────────────────────────────────
   final Future<String?> Function() tokenProvider;
@@ -187,7 +187,7 @@ class WebSocketService {
   // ── Connectivity ──────────────────────────────────────────────────
 
   void _subscribeToConnectivity() {
-    _connectivitySub = Connectivity()
+    Connectivity()
         .onConnectivityChanged
         .listen((results) => _onNetworkChange(results));
   }

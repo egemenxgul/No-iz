@@ -4,8 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/network/dio_provider.dart';
-import '../../../../core/crypto/crypto_service.dart';
-import '../../../../core/crypto/identity_manager.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class PinVerifyScreen extends ConsumerStatefulWidget {
@@ -75,16 +73,16 @@ class _PinVerifyScreenState extends ConsumerState<PinVerifyScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.bgBase,
-        title: Text('PIN Sıfırlama', style: TextStyle(color: Colors.white)),
+        title: const Text('PIN Sıfırlama', style: TextStyle(color: Colors.white)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('PIN sıfırlama işlemi eski şifreli mesajlarınızı okunamayacak hale getirir.', style: TextStyle(color: Colors.redAccent)),
-            SizedBox(height: 16),
+            const Text('PIN sıfırlama işlemi eski şifreli mesajlarınızı okunamayacak hale getirir.', style: TextStyle(color: Colors.redAccent)),
+            const SizedBox(height: 16),
             TextField(
               controller: emailController,
-              style: TextStyle(color: Colors.white),
-              decoration: InputDecoration(
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
                 hintText: 'E-posta adresiniz',
                 hintStyle: TextStyle(color: Colors.grey),
               ),
@@ -94,20 +92,22 @@ class _PinVerifyScreenState extends ConsumerState<PinVerifyScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('İptal'),
+            child: const Text('İptal'),
           ),
           TextButton(
             onPressed: () async {
               try {
                 final dio = ref.read(dioProvider);
                 await dio.post('/auth/pin/reset/request', data: {'email': emailController.text});
+                if (!context.mounted) return;
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Sıfırlama bağlantısı gönderildi.')));
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sıfırlama bağlantısı gönderildi.')));
               } catch (e) {
+                if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Hata oluştu: $e')));
               }
             },
-            child: Text('Sıfırla', style: TextStyle(color: Colors.redAccent)),
+            child: const Text('Sıfırla', style: TextStyle(color: Colors.redAccent)),
           ),
         ],
       ),
@@ -210,7 +210,7 @@ class _PinVerifyScreenState extends ConsumerState<PinVerifyScreen> {
               const SizedBox(height: 16),
               TextButton(
                 onPressed: _resetPin,
-                child: Text('PIN Kodunu Unuttum', style: TextStyle(color: AppColors.textSecondary)),
+                child: const Text('PIN Kodunu Unuttum', style: TextStyle(color: AppColors.textSecondary)),
               )
             ],
           ),

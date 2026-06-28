@@ -6,13 +6,13 @@ import 'message_service.dart';
 import '../../../core/database/database_service.dart';
 import '../../../core/database/outbound_queue.dart';
 import '../../../core/crypto/crypto_providers.dart';
-import '../../../core/media/media_compressor.dart';
+
 import '../../../core/network/websocket_provider.dart';
 import '../../../core/network/dio_provider.dart';
 import '../../auth/providers/account_provider.dart';
 import '../../auth/providers/auth_provider.dart';
 import 'p2p_provider.dart';
-import '../../../core/providers/settings_provider.dart';
+
 import 'dart:convert';
 import 'dart:async';
 import 'package:uuid/uuid.dart';

@@ -161,18 +161,7 @@ class MediaUploadService {
     // To properly stream AES-GCM, we encrypt chunks of e.g. 1MB and yield them into a stream.
     // For this demonstration, we'll read the file chunks and simulate a chunked stream.
     
-    Stream<List<int>> streamEncryptedChunks() async* {
-      // Send Nonce (12 bytes) first so decryptor knows it.
-      yield nonce;
-      
-      final reader = file.openRead();
-      await for (final chunk in reader) {
-         // In a real stream AEAD, we'd encrypt each chunk and append MAC.
-         // Here we just stream it. For full AES-GCM, we'd buffer to memory or use AES-CTR stream.
-         // Given cryptography pkg limitations, we'll encrypt in memory if it fits, or use AES-CTR for huge files.
-         // We fallback to standard AES-GCM for now:
-      }
-      
+
       final fullBytes = await file.readAsBytes();
       final secretBox = await _aesGcm.encrypt(fullBytes, secretKey: secretKey, nonce: nonce);
       yield secretBox.concatenation().sublist(12); // yield MAC + Ciphertext

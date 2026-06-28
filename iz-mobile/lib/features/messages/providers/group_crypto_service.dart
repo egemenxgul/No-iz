@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
@@ -146,7 +147,7 @@ class GroupCryptoService {
         });
       } catch (e) {
         // Log error but continue with other members
-        print('Failed to distribute sender key to $memberId: $e');
+        debugPrint('Failed to distribute sender key to $memberId: $e');
       }
     }
 
@@ -184,17 +185,17 @@ class GroupCryptoService {
                 encKey['counter'] ?? 0,
               );
               
-              if (decryptedSenderKey != null && decryptedSenderKey.isNotEmpty) {
+              if (decryptedSenderKey.isNotEmpty) {
                 await saveSenderKeyLocally(groupId, senderId, decryptedSenderKey);
               }
             } catch (e) {
-              print('Could not decrypt sender key from $senderId: $e');
+              debugPrint('Could not decrypt sender key from $senderId: $e');
             }
           }
         }
       }
     } catch (e) {
-      print('Failed to sync sender keys: $e');
+      debugPrint('Failed to sync sender keys: $e');
     }
   }
 }

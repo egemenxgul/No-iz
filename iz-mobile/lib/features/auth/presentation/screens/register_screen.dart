@@ -426,7 +426,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                           children: [
                             Row(
                               children: [
-                                Expanded(child: Divider(color: AppColors.border)),
+                                const Expanded(child: Divider(color: AppColors.border)),
                                 Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 12),
                                   child: Text(
@@ -434,7 +434,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                                     style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 13),
                                   ),
                                 ),
-                                Expanded(child: Divider(color: AppColors.border)),
+                                const Expanded(child: Divider(color: AppColors.border)),
                               ],
                             ),
                             const SizedBox(height: 20),

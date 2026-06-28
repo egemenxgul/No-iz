@@ -161,9 +161,9 @@ class SubscriptionScreen extends ConsumerWidget {
                       builder: (c) => AlertDialog(
                         backgroundColor: const Color(0xFF1E1B4B),
                         title: const Text('Aboneliği Düşür', style: TextStyle(color: Colors.white)),
-                        content: Text(
+                        content: const Text(
                           'Aboneliğinizi düşürmek üzeresiniz. Bu değişiklik mevcut fatura döneminizin sonunda yürürlüğe girecektir.',
-                          style: const TextStyle(color: Colors.white70),
+                          style: TextStyle(color: Colors.white70),
                         ),
                         actions: [
                           TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('İptal')),

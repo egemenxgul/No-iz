@@ -9,7 +9,6 @@ import 'package:iz_mobile/core/theme/glass_widgets.dart';
 import 'package:iz_mobile/core/localization/locale_provider.dart';
 import 'package:iz_mobile/features/auth/providers/auth_provider.dart';
 import 'package:iz_mobile/features/auth/presentation/widgets/change_email_dialog.dart';
-import 'package:iz_mobile/features/economy/providers/subscription_provider.dart';
 
 class ProfileDetailScreen extends ConsumerStatefulWidget {
   final String accountId;

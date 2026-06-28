@@ -132,7 +132,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       try {
         final backupService = ref.read(backupServiceProvider);
         final backup = await backupService.getBackup();
-        if (backup != null && mounted) {
+        if (!mounted) return;
+        if (backup != null) {
           // Backup exists, prompt for restore
           _showRestorePrompt();
         } else {
@@ -227,12 +228,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                               await ref.read(backupProvider.notifier).downloadAndRestoreBackup(pwd);
                               if (ctx.mounted) {
                                 Navigator.pop(ctx);
-                                context.go('/app');
+                                if (mounted) context.go('/app');
                               }
                             } catch (e) {
                               setModalState(() => isRestoring = false);
                               if (ctx.mounted) {
-                                ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text('Hata: Şifre yanlış olabilir.')));
+                                ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('Hata: Şifre yanlış olabilir.')));
                               }
                             }
                           },
