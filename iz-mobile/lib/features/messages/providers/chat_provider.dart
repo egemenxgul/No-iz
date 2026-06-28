@@ -514,7 +514,7 @@ class ChatNotifier extends FamilyNotifier<List<MessageModel>, String> {
 
         final decryptedMsg = msg.copyWith(
           plaintext: plaintext,
-          isRead: true,
+          readAt: DateTime.now(),
         );
 
         final repo = ref.read(messageRepositoryProvider);

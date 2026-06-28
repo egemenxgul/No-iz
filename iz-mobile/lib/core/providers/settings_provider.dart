@@ -102,7 +102,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setStorageMode(StorageMode mode) async {
     state = state.copyWith(storageMode: mode);
-    await _storage.write(key: 'storage_mode', mode.name);
+    await _storage.write(key: 'storage_mode', value: mode.name);
   }
 }
 

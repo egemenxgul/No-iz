@@ -34,9 +34,6 @@ class _AppLifecycleManagerState extends ConsumerState<AppLifecycleManager> with 
         wsService.connect();
       }
       
-      // Flush outbound queue just in case
-      ref.read(outboundQueueProvider.notifier).flushQueue();
-      
       // Load latest conversations
       ref.read(conversationProvider.notifier).loadConversations();
     } else if (state == AppLifecycleState.paused) {
