@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
-import 'package:passkeys/passkeys.dart';
 import '../../../core/network/dio_provider.dart';
 
 final passkeyServiceProvider = Provider((ref) => PasskeyService(ref.watch(dioProvider)));

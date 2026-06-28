@@ -271,7 +271,7 @@ class BackupNotifier extends Notifier<BackupState> {
 		final saltBytes = _generateSalt();
 		final secretKey = await _deriveKey(password, saltBytes);
 
-		final vaultPayload = [];
+		final vaultPayload = <Map<String, dynamic>>[];
 		for (final map in oldMessages) {
 			final msgBytes = utf8.encode(jsonEncode(map));
 			final nonce = _aesGcm.newNonce();
