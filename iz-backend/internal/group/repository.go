@@ -242,6 +242,49 @@ func (r *Repository) UnpinGroupMessage(ctx context.Context, msgID uuid.UUID) err
 	return err
 }
 
+// ─── Sender Keys ──────────────────────────────────────────────────────────────
+
+type SenderKey struct {
+	GroupID      uuid.UUID `json:"group_id"`
+	SenderID     uuid.UUID `json:"sender_id"`
+	Distribution string    `json:"distribution"` // JSON array of encrypted records
+	UpdatedAt    time.Time `json:"updated_at"`
+}
+
+// SaveSenderKeyDistribution saves a JSON array of encrypted sender key records
+func (r *Repository) SaveSenderKeyDistribution(ctx context.Context, groupID, senderID uuid.UUID, distribution string) error {
+	_, err := r.db.Exec(ctx, `
+		INSERT INTO sender_keys (group_id, sender_id, distribution, updated_at)
+		VALUES ($1, $2, $3, NOW())
+		ON CONFLICT (group_id, sender_id)
+		DO UPDATE SET distribution = EXCLUDED.distribution, updated_at = NOW()
+	`, groupID, senderID, distribution)
+	return err
+}
+
+// GetSenderKeys returns all sender keys for a specific group
+func (r *Repository) GetSenderKeys(ctx context.Context, groupID uuid.UUID) ([]*SenderKey, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT group_id, sender_id, distribution, updated_at
+		FROM sender_keys
+		WHERE group_id = $1
+	`, groupID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var keys []*SenderKey
+	for rows.Next() {
+		k := &SenderKey{}
+		if err := rows.Scan(&k.GroupID, &k.SenderID, &k.Distribution, &k.UpdatedAt); err != nil {
+			return nil, err
+		}
+		keys = append(keys, k)
+	}
+	return keys, rows.Err()
+}
+
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
 func scanGroups(rows pgx.Rows) ([]*Group, error) {

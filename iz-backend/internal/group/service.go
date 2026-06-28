@@ -173,6 +173,32 @@ func (s *Service) ListMembers(ctx context.Context, userID, groupID uuid.UUID) ([
 	return s.repo.ListMembers(ctx, groupID)
 }
 
+// ─── Sender Keys ──────────────────────────────────────────────────────────────
+
+// UploadSenderKey saves a new sender key distribution for the given user in the group.
+func (s *Service) UploadSenderKey(ctx context.Context, userID, groupID uuid.UUID, distribution string) error {
+	ok, err := s.repo.IsMember(ctx, groupID, userID)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return ErrNotMember
+	}
+	return s.repo.SaveSenderKeyDistribution(ctx, groupID, userID, distribution)
+}
+
+// GetSenderKeys retrieves all sender keys for members of the group.
+func (s *Service) GetSenderKeys(ctx context.Context, userID, groupID uuid.UUID) ([]*SenderKey, error) {
+	ok, err := s.repo.IsMember(ctx, groupID, userID)
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		return nil, ErrNotMember
+	}
+	return s.repo.GetSenderKeys(ctx, groupID)
+}
+
 // ─── Group Messaging ──────────────────────────────────────────────────────────
 
 // SendGroupMessage persists and fans out an encrypted group message.

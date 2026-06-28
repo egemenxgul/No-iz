@@ -7,6 +7,7 @@ import 'package:iz_mobile/features/auth/providers/auth_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'auth_widgets.dart';
 
+import 'package:iz_mobile/core/theme/glass_widgets.dart';
 class DeleteAccountDialog extends ConsumerStatefulWidget {
   const DeleteAccountDialog({super.key});
 
@@ -60,7 +61,7 @@ class _DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
       elevation: 0,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
-        child: BackdropFilter(
+        child: AppBackdropFilter(
           filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
           child: Container(
             padding: const EdgeInsets.all(24),

@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:iz_mobile/core/theme/app_colors.dart';
 import '../../providers/story_provider.dart';
 
+import 'package:iz_mobile/core/theme/glass_widgets.dart';
 class CreateStoryScreen extends ConsumerStatefulWidget {
   const CreateStoryScreen({super.key});
 
@@ -132,7 +133,7 @@ class _CreateStoryScreenState extends ConsumerState<CreateStoryScreen>
         margin: const EdgeInsets.all(16),
         content: ClipRRect(
           borderRadius: BorderRadius.circular(18),
-          child: BackdropFilter(
+          child: AppBackdropFilter(
             filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -184,7 +185,7 @@ class _CreateStoryScreenState extends ConsumerState<CreateStoryScreen>
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(kToolbarHeight),
           child: ClipRect(
-            child: BackdropFilter(
+            child: AppBackdropFilter(
               filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
               child: AppBar(
                 backgroundColor: AppColors.bgBase.withValues(alpha: 0.75),
@@ -314,14 +315,14 @@ class _CreateStoryScreenState extends ConsumerState<CreateStoryScreen>
 
             // Uploading overlay
             if (_isUploading)
-              BackdropFilter(
+              AppBackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
                 child: Container(
                   color: Colors.black.withValues(alpha: 0.5),
                   child: Center(
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(24),
-                      child: BackdropFilter(
+                      child: AppBackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
@@ -410,7 +411,7 @@ class _ImagePreview extends StatelessWidget {
                   onTap: onClear,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: BackdropFilter(
+                    child: AppBackdropFilter(
                       filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                       child: Container(
                         width: 36,
@@ -436,7 +437,7 @@ class _ImagePreview extends StatelessWidget {
         // Caption input
         ClipRRect(
           borderRadius: BorderRadius.circular(18),
-          child: BackdropFilter(
+          child: AppBackdropFilter(
             filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
             child: TextField(
               controller: captionController,
@@ -591,7 +592,7 @@ class _PickPhotoButton extends StatelessWidget {
       },
       child: ClipRRect(
         borderRadius: BorderRadius.circular(18),
-        child: BackdropFilter(
+        child: AppBackdropFilter(
           filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 16),
@@ -640,7 +641,7 @@ class _E2EEBadge extends StatelessWidget {
     return Center(
       child: ClipRRect(
         borderRadius: BorderRadius.circular(14),
-        child: BackdropFilter(
+        child: AppBackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Container(
             padding:

@@ -157,7 +157,7 @@ class MessageRepository {
     return List.generate(maps.length, (i) => ConversationModel.fromMap(maps[i]));
   }
 
-  Future<List<MessageModel>> getMessages(String conversationId) async {
+  Future<List<MessageModel>> getMessages(String conversationId, {int limit = 50, int offset = 0}) async {
     final db = await _getDb();
     
     // Check if it is a group
@@ -170,35 +170,40 @@ class MessageRepository {
     final isGroup = convs.isNotEmpty && convs.first['is_group'] == 1;
 
     if (isGroup) {
-      try {
-        final remoteMsgs = await _messageService.getGroupMessages(conversationId);
-        for (var map in remoteMsgs) {
-          final mapped = {
-            'id': map['id'] ?? map['message_id'],
-            'group_id': conversationId,
-            'sender_id': map['sender_id'],
-            'sender_name': map['sender_name'] ?? 'Kullanıcı',
-            'ciphertext': map['ciphertext'],
-            'plaintext': map['ciphertext'], // Plaintext transport fallback
-            'msg_type': map['msg_type'] ?? 'text',
-            'created_at': map['created_at'],
-            'edited_at': map['edited_at'],
-            'reactions': map['reactions'],
-            'is_pinned': (map['is_pinned'] == true || map['is_pinned'] == 1) ? 1 : 0,
-          };
-          await db.insert('group_messages', mapped, conflictAlgorithm: ConflictAlgorithm.replace);
+      if (offset == 0) {
+        try {
+          final remoteMsgs = await _messageService.getGroupMessages(conversationId);
+          for (var map in remoteMsgs) {
+            final mapped = {
+              'id': map['id'] ?? map['message_id'],
+              'group_id': conversationId,
+              'sender_id': map['sender_id'],
+              'sender_name': map['sender_name'] ?? 'Kullanıcı',
+              'ciphertext': map['ciphertext'],
+              'plaintext': map['ciphertext'], // Plaintext transport fallback
+              'msg_type': map['msg_type'] ?? 'text',
+              'created_at': map['created_at'],
+              'edited_at': map['edited_at'],
+              'reactions': map['reactions'],
+              'is_pinned': (map['is_pinned'] == true || map['is_pinned'] == 1) ? 1 : 0,
+            };
+            await db.insert('group_messages', mapped, conflictAlgorithm: ConflictAlgorithm.replace);
+          }
+        } catch (e) {
+          debugPrint('Sync Group Messages Error: $e');
         }
-      } catch (e) {
-        debugPrint('Sync Group Messages Error: $e');
       }
 
       final List<Map<String, dynamic>> maps = await db.query(
         'group_messages',
         where: 'group_id = ?',
         whereArgs: [conversationId],
-        orderBy: 'created_at ASC',
+        orderBy: 'created_at DESC', // Changed to DESC for pagination
+        limit: limit,
+        offset: offset,
       );
-      return List.generate(maps.length, (i) {
+      
+      final results = List.generate(maps.length, (i) {
         final map = maps[i];
         return MessageModel(
           id: map['id'],
@@ -215,28 +220,35 @@ class MessageRepository {
           senderName: map['sender_name'],
         );
       });
+      // Reverse to show oldest first in UI
+      return results.reversed.toList();
     }
 
-    try {
-      // 1. Fetch direct from Backend
-      final remoteMsgs = await _messageService.getMessages(conversationId);
-      
-      // 2. Sync to Local DB
-      for (var map in remoteMsgs) {
-        await db.insert('messages', map, conflictAlgorithm: ConflictAlgorithm.replace);
+    if (offset == 0) {
+      try {
+        // 1. Fetch direct from Backend
+        final remoteMsgs = await _messageService.getMessages(conversationId);
+        
+        // 2. Sync to Local DB
+        for (var map in remoteMsgs) {
+          await db.insert('messages', map, conflictAlgorithm: ConflictAlgorithm.replace);
+        }
+      } catch (e) {
+        debugPrint('Sync Messages Error: $e');
       }
-    } catch (e) {
-      debugPrint('Sync Messages Error: $e');
     }
 
-    // 3. Return from Local DB
+    // 3. Return from Local DB with pagination
     final List<Map<String, dynamic>> maps = await db.query(
       'messages',
       where: 'conversation_id = ?',
       whereArgs: [conversationId],
-      orderBy: 'created_at ASC',
+      orderBy: 'created_at DESC', // DESC for limit offset
+      limit: limit,
+      offset: offset,
     );
-    return List.generate(maps.length, (i) => MessageModel.fromMap(maps[i]));
+    final results = List.generate(maps.length, (i) => MessageModel.fromMap(maps[i]));
+    return results.reversed.toList(); // Reverse back for UI
   }
 
   Future<void> saveMessage(MessageModel message) async {

@@ -119,6 +119,12 @@ export default function BackupSettingsPage() {
           Sohbet geçmişiniz ve şifreleme anahtarlarınız belirlediğiniz parola ile cihazınızda AES-256-GCM kullanılarak şifrelenir.
           Sunucularımız verilerinizi sadece şifreli (okunamayan) bir formatta saklar.
         </p>
+        <div style={{ marginTop: '16px', padding: '12px 16px', background: 'rgba(139, 92, 246, 0.1)', borderRadius: '12px', border: '1px solid rgba(139, 92, 246, 0.3)', color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+          <FiAlertCircle />
+          <span style={{ lineHeight: 1.5 }}>
+            <strong style={{ color: 'var(--text-primary)' }}>Sadece Bulut Depolaması:</strong> Web sürümü doğası gereği kalıcı cihaz depolaması desteklemez. Tarayıcı önbelleği silindiğinde hesap erişimini kaybetmemeniz için şifreli verileriniz her zaman Bulut&apos;a (Cloud) eşitlenir.
+          </span>
+        </div>
       </div>
 
       {status && (

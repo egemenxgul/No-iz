@@ -194,15 +194,16 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, map[string]any{
-		"user_id":       out.UserID,
-		"username":      out.Username,
-		"display_name":  out.DisplayName,
-		"avatar_url":    out.AvatarURL,
-		"is_admin":      out.IsAdmin,
-		"access_token":  out.AccessToken,
-		"refresh_token": out.RefreshToken,
-		"requires_2fa":  out.Requires2FA,
-		"temp_token":    out.TempToken,
+		"user_id":           out.UserID,
+		"username":          out.Username,
+		"display_name":      out.DisplayName,
+		"avatar_url":        out.AvatarURL,
+		"is_admin":          out.IsAdmin,
+		"subscription_tier": out.SubscriptionTier,
+		"access_token":      out.AccessToken,
+		"refresh_token":     out.RefreshToken,
+		"requires_2fa":      out.Requires2FA,
+		"temp_token":        out.TempToken,
 	})
 }
 

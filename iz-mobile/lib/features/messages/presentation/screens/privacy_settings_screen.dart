@@ -9,7 +9,9 @@ import 'package:iz_mobile/features/auth/presentation/widgets/change_password_dia
 import 'package:iz_mobile/features/auth/presentation/widgets/two_fa_setup_dialog.dart';
 import 'package:iz_mobile/features/auth/presentation/widgets/export_data_dialog.dart';
 import 'package:iz_mobile/features/auth/presentation/widgets/delete_account_dialog.dart';
+import 'package:iz_mobile/features/economy/providers/subscription_provider.dart';
 
+import 'package:iz_mobile/core/theme/glass_widgets.dart';
 class PrivacySettingsScreen extends ConsumerStatefulWidget {
   const PrivacySettingsScreen({super.key});
 
@@ -23,6 +25,7 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
   bool _hideOnline = false;
   bool _hideTyping = false;
   bool _hideReadReceipts = false;
+  bool _relayCalls = false;
 
   @override
   void initState() {
@@ -41,6 +44,7 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
           _hideOnline = data['hide_online'] ?? false;
           _hideTyping = data['hide_typing'] ?? false;
           _hideReadReceipts = data['hide_read_receipts'] ?? false;
+          _relayCalls = data['relay_calls'] ?? false;
           _isLoading = false;
         });
       }
@@ -67,6 +71,7 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
         'hide_online': _hideOnline,
         'hide_typing': _hideTyping,
         'hide_read_receipts': _hideReadReceipts,
+        'relay_calls': _relayCalls,
       };
       await dio.put('/api/users/privacy', data: payload);
     } catch (e) {
@@ -82,8 +87,90 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
     }
   }
 
+  void _showPremiumUpsell() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: AppColors.bgElevated,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            border: Border.all(color: AppColors.glassBorder, width: 1),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF8B5CF6), Color(0xFFC026D3)],
+                    ),
+                  ),
+                  child: const Icon(Icons.security, color: Colors.white, size: 30),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  "Premium Güvenlik",
+                  style: GoogleFonts.outfit(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 22,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  "Aramalarda IP adresinizi gizlemek ve P2P trafiğinizi tamamen sunucu üzerinden maskelemek için Iz Pro veya Elite paketine yükseltin.",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(
+                    color: AppColors.textSecondary,
+                    fontSize: 14,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      // TODO: Go to subscription screen
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.accent,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: Text(
+                      "Paketleri İncele",
+                      style: GoogleFonts.inter(
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final subInfo = ref.watch(subscriptionProvider);
+    final isPremium = subInfo != null && (subInfo.tier == 'pro' || subInfo.tier == 'elite');
+
     return Scaffold(
       backgroundColor: AppColors.bgBase,
       extendBodyBehindAppBar: true,
@@ -100,7 +187,7 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
           ),
         ),
         flexibleSpace: ClipRect(
-          child: BackdropFilter(
+          child: AppBackdropFilter(
             filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
             child: Container(color: AppColors.bgBase.withValues(alpha: 0.7)),
           ),
@@ -189,6 +276,22 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
                             setState(() => _hideReadReceipts = v);
                             _updateSetting('hide_read_receipts', v, rollback: () {
                               setState(() => _hideReadReceipts = !v);
+                            });
+                          },
+                        ),
+                        const _Divider(),
+                        _SwitchTile(
+                          icon: Icons.vpn_lock_outlined,
+                          iconGradient: const LinearGradient(
+                            colors: [Color(0xFF6366F1), Color(0xFFEC4899)],
+                          ),
+                          title: "Aramalarda IP Gizle",
+                          subtitle: "Trafiği röle sunucuları üzerinden aktararak ağ adresinizi maskeleyin.",
+                          value: _relayCalls,
+                          onChanged: (v) {
+                            setState(() => _relayCalls = v);
+                            _updateSetting('relay_calls', v, rollback: () {
+                              setState(() => _relayCalls = !v);
                             });
                           },
                         ),
@@ -347,7 +450,7 @@ class _GlassSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(22),
-      child: BackdropFilter(
+      child: AppBackdropFilter(
         filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
         child: Container(
           decoration: BoxDecoration(

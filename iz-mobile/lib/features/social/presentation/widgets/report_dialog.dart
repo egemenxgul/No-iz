@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/report_service.dart';
 
+import 'package:iz_mobile/core/theme/glass_widgets.dart';
 class ReportDialog extends ConsumerStatefulWidget {
   final String? reportedUserId;
   final String? reportedCommunityId;
@@ -85,7 +86,7 @@ class _ReportDialogState extends ConsumerState<ReportDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return BackdropFilter(
+    return AppBackdropFilter(
       filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
       child: AlertDialog(
         backgroundColor: const Color(0xFF1E1E38).withValues(alpha: 0.85),

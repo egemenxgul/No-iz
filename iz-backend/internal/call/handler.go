@@ -69,6 +69,40 @@ func (h *Handler) TURNConfig(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, config)
 }
 
+// DeclineCall handles POST /api/calls/{id}/decline using a stateless decline_token.
+func (h *Handler) DeclineCall(w http.ResponseWriter, r *http.Request) {
+	// The decline token is passed via Authorization Bearer or query param.
+	// We'll read it from Authorization header.
+	authHeader := r.Header.Get("Authorization")
+	var tokenStr string
+	if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
+		tokenStr = authHeader[7:]
+	} else {
+		// Fallback to query param
+		tokenStr = r.URL.Query().Get("token")
+	}
+
+	if tokenStr == "" {
+		writeError(w, http.StatusUnauthorized, "missing decline token")
+		return
+	}
+
+	callID, err := h.svc.ValidateDeclineToken(tokenStr)
+	if err != nil {
+		writeError(w, http.StatusUnauthorized, "invalid or expired decline token")
+		return
+	}
+
+	err = h.svc.DeclineCallREST(r.Context(), callID)
+	if err != nil {
+		h.log.Error().Err(err).Msg("failed to decline call via REST")
+		writeError(w, http.StatusInternalServerError, "failed to decline call")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]string{"status": "declined"})
+}
+
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
 func writeJSON(w http.ResponseWriter, status int, v interface{}) {

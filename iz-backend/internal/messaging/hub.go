@@ -19,7 +19,7 @@ type Client struct {
 // Hub manages all active WebSocket connections and message routing.
 type Hub struct {
 	mu      sync.RWMutex
-	clients map[uuid.UUID]*Client // userID → client
+	clients map[uuid.UUID]map[*Client]bool // userID → set of clients
 
 	register   chan *Client
 	unregister chan *Client
@@ -37,7 +37,7 @@ type delivery struct {
 // NewHub creates and starts a Hub.
 func NewHub(repo *Repository, log zerolog.Logger) *Hub {
 	h := &Hub{
-		clients:    make(map[uuid.UUID]*Client),
+		clients:    make(map[uuid.UUID]map[*Client]bool),
 		register:   make(chan *Client, 64),
 		unregister: make(chan *Client, 64),
 		broadcast:  make(chan *delivery, 512),
@@ -54,7 +54,10 @@ func (h *Hub) run() {
 		select {
 		case c := <-h.register:
 			h.mu.Lock()
-			h.clients[c.UserID] = c
+			if h.clients[c.UserID] == nil {
+				h.clients[c.UserID] = make(map[*Client]bool)
+			}
+			h.clients[c.UserID][c] = true
 			h.mu.Unlock()
 			h.log.Info().Str("user_id", c.UserID.String()).Msg("client connected")
 
@@ -65,32 +68,54 @@ func (h *Hub) run() {
 		case c := <-h.unregister:
 			h.mu.Lock()
 			wasRemoved := false
-			if current, ok := h.clients[c.UserID]; ok && current == c {
-				delete(h.clients, c.UserID)
-				close(c.Send)
-				wasRemoved = true
+			if clients, ok := h.clients[c.UserID]; ok {
+				if _, exists := clients[c]; exists {
+					delete(clients, c)
+					close(c.Send)
+					wasRemoved = true
+				}
+				if len(clients) == 0 {
+					delete(h.clients, c.UserID)
+				}
 			}
 			h.mu.Unlock()
 			if wasRemoved {
 				h.log.Info().Str("user_id", c.UserID.String()).Msg("client disconnected")
-				go h.broadcastPresence(c.UserID, false)
-				go func(uid uuid.UUID) {
-					if err := h.repo.UpdateLastSeen(context.Background(), uid); err != nil {
-						h.log.Error().Err(err).Str("user_id", uid.String()).Msg("failed to update last seen")
-					}
-				}(c.UserID)
+				
+				// Only broadcast offline if NO MORE clients exist
+				h.mu.RLock()
+				hasMoreClients := len(h.clients[c.UserID]) > 0
+				h.mu.RUnlock()
+				
+				if !hasMoreClients {
+					go h.broadcastPresence(c.UserID, false)
+					go func(uid uuid.UUID) {
+						if err := h.repo.UpdateLastSeen(context.Background(), uid); err != nil {
+							h.log.Error().Err(err).Str("user_id", uid.String()).Msg("failed to update last seen")
+						}
+					}(c.UserID)
+				}
 			}
 
 		case d := <-h.broadcast:
 			h.mu.RLock()
-			c, online := h.clients[d.recipientID]
-			h.mu.RUnlock()
+			clients, online := h.clients[d.recipientID]
+			var targets []*Client
 			if online {
-				select {
-				case c.Send <- d.data:
-				default:
-					// Client's buffer full — drop and let DB pending handle it
-					h.log.Warn().Str("recipient", d.recipientID.String()).Msg("send buffer full, dropping ws delivery")
+				for c := range clients {
+					targets = append(targets, c)
+				}
+			}
+			h.mu.RUnlock()
+			
+			if online {
+				for _, c := range targets {
+					select {
+					case c.Send <- d.data:
+					default:
+						// Client's buffer full — drop
+						h.log.Warn().Str("recipient", d.recipientID.String()).Msg("send buffer full, dropping ws delivery for one client")
+					}
 				}
 			}
 		}

@@ -10,6 +10,7 @@ import '../../models/story_model.dart';
 import 'story_viewer_screen.dart';
 import 'create_story_screen.dart';
 
+import 'package:iz_mobile/core/theme/glass_widgets.dart';
 class StoryListScreen extends ConsumerStatefulWidget {
   const StoryListScreen({super.key});
 
@@ -54,7 +55,7 @@ class _StoryListScreenState extends ConsumerState<StoryListScreen>
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(kToolbarHeight),
           child: ClipRect(
-            child: BackdropFilter(
+            child: AppBackdropFilter(
               filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
               child: AppBar(
                 backgroundColor: AppColors.bgBase.withValues(alpha: 0.75),
@@ -203,7 +204,7 @@ class _MyStatusCard extends StatelessWidget {
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
-      child: BackdropFilter(
+      child: AppBackdropFilter(
         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: Container(
           padding: const EdgeInsets.all(16),
@@ -397,7 +398,7 @@ class _StoryTile extends StatelessWidget {
         },
         child: ClipRRect(
           borderRadius: BorderRadius.circular(20),
-          child: BackdropFilter(
+          child: AppBackdropFilter(
             filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -583,7 +584,7 @@ class _GlassIconBtn extends StatelessWidget {
       onTap: onTap,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(14),
-        child: BackdropFilter(
+        child: AppBackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Container(
             width: 38,

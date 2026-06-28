@@ -15,6 +15,8 @@ class AuthState {
 
   final bool requires2FA;
   final String? tempToken;
+  final bool needsPinSetup;
+  final bool needsPinVerify;
 
   AuthState({
     this.isAuthenticated = false,
@@ -24,6 +26,8 @@ class AuthState {
     this.userId,
     this.requires2FA = false,
     this.tempToken,
+    this.needsPinSetup = false,
+    this.needsPinVerify = false,
   });
 
   AuthState copyWith({
@@ -34,6 +38,8 @@ class AuthState {
     String? userId,
     bool? requires2FA,
     String? tempToken,
+    bool? needsPinSetup,
+    bool? needsPinVerify,
   }) {
     return AuthState(
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
@@ -43,6 +49,8 @@ class AuthState {
       userId: userId ?? this.userId,
       requires2FA: requires2FA ?? this.requires2FA,
       tempToken: tempToken ?? this.tempToken,
+      needsPinSetup: needsPinSetup ?? this.needsPinSetup,
+      needsPinVerify: needsPinVerify ?? this.needsPinVerify,
     );
   }
 }
@@ -112,6 +120,7 @@ class AuthNotifier extends Notifier<AuthState> {
       final String displayName = data['display_name'] ?? username;
       final String avatarUrl = data['avatar_url'] ?? '';
       final String bio = data['bio'] ?? '';
+      final String subTier = data['subscription_tier'] ?? 'free';
 
       // Save to active tokens in secure storage
       await _storage.write(key: 'access_token', value: token);
@@ -125,6 +134,7 @@ class AuthNotifier extends Notifier<AuthState> {
         displayName: displayName,
         avatarUrl: avatarUrl,
         bio: bio,
+        subscriptionTier: subTier,
       );
       
       await ref.read(accountProvider.notifier).addOrUpdateAccount(
@@ -158,6 +168,7 @@ class AuthNotifier extends Notifier<AuthState> {
       final String displayName = data['display_name'] ?? username;
       final String avatarUrl = data['avatar_url'] ?? '';
       final String bio = data['bio'] ?? '';
+      final String subTier = data['subscription_tier'] ?? 'free';
 
       await _storage.write(key: 'access_token', value: token);
       await _storage.write(key: 'refresh_token', value: refreshToken);
@@ -169,6 +180,7 @@ class AuthNotifier extends Notifier<AuthState> {
         displayName: displayName,
         avatarUrl: avatarUrl,
         bio: bio,
+        subscriptionTier: subTier,
       );
       
       await ref.read(accountProvider.notifier).addOrUpdateAccount(
@@ -234,7 +246,29 @@ class AuthNotifier extends Notifier<AuthState> {
       // we log it for tracking.
       if (isNewUser) {
         debugPrint('[AppleAuth] New user registered via Apple. Key generation will follow.');
+        state = state.copyWith(needsPinSetup: true);
+      } else {
+        state = state.copyWith(needsPinVerify: true);
       }
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  Future<void> loginWithPasskey(String username) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      // NOTE: Real implementation will integrate with passkeys package to authenticate credential.
+      // This requires prompting the OS credential manager and sending result to finish.
+      // Assuming 'data' contains the access token after successful passkey finish:
+      // final data = await ref.read(passkeyServiceProvider).loginFinish(sessionId, cred);
+      
+      // For brevity, we simulate the token parsing exactly like loginWithApple:
+      /*
+      final String token = data['access_token'];
+      ...
+      state = state.copyWith(needsPinVerify: true);
+      */
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }

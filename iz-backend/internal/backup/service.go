@@ -39,3 +39,22 @@ func (s *Service) GetBackup(ctx context.Context, userID uuid.UUID) (*Backup, err
 
 	return b, nil
 }
+
+func (s *Service) SaveVaultMessages(ctx context.Context, userID uuid.UUID, messages []VaultMessage) error {
+	err := s.repo.SaveVaultMessages(ctx, userID, messages)
+	if err != nil {
+		s.log.Error().Err(err).Str("user_id", userID.String()).Msg("failed to save vault messages")
+		return err
+	}
+	s.log.Info().Str("user_id", userID.String()).Int("count", len(messages)).Msg("vault messages successfully saved")
+	return nil
+}
+
+func (s *Service) GetVaultMessages(ctx context.Context, userID, convID uuid.UUID, limit, offset int) ([]VaultMessage, error) {
+	msgs, err := s.repo.GetVaultMessages(ctx, userID, convID, limit, offset)
+	if err != nil {
+		s.log.Error().Err(err).Str("user_id", userID.String()).Str("conv_id", convID.String()).Msg("failed to get vault messages")
+		return nil, err
+	}
+	return msgs, nil
+}

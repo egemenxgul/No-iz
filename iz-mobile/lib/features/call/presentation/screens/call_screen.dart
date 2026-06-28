@@ -9,6 +9,7 @@ import '../../../messages/providers/message_model.dart';
 import '../../../../core/network/webrtc_service.dart';
 import '../../../../core/localization/locale_provider.dart';
 
+import 'package:iz_mobile/core/theme/glass_widgets.dart';
 class CallScreen extends ConsumerStatefulWidget {
   final CallSession session;
 
@@ -98,7 +99,7 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
                     ],
                   ),
                 ),
-                child: BackdropFilter(
+                child: AppBackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                   child: Container(
                     color: Colors.black.withValues(alpha: 0.4),
@@ -326,7 +327,7 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
             right: 24.0,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(30),
-              child: BackdropFilter(
+              child: AppBackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -549,7 +550,7 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
                     left: 12,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(10),
-                      child: BackdropFilter(
+                      child: AppBackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -585,7 +586,7 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
       builder: (context) {
         return ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-          child: BackdropFilter(
+          child: AppBackdropFilter(
             filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
             child: Container(
               height: MediaQuery.of(context).size.height * 0.65,
@@ -607,7 +608,7 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
                       elevation: 0,
                       content: ClipRRect(
                         borderRadius: BorderRadius.circular(16),
-                        child: BackdropFilter(
+                        child: AppBackdropFilter(
                           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

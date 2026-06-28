@@ -11,11 +11,14 @@ import '../../../core/network/websocket_provider.dart';
 import '../../../core/network/dio_provider.dart';
 import '../../auth/providers/account_provider.dart';
 import '../../auth/providers/auth_provider.dart';
+import 'p2p_provider.dart';
+import '../../../core/providers/settings_provider.dart';
 import 'dart:convert';
 import 'dart:async';
 import 'package:uuid/uuid.dart';
 import 'media_upload_service.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
+import 'group_crypto_service.dart';
 
 class DecryptedMediaNotifier extends Notifier<Map<String, Uint8List>> {
   @override
@@ -73,6 +76,10 @@ final messageRepositoryProvider = Provider((ref) {
 class ChatNotifier extends FamilyNotifier<List<MessageModel>, String> {
   String get conversationId => arg;
 
+  int _currentOffset = 0;
+  bool _hasMore = true;
+  bool get hasMore => _hasMore;
+
   @override
   List<MessageModel> build(String arg) {
     loadMessages();
@@ -81,7 +88,36 @@ class ChatNotifier extends FamilyNotifier<List<MessageModel>, String> {
 
   Future<void> loadMessages() async {
     final repo = ref.read(messageRepositoryProvider);
-    state = await repo.getMessages(conversationId);
+    _currentOffset = 0;
+    _hasMore = true;
+    final msgs = await repo.getMessages(conversationId, limit: 50, offset: _currentOffset);
+    if (msgs.length < 50) _hasMore = false;
+    state = msgs;
+  }
+
+  Future<void> loadMoreMessages() async {
+    if (!_hasMore) return;
+    
+    final repo = ref.read(messageRepositoryProvider);
+    _currentOffset += 50;
+    
+    // We pass offset to get older messages
+    final olderMsgs = await repo.getMessages(conversationId, limit: 50, offset: _currentOffset);
+    
+    if (olderMsgs.isEmpty) {
+      _hasMore = false;
+      return;
+    }
+    
+    if (olderMsgs.length < 50) {
+      _hasMore = false;
+    }
+    
+    // olderMsgs are returned oldest to newest for the chunk.
+    // E.g., [msg49, msg50, ... msg99].
+    // state currently has [msg0, msg1, ... msg48].
+    // We want the final list to have oldest at the beginning.
+    state = [...olderMsgs, ...state];
   }
 
   Future<void> addMessage(MessageModel msg) async {
@@ -95,12 +131,33 @@ class ChatNotifier extends FamilyNotifier<List<MessageModel>, String> {
     final isGroup = convs.isNotEmpty && convs.first['is_group'] == 1;
 
     if (isGroup) {
+      final groupCryptoService = ref.read(groupCryptoServiceProvider);
+      
+      // 1. Ensure we have distributed our Sender Key
+      var mySenderKey = await groupCryptoService.getSenderKey(conversationId, msg.senderId);
+      if (mySenderKey == null) {
+        mySenderKey = await groupCryptoService.generateSenderKey();
+        await groupCryptoService.saveSenderKeyLocally(conversationId, msg.senderId, mySenderKey);
+        // Distribute to all group members (1-1 E2EE)
+        await groupCryptoService.distributeSenderKey(conversationId, mySenderKey, msg.senderId);
+      }
+
+      // 2. Encrypt the group message payload (AES-GCM)
+      final encryptionResult = await groupCryptoService.encryptGroupMessage(
+        conversationId,
+        msg.senderId,
+        msg.plaintext ?? '',
+      );
+
+      // Pack IV, MAC, and Ciphertext into a single JSON payload for transport
+      final packedCiphertext = jsonEncode(encryptionResult);
+
       final encryptedMsg = MessageModel(
         id: msg.id,
         conversationId: msg.conversationId,
         senderId: msg.senderId,
         recipientId: msg.conversationId,
-        ciphertext: msg.plaintext ?? '', // transport plaintext inside ciphertext
+        ciphertext: packedCiphertext,
         plaintext: msg.plaintext,
         msgType: msg.msgType,
         createdAt: msg.createdAt,
@@ -112,7 +169,7 @@ class ChatNotifier extends FamilyNotifier<List<MessageModel>, String> {
 
       final wsPayload = {
         'group_id': conversationId,
-        'ciphertext': msg.plaintext,
+        'ciphertext': packedCiphertext,
         'msg_type': msg.msgType,
         'iteration': 0,
         'distribution_id': '',
@@ -209,7 +266,14 @@ class ChatNotifier extends FamilyNotifier<List<MessageModel>, String> {
         'queue_id': encryptedMsg.id, // echoed back in message_delivered ACK
       };
 
-      // 5. Send immediately if connected; otherwise queue for later delivery.
+      // 5. Check if P2P mode is active (Cloud Lock Bypass)
+      final p2pActive = ref.read(p2pProvider)[conversationId] ?? false;
+      if (p2pActive) {
+        final p2pSuccess = await ref.read(p2pProvider.notifier).sendP2PMessage(conversationId, wsPayload);
+        if (p2pSuccess) return;
+      }
+
+      // 6. Send immediately if connected; otherwise queue for later delivery.
       final socket = ref.read(webSocketProvider);
       if (socket != null && socket.isConnected) {
         socket.sendMessage('send_message', wsPayload);
@@ -235,6 +299,7 @@ class ChatNotifier extends FamilyNotifier<List<MessageModel>, String> {
     required String filename,
     required String mimeType,
     required int fileSize,
+    bool isHD = false,
   }) async {
     final sessionManager = ref.read(sessionManagerProvider);
     final identityManager = ref.read(identityManagerProvider);
@@ -272,26 +337,16 @@ class ChatNotifier extends FamilyNotifier<List<MessageModel>, String> {
 
     try {
       // 2. Compress image before encryption (compress → encrypt → upload).
-      //    Compression on already-encrypted data would have zero effect.
-      Uint8List uploadBytes = fileBytes;
-      String uploadMime = mimeType;
-      int uploadSize = fileSize;
-
-      if (MediaCompressor.shouldCompress(mimeType)) {
-        final compressed = await MediaCompressor.compressImage(fileBytes, mimeType);
-        uploadBytes = compressed.bytes;
-        uploadMime = compressed.mimeType;
-        uploadSize = compressed.compressedSize;
-        if (kDebugMode) debugPrint('[sendMedia] Compression: ${compressed.summary}');
-      }
+      //    Compression is now handled centrally in MediaUploadService.
 
       // 3. Upload file with progress reporting.
       ref.read(uploadProgressProvider.notifier).setProgress(tempMsgId, 0.0);
 
       final uploadResult = await mediaUploadSvc.uploadMedia(
-        fileBytes: uploadBytes,
+        fileBytes: fileBytes,
         filename: filename,
-        mimeType: uploadMime,
+        mimeType: mimeType,
+        isHD: isHD,
         onProgress: (progress) {
           ref.read(uploadProgressProvider.notifier).setProgress(tempMsgId, progress);
         },
@@ -370,7 +425,24 @@ class ChatNotifier extends FamilyNotifier<List<MessageModel>, String> {
       // Update UI state by replacing the placeholder
       state = state.map((m) => m.id == tempMsgId ? finalMsg : m).toList();
 
-      // 6. Send envelope via WebSocket
+      // 6. Check if P2P mode is active (Cloud Lock Bypass)
+      final p2pActive = ref.read(p2pProvider)[conversationId] ?? false;
+      final payload = {
+        'recipient_id': finalMsg.recipientId,
+        'ciphertext': finalMsg.ciphertext,
+        'msg_type': finalMsg.msgType,
+        'ratchet_key': finalMsg.ratchetKey,
+        'prev_counter': finalMsg.prevCounter ?? 0,
+        'counter': finalMsg.counter ?? 0,
+        'expires_in': disappearingDuration,
+      };
+
+      if (p2pActive) {
+        final p2pSuccess = await ref.read(p2pProvider.notifier).sendP2PMessage(conversationId, payload);
+        if (p2pSuccess) return;
+      }
+
+      // 7. Send envelope via WebSocket
       final socket = ref.read(webSocketProvider);
       if (socket != null) {
         final payload = {
@@ -386,13 +458,20 @@ class ChatNotifier extends FamilyNotifier<List<MessageModel>, String> {
       }
     } catch (e) {
       debugPrint('Medya gönderim hatası: $e');
+      final errorStr = e.toString();
+      
+      // Fallback: If Cloud Lock is active (402/413), try establishing P2P.
+      if (errorStr.contains('402') || errorStr.contains('413') || errorStr.contains('limit')) {
+        ref.read(p2pProvider.notifier).establishP2P(conversationId);
+      }
+
       final failedPlaintext = jsonEncode({
         'type': 'media',
         'status': 'failed',
         'filename': filename,
         'mime_type': mimeType,
         'size': fileSize,
-        'error': e.toString(),
+        'error': errorStr,
       });
       final failedMsg = MessageModel(
         id: tempMsgId,
@@ -412,6 +491,64 @@ class ChatNotifier extends FamilyNotifier<List<MessageModel>, String> {
   }
 
   Future<void> receiveMessage(MessageModel msg) async {
+    final db = await ref.read(dbProvider.future);
+    final List<Map<String, dynamic>> convs = await db.query(
+      'conversations',
+      columns: ['is_group'],
+      where: 'id = ?',
+      whereArgs: [conversationId],
+    );
+    final isGroup = convs.isNotEmpty && convs.first['is_group'] == 1;
+
+    if (isGroup) {
+      final groupCryptoService = ref.read(groupCryptoServiceProvider);
+      try {
+        final payload = jsonDecode(msg.ciphertext);
+        final plaintext = await groupCryptoService.decryptGroupMessage(
+          conversationId,
+          msg.senderId,
+          payload['ciphertext'],
+          payload['iv'],
+          payload['mac'],
+        );
+
+        final decryptedMsg = msg.copyWith(
+          plaintext: plaintext,
+          isRead: true,
+        );
+
+        final repo = ref.read(messageRepositoryProvider);
+        await repo.saveMessage(decryptedMsg);
+        state = [...state, decryptedMsg];
+      } catch (e) {
+        debugPrint('Group decryption failed: $e');
+        if (e.toString().contains('missing')) {
+          final myUserId = ref.read(authProvider).userId ?? '';
+          await groupCryptoService.syncSenderKeys(conversationId, myUserId);
+          try {
+            final payload = jsonDecode(msg.ciphertext);
+            final plaintext = await groupCryptoService.decryptGroupMessage(
+              conversationId,
+              msg.senderId,
+              payload['ciphertext'],
+              payload['iv'],
+              payload['mac'],
+            );
+            final decryptedMsg = msg.copyWith(
+              plaintext: plaintext,
+              isRead: true,
+            );
+            final repo = ref.read(messageRepositoryProvider);
+            await repo.saveMessage(decryptedMsg);
+            state = [...state, decryptedMsg];
+          } catch(e2) {
+            debugPrint('Group decryption failed again after sync: $e2');
+          }
+        }
+      }
+      return;
+    }
+
     final sessionManager = ref.read(sessionManagerProvider);
     final identityManager = ref.read(identityManagerProvider);
 

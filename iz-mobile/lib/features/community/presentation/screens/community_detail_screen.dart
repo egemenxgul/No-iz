@@ -192,7 +192,7 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
 
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => BackdropFilter(
+      builder: (context) => AppBackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: AlertDialog(
           backgroundColor: AppColors.bgSurface.withValues(alpha: 0.85),
@@ -261,7 +261,7 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
-        builder: (context, setModalState) => BackdropFilter(
+        builder: (context, setModalState) => AppBackdropFilter(
           filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
           child: AlertDialog(
             backgroundColor: AppColors.bgSurface.withValues(alpha: 0.9),
@@ -400,7 +400,7 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(50),
             child: ClipRRect(
-              child: BackdropFilter(
+              child: AppBackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -854,7 +854,7 @@ class _CommunityDetailScreenState extends ConsumerState<CommunityDetailScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => BackdropFilter(
+      builder: (context) => AppBackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
           padding: const EdgeInsets.all(24),

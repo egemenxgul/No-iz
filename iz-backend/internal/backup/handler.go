@@ -30,6 +30,9 @@ func (h *Handler) Routes() chi.Router {
 	r.Post("/", h.Save)
 	r.Get("/", h.Get)
 
+	r.Post("/vault", h.SaveVault)
+	r.Get("/vault/{convID}", h.GetVault)
+
 	return r
 }
 
@@ -98,6 +101,72 @@ func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.jsonResponse(w, http.StatusOK, b)
+}
+
+func (h *Handler) SaveVault(w http.ResponseWriter, r *http.Request) {
+	myIDStr, ok := auth.UserIDFromContext(r.Context())
+	if !ok {
+		h.errorResponse(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+	myID, err := uuid.Parse(myIDStr)
+	if err != nil {
+		h.errorResponse(w, http.StatusUnauthorized, "invalid user ID")
+		return
+	}
+
+	var req struct {
+		Messages []VaultMessage `json:"messages"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.errorResponse(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if len(req.Messages) == 0 {
+		h.errorResponse(w, http.StatusBadRequest, "no messages provided")
+		return
+	}
+
+	err = h.svc.SaveVaultMessages(r.Context(), myID, req.Messages)
+	if err != nil {
+		h.errorResponse(w, http.StatusInternalServerError, "failed to save vault messages")
+		return
+	}
+
+	h.jsonResponse(w, http.StatusOK, map[string]string{"status": "ok"})
+}
+
+func (h *Handler) GetVault(w http.ResponseWriter, r *http.Request) {
+	myIDStr, ok := auth.UserIDFromContext(r.Context())
+	if !ok {
+		h.errorResponse(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+	myID, err := uuid.Parse(myIDStr)
+	if err != nil {
+		h.errorResponse(w, http.StatusUnauthorized, "invalid user ID")
+		return
+	}
+
+	convIDStr := chi.URLParam(r, "convID")
+	convID, err := uuid.Parse(convIDStr)
+	if err != nil {
+		h.errorResponse(w, http.StatusBadRequest, "invalid conversation ID")
+		return
+	}
+
+	limit := 50
+	offset := 0
+
+	msgs, err := h.svc.GetVaultMessages(r.Context(), myID, convID, limit, offset)
+	if err != nil {
+		h.errorResponse(w, http.StatusInternalServerError, "failed to get vault messages")
+		return
+	}
+
+	h.jsonResponse(w, http.StatusOK, map[string]interface{}{"messages": msgs})
 }
 
 // Helpers

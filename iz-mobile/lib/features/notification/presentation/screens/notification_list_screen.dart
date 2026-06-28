@@ -203,7 +203,7 @@ class NotificationListScreen extends ConsumerWidget {
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(30),
-          child: BackdropFilter(
+          child: AppBackdropFilter(
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
             child: Container(
               padding: const EdgeInsets.all(24),
@@ -401,7 +401,7 @@ class _GlassIconButton extends StatelessWidget {
       onTap: onTap,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(14),
-        child: BackdropFilter(
+        child: AppBackdropFilter(
           filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
           child: Container(
             width: 42,
@@ -431,7 +431,7 @@ class _GlassTextButton extends StatelessWidget {
       onTap: onPressed,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
-        child: BackdropFilter(
+        child: AppBackdropFilter(
           filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),

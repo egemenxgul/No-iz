@@ -7,6 +7,7 @@ import 'package:iz_mobile/core/theme/app_colors.dart';
 import 'package:iz_mobile/features/auth/providers/auth_provider.dart';
 import 'auth_widgets.dart';
 
+import 'package:iz_mobile/core/theme/glass_widgets.dart';
 class ExportDataDialog extends ConsumerStatefulWidget {
   const ExportDataDialog({super.key});
 
@@ -50,7 +51,7 @@ class _ExportDataDialogState extends ConsumerState<ExportDataDialog> {
       elevation: 0,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
-        child: BackdropFilter(
+        child: AppBackdropFilter(
           filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
           child: Container(
             padding: const EdgeInsets.all(24),

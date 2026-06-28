@@ -149,13 +149,46 @@ class _ConversationListScreenState extends State<ConversationListScreen>
                         if (storyFeed.isNotEmpty)
                           _buildStoryRings(context, storyFeed, myUserId),
                         _buildSearchBar(context),
-                        _buildShortcutStrip(context),
+
                         _buildTabBar(messageRequests.length),
                         if (displayedList.isEmpty)
                           SliverFillRemaining(
                             child: _EmptyStateView(isRequests: _selectedTab == 1),
                           )
                         else
+
+                        if (_selectedTab == 0) // Only in 'Tümü'
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                              child: GestureDetector(
+                                onTap: () => context.push('/archived'),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.bgHover,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.archive_outlined, color: AppColors.textSecondary, size: 22),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        'Arşivlenmiş Sohbetler',
+                                        style: GoogleFonts.inter(
+                                          color: AppColors.textPrimary,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted, size: 20),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
                           SliverPadding(
                             padding: const EdgeInsets.fromLTRB(16, 6, 16, 120),
                             sliver: SliverList(
@@ -189,7 +222,7 @@ class _ConversationListScreenState extends State<ConversationListScreen>
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(20),
-          child: BackdropFilter(
+          child: AppBackdropFilter(
             filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
             child: Container(
               decoration: BoxDecoration(
@@ -236,61 +269,6 @@ class _ConversationListScreenState extends State<ConversationListScreen>
     );
   }
 
-  Widget _buildShortcutStrip(BuildContext context) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-        child: Row(
-          children: [
-            Expanded(
-              child: _ShortcutChip(
-                icon: Icons.camera_enhance_outlined,
-                label: 'Durumlar',
-                iconColor: const Color(0xFF38BDF8),
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF0EA5E9), Color(0xFF06B6D4)],
-                ),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const StoryListScreen()),
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _ShortcutChip(
-                icon: Icons.archive_outlined,
-                label: 'Arşiv',
-                iconColor: const Color(0xFFC084FC),
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF9333EA), Color(0xFF7C3AED)],
-                ),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ArchivedConversationsScreen()),
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _ShortcutChip(
-                icon: Icons.search_rounded,
-                label: 'Ara',
-                iconColor: const Color(0xFF34D399),
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF10B981), Color(0xFF059669)],
-                ),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const MessageSearchScreen()),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   /// Story halkaları — yatay kaydırmalı avatar çemberleri
   Widget _buildStoryRings(
@@ -403,7 +381,7 @@ class _LiquidAppBarDelegate extends SliverPersistentHeaderDelegate {
         if (blurAmount > 0)
           Positioned.fill(
             child: ClipRect(
-              child: BackdropFilter(
+              child: AppBackdropFilter(
                 filter: ImageFilter.blur(sigmaX: blurAmount, sigmaY: blurAmount),
                 child: Container(
                   color: AppColors.bgBase.withValues(alpha: progress * 0.65),
@@ -455,13 +433,8 @@ class _LiquidAppBarDelegate extends SliverPersistentHeaderDelegate {
                   Row(
                     children: [
                       LiquidIconButton(
-                        icon: Icons.explore_outlined,
-                        onTap: () => context.push('/communities'),
-                      ),
-                      const SizedBox(width: 8),
-                      LiquidIconButton(
-                        icon: Icons.people_outline_rounded,
-                        onTap: () => context.push('/social'),
+                        icon: Icons.qr_code_scanner_rounded,
+                        onTap: () => context.push('/qr-scanner'),
                       ),
                       const SizedBox(width: 8),
                       LiquidIconButton(
@@ -489,11 +462,7 @@ class _LiquidAppBarDelegate extends SliverPersistentHeaderDelegate {
                               )
                             : null,
                       ),
-                      const SizedBox(width: 8),
-                      LiquidIconButton(
-                        icon: Icons.settings_outlined,
-                        onTap: () => context.push('/settings'),
-                      ),
+
                     ],
                   ),
                 ],
@@ -570,7 +539,7 @@ class _ShortcutChipState extends State<_ShortcutChip>
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(18),
-              child: BackdropFilter(
+              child: AppBackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 13),
@@ -803,7 +772,7 @@ class _ConversationTileState extends ConsumerState<_ConversationTile>
               // Glass tile body
               ClipRRect(
                 borderRadius: BorderRadius.circular(24),
-                child: BackdropFilter(
+                child: AppBackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                   child: Container(
                     padding: const EdgeInsets.all(14),
@@ -918,7 +887,7 @@ class _ConversationTileState extends ConsumerState<_ConversationTile>
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         content: ClipRRect(
           borderRadius: BorderRadius.circular(16),
-          child: BackdropFilter(
+          child: AppBackdropFilter(
             filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),

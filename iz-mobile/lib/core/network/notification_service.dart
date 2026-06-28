@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import '../services/callkit_service.dart';
 import 'dio_provider.dart';
 
 // ── Background Handler ────────────────────────────────────────────────────────
@@ -20,6 +21,32 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     debugPrint('[FCM Background] id=${message.messageId} '
         'data=${message.data}');
   }
+  
+  // UX-8: Intercept background "call_offer" to wake up CallKit
+  if (message.data['type'] == 'call_offer') {
+    final callId = message.data['call_id'] as String?;
+    final callerId = message.data['caller_id'] as String?;
+    final callerName = message.data['caller_name'] as String? ?? 'Bilinmeyen Numara';
+    final callTypeStr = message.data['call_type'] as String? ?? 'audio';
+    final isVideo = callTypeStr == 'video';
+
+    if (callId != null && callerId != null) {
+      if (kDebugMode) debugPrint('[FCM Background] Waking up CallKit for $callId');
+      await CallKitService().showIncomingCall(
+        callId: callId,
+        callerName: callerName,
+        callerHandle: '@iz_user', // Fallback or could be sent via push
+        isVideo: isVideo,
+        extra: {
+          'sdp': message.data['sdp'],
+          'caller_id': callerId,
+          'call_type': callTypeStr,
+          'decline_token': message.data['decline_token'],
+        },
+      );
+    }
+  }
+
   // Background data-only messages are handled automatically by the OS
   // notification system using the `notification` payload set server-side.
   // We don't perform any additional processing here to keep the isolate minimal.

@@ -1,5 +1,8 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:video_compress/video_compress.dart';
 
 /// Result of a compression operation, including size metadata for analytics.
 class CompressResult {
@@ -35,8 +38,7 @@ class MediaCompressor {
   static const int _maxHeight = 1920;
   static const int _defaultQuality = 85; // 85% JPEG quality — good balance
 
-  // Skip compression for already-compressed formats or non-image files.
-  static const _compressibleMimeTypes = {
+  static const _compressibleImageTypes = {
     'image/jpeg',
     'image/jpg',
     'image/png',
@@ -45,9 +47,39 @@ class MediaCompressor {
     'image/heif',
   };
 
+  static const _compressibleVideoTypes = {
+    'video/mp4',
+    'video/quicktime', // .mov
+  };
+
   /// Returns true if this MIME type can be compressed.
-  static bool shouldCompress(String mimeType) =>
-      _compressibleMimeTypes.contains(mimeType.toLowerCase());
+  static bool shouldCompress(String mimeType) {
+    final lower = mimeType.toLowerCase();
+    return _compressibleImageTypes.contains(lower) || _compressibleVideoTypes.contains(lower);
+  }
+
+  static bool isVideo(String mimeType) => _compressibleVideoTypes.contains(mimeType.toLowerCase());
+
+  /// Centralized compression entry point.
+  static Future<CompressResult> compressMedia(Uint8List bytes, String mimeType, {bool isHD = false}) async {
+    final preserveTrans = mimeType.toLowerCase() == 'image/png';
+    if (isVideo(mimeType)) {
+      return compressVideo(bytes, mimeType, isHD: isHD);
+    } else if (shouldCompress(mimeType)) {
+      return compressImage(
+        bytes, 
+        mimeType, 
+        isHD: isHD, 
+        preserveTransparency: preserveTrans,
+      );
+    }
+    return CompressResult(
+      bytes: bytes,
+      originalSize: bytes.length,
+      compressedSize: bytes.length,
+      mimeType: mimeType,
+    );
+  }
 
   /// Compresses [bytes] with the given MIME type.
   /// Returns a [CompressResult] with the (possibly smaller) byte array.
@@ -55,9 +87,7 @@ class MediaCompressor {
   static Future<CompressResult> compressImage(
     Uint8List bytes,
     String mimeType, {
-    int maxWidth = _maxWidth,
-    int maxHeight = _maxHeight,
-    int quality = _defaultQuality,
+    bool isHD = false,
     bool preserveTransparency = false,
   }) async {
     if (!shouldCompress(mimeType)) {
@@ -71,12 +101,18 @@ class MediaCompressor {
 
     try {
       final format = _formatForMime(mimeType, preserveTransparency);
+      
+      final w = isHD ? 3840 : _maxWidth;
+      final h = isHD ? 3840 : _maxHeight;
+      final q = isHD ? 100 : _defaultQuality;
+
       final compressed = await FlutterImageCompress.compressWithList(
         bytes,
-        minWidth: 0,
-        minHeight: 0,
-        quality: quality,
+        minWidth: w,
+        minHeight: h,
+        quality: q,
         format: format,
+        keepExif: false, // Explicitly strip EXIF metadata
       );
 
       if (compressed.isEmpty) {
@@ -113,6 +149,68 @@ class MediaCompressor {
     } catch (e) {
       if (kDebugMode) debugPrint('[MediaCompressor] error: $e');
       // On any error, return the original uncompressed bytes.
+      return CompressResult(
+        bytes: bytes,
+        originalSize: bytes.length,
+        compressedSize: bytes.length,
+        mimeType: mimeType,
+      );
+    }
+  }
+
+  /// Compresses [bytes] containing a video.
+  static Future<CompressResult> compressVideo(Uint8List bytes, String mimeType, {bool isHD = false}) async {
+    try {
+      // video_compress requires a physical file path.
+      final tempDir = await getTemporaryDirectory();
+      final ext = mimeType == 'video/quicktime' ? '.mov' : '.mp4';
+      final tempFile = File('${tempDir.path}/temp_video_${DateTime.now().millisecondsSinceEpoch}$ext');
+      await tempFile.writeAsBytes(bytes);
+
+      final mediaInfo = await VideoCompress.compressVideo(
+        tempFile.path,
+        quality: isHD ? VideoQuality.HighestQuality : VideoQuality.MediumQuality,
+        deleteOrigin: true, // deletes tempFile after compression
+        includeAudio: true, // ensure audio is not stripped
+      );
+
+      if (mediaInfo == null || mediaInfo.file == null) {
+        return CompressResult(
+          bytes: bytes,
+          originalSize: bytes.length,
+          compressedSize: bytes.length,
+          mimeType: mimeType,
+        );
+      }
+
+      final compressedBytes = await mediaInfo.file!.readAsBytes();
+      
+      // Clean up the compressed file from cache
+      if (await mediaInfo.file!.exists()) {
+        await mediaInfo.file!.delete();
+      }
+
+      final useCompressed = compressedBytes.length < bytes.length;
+      final result = useCompressed ? compressedBytes : bytes;
+
+      if (kDebugMode) {
+        final r = CompressResult(
+          bytes: result,
+          originalSize: bytes.length,
+          compressedSize: result.length,
+          mimeType: mimeType,
+        );
+        debugPrint('[MediaCompressor] Video: ${r.summary}');
+      }
+
+      return CompressResult(
+        bytes: result,
+        originalSize: bytes.length,
+        compressedSize: result.length,
+        mimeType: mimeType,
+      );
+    } catch (e) {
+      if (kDebugMode) debugPrint('[MediaCompressor] video error: $e');
       return CompressResult(
         bytes: bytes,
         originalSize: bytes.length,

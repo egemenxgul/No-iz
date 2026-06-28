@@ -7,6 +7,7 @@ import '../../models/call_session.dart';
 import '../../../../core/localization/locale_provider.dart';
 import '../../../../core/services/callkit_service.dart';
 
+import 'package:iz_mobile/core/theme/glass_widgets.dart';
 class RingingScreen extends ConsumerStatefulWidget {
   final CallSession session;
 
@@ -146,7 +147,7 @@ class _RingingScreenState extends ConsumerState<RingingScreen>
 
           // ── Global frosted glass overlay ──────────────────────────────
           Positioned.fill(
-            child: BackdropFilter(
+            child: AppBackdropFilter(
               filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
               child: Container(color: Colors.transparent),
             ),
@@ -161,7 +162,7 @@ class _RingingScreenState extends ConsumerState<RingingScreen>
                   padding: const EdgeInsets.only(top: 48),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(24),
-                    child: BackdropFilter(
+                    child: AppBackdropFilter(
                       filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),

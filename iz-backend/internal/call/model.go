@@ -38,6 +38,7 @@ type Call struct {
 	AcceptedAt   *time.Time `json:"accepted_at,omitempty"`
 	EndedAt      *time.Time `json:"ended_at,omitempty"`
 	DurationSecs *int       `json:"duration_secs,omitempty"`
+	ForceRelay   bool       `json:"force_relay"`
 	CreatedAt    time.Time  `json:"created_at"`
 }
 

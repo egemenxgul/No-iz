@@ -23,9 +23,10 @@ function base64ToBuffer(base64: string): ArrayBuffer {
 }
 
 // NIST SP 800-63B recommends >=310,000 for PBKDF2-SHA-256; 600,000 is the OWASP 2024 baseline.
-const ITERATIONS = 600_000;
+const ITERATIONS_NEW = 600_000;
+const ITERATIONS_LEGACY = 10_000;
 
-async function deriveKey(password: string, salt: Uint8Array): Promise<CryptoKey> {
+async function deriveKey(password: string, salt: Uint8Array, iterations: number = ITERATIONS_NEW): Promise<CryptoKey> {
   const enc = new TextEncoder();
   const keyMaterial = await window.crypto.subtle.importKey(
     'raw',
@@ -39,7 +40,7 @@ async function deriveKey(password: string, salt: Uint8Array): Promise<CryptoKey>
     {
       name: 'PBKDF2',
       salt: salt.buffer as ArrayBuffer,
-      iterations: ITERATIONS,
+      iterations: iterations,
       hash: 'SHA-256',
     },
     keyMaterial,
@@ -47,6 +48,29 @@ async function deriveKey(password: string, salt: Uint8Array): Promise<CryptoKey>
     false,
     ['encrypt', 'decrypt']
   );
+}
+
+// Mobile backup format -> Web format migration helper
+async function migrateMobilePayload(payload: any, password: string) {
+  if (payload.secure_storage) {
+    const { auth_identity_pub, auth_identity_priv, auth_spk_pub, auth_spk_priv } = payload.secure_storage;
+    const rawData = {
+      identityKey: {
+        publicKey: auth_identity_pub,
+        privateKey: auth_identity_priv,
+      },
+      signedPreKey: {
+        publicKey: auth_spk_pub,
+        privateKey: auth_spk_priv,
+      },
+      oneTimePreKeys: [], // One time prekeys can be regenerated later by the web app
+    };
+    
+    // Encrypt mobile keys for Web's iz_keys format
+    const { encryptWithPassword } = await import('./keys');
+    const encryptedKeys = await encryptWithPassword(JSON.stringify(rawData), password);
+    localStorage.setItem(KEYS_KEY, JSON.stringify(encryptedKeys));
+  }
 }
 
 export async function exportAndUploadBackup(password: string): Promise<void> {
@@ -143,23 +167,27 @@ export async function downloadAndRestoreBackup(password: string): Promise<void> 
   const iv = combined.slice(0, 12);
   const encryptedData = combined.slice(12);
 
-  // 3. Derive Key & Decrypt
-  const key = await deriveKey(password, salt);
-  const decryptedBuf = await window.crypto.subtle.decrypt(
-    { name: 'AES-GCM', iv },
-    key,
-    encryptedData
-  );
+  // 3. Derive Key & Decrypt with fallback
+  let decryptedBuf: ArrayBuffer;
+  try {
+    const key = await deriveKey(password, salt, ITERATIONS_NEW);
+    decryptedBuf = await window.crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, encryptedData);
+  } catch (e) {
+    // Fallback to legacy mobile iterations
+    console.warn('Decryption failed with 600k iterations, trying 10k...');
+    const legacyKey = await deriveKey(password, salt, ITERATIONS_LEGACY);
+    decryptedBuf = await window.crypto.subtle.decrypt({ name: 'AES-GCM', iv }, legacyKey, encryptedData);
+  }
 
   const payloadStr = new TextDecoder().decode(decryptedBuf);
   const payload = JSON.parse(payloadStr);
 
   // 4. Restore local data
-  if (payload.iz_sessions) {
-    localStorage.setItem(SESSIONS_KEY, JSON.stringify(payload.iz_sessions));
-  }
-  if (payload.iz_keys) {
-    localStorage.setItem(KEYS_KEY, JSON.stringify(payload.iz_keys));
+  if (payload.iz_sessions || payload.iz_keys) {
+    if (payload.iz_sessions) localStorage.setItem(SESSIONS_KEY, JSON.stringify(payload.iz_sessions));
+    if (payload.iz_keys) localStorage.setItem(KEYS_KEY, JSON.stringify(payload.iz_keys));
+  } else if (payload.secure_storage) {
+    await migrateMobilePayload(payload, password);
   }
 }
 
@@ -182,20 +210,23 @@ export async function importFromFile(password: string, file: File): Promise<void
   const iv = combined.slice(0, 12);
   const encryptedData = combined.slice(12);
 
-  const key = await deriveKey(password, salt);
-  const decryptedBuf = await window.crypto.subtle.decrypt(
-    { name: 'AES-GCM', iv },
-    key,
-    encryptedData
-  );
+  let decryptedBuf: ArrayBuffer;
+  try {
+    const key = await deriveKey(password, salt, ITERATIONS_NEW);
+    decryptedBuf = await window.crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, encryptedData);
+  } catch (e) {
+    console.warn('Decryption failed with 600k iterations, trying 10k...');
+    const legacyKey = await deriveKey(password, salt, ITERATIONS_LEGACY);
+    decryptedBuf = await window.crypto.subtle.decrypt({ name: 'AES-GCM', iv }, legacyKey, encryptedData);
+  }
 
   const payloadStr = new TextDecoder().decode(decryptedBuf);
   const payload = JSON.parse(payloadStr);
 
-  if (payload.iz_sessions) {
-    localStorage.setItem(SESSIONS_KEY, JSON.stringify(payload.iz_sessions));
-  }
-  if (payload.iz_keys) {
-    localStorage.setItem(KEYS_KEY, JSON.stringify(payload.iz_keys));
+  if (payload.iz_sessions || payload.iz_keys) {
+    if (payload.iz_sessions) localStorage.setItem(SESSIONS_KEY, JSON.stringify(payload.iz_sessions));
+    if (payload.iz_keys) localStorage.setItem(KEYS_KEY, JSON.stringify(payload.iz_keys));
+  } else if (payload.secure_storage) {
+    await migrateMobilePayload(payload, password);
   }
 }

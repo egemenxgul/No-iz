@@ -8,6 +8,8 @@ import 'package:iz_mobile/features/messages/providers/chat_provider.dart';
 import 'package:iz_mobile/features/messages/providers/message_model.dart';
 import 'package:iz_mobile/features/messages/providers/contacts_provider.dart';
 import 'package:iz_mobile/core/network/websocket_provider.dart';
+import 'package:iz_mobile/core/network/dio_provider.dart';
+import 'package:iz_mobile/features/messages/presentation/widgets/cloud_sync_banner.dart';
 import 'package:uuid/uuid.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:iz_mobile/features/messages/providers/media_upload_service.dart';
@@ -22,6 +24,7 @@ import 'dart:math';
 import 'dart:io';
 import 'package:go_router/go_router.dart';
 
+import 'package:iz_mobile/core/theme/glass_widgets.dart';
 class ChatScreen extends ConsumerStatefulWidget {
   final String otherUserId;
   const ChatScreen({super.key, required this.otherUserId});
@@ -36,6 +39,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   bool _isTyping = false;
   DateTime? _lastTypingSent;
+  bool _isHDEnabled = false;
 
   // Sabitlenmiş mesaj navigasyonu — birden fazla pin varsa döngüsel gezinme
   int _pinnedMessageIndex = 0;
@@ -257,6 +261,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final isTyping = ref.watch(typingProvider(widget.otherUserId));
     // Get the real user ID for isMe detection
     final myUserId = ref.watch(authProvider).userId ?? '';
+    final isCloudLocked = ref.watch(cloudLockProvider);
 
     // 1. Find default conversation username
     final conv = conversations.firstWhere(
@@ -286,6 +291,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       appBar: _buildAppBar(displayName, conv, isTyping),
       body: Column(
         children: [
+          if (isCloudLocked)
+            const CloudSyncBanner(),
           if (messages.any((m) => m.isPinned))
             _buildPinnedMessageBanner(
               messages.where((m) => m.isPinned).toList(),
@@ -430,7 +437,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   Widget _buildAcceptDeclineBar() {
     return ClipRect(
-      child: BackdropFilter(
+      child: AppBackdropFilter(
         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: Container(
           padding: EdgeInsets.fromLTRB(
@@ -561,7 +568,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   Widget _buildBlockedByMeBar() {
     return ClipRect(
-      child: BackdropFilter(
+      child: AppBackdropFilter(
         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: Container(
           padding: EdgeInsets.fromLTRB(
@@ -630,7 +637,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   Widget _buildBlockedByThemBar() {
     return ClipRect(
-      child: BackdropFilter(
+      child: AppBackdropFilter(
         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: Container(
           padding: EdgeInsets.fromLTRB(
@@ -665,7 +672,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     return PreferredSize(
       preferredSize: const Size.fromHeight(kToolbarHeight),
       child: ClipRect(
-        child: BackdropFilter(
+        child: AppBackdropFilter(
           filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
           child: AppBar(
             backgroundColor: AppColors.bgBase.withValues(alpha: 0.75),
@@ -839,7 +846,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       builder: (context) {
         return ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          child: BackdropFilter(
+          child: AppBackdropFilter(
             filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
             child: Container(
               color: AppColors.bgBase.withValues(alpha: 0.85),
@@ -926,7 +933,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       child: Center(
         child: ClipRRect(
           borderRadius: BorderRadius.circular(14),
-          child: BackdropFilter(
+          child: AppBackdropFilter(
             filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
@@ -951,71 +958,116 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        return ClipRRect(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppColors.bgElevated.withValues(alpha: 0.92),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-                border: Border.all(color: AppColors.glassBorder, width: 0.5),
-              ),
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 36),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 36,
-                    height: 4,
-                    margin: const EdgeInsets.only(bottom: 24),
-                    decoration: BoxDecoration(
-                      color: AppColors.textMuted.withValues(alpha: 0.4),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+              child: AppBackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.bgElevated.withValues(alpha: 0.92),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                    border: Border.all(color: AppColors.glassBorder, width: 0.5),
                   ),
-                  Text(
-                    'Dosya Ekle',
-                    style: GoogleFonts.outfit(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
-                      letterSpacing: -0.4,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 36),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      _buildAttachmentOption(
-                        icon: Icons.image_rounded,
-                        label: 'Galeri',
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF3B82F6), Color(0xFF6366F1)],
+                      Container(
+                        width: 36,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: 24),
+                        decoration: BoxDecoration(
+                          color: AppColors.textMuted.withValues(alpha: 0.4),
+                          borderRadius: BorderRadius.circular(2),
                         ),
-                        onTap: () {
-                          Navigator.pop(context);
-                          _pickAndSendFile(FileType.image);
-                        },
                       ),
-                      const SizedBox(width: 24),
-                      _buildAttachmentOption(
-                        icon: Icons.insert_drive_file_rounded,
-                        label: 'Belge',
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF10B981), Color(0xFF06B6D4)],
-                        ),
-                        onTap: () {
-                          Navigator.pop(context);
-                          _pickAndSendFile(FileType.any);
-                        },
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const SizedBox(width: 48), // spacer to balance the switch
+                          Text(
+                            'Dosya Ekle',
+                            style: GoogleFonts.outfit(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textPrimary,
+                              letterSpacing: -0.4,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  setModalState(() => _isHDEnabled = !_isHDEnabled);
+                                  setState(() => _isHDEnabled = _isHDEnabled);
+                                },
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: _isHDEnabled ? AppColors.accent.withValues(alpha: 0.15) : AppColors.glassLight,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: _isHDEnabled ? AppColors.accent : AppColors.glassBorder,
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        _isHDEnabled ? Icons.hd_rounded : Icons.hd_outlined,
+                                        color: _isHDEnabled ? AppColors.accent : AppColors.textMuted,
+                                        size: 20,
+                                      ),
+                                      if (_isHDEnabled) ...[
+                                        const SizedBox(width: 4),
+                                        const Icon(Icons.check_rounded, color: AppColors.accent, size: 14),
+                                      ]
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _buildAttachmentOption(
+                            icon: Icons.image_rounded,
+                            label: 'Galeri',
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF3B82F6), Color(0xFF6366F1)],
+                            ),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _pickAndSendFile(FileType.image);
+                            },
+                          ),
+                          const SizedBox(width: 24),
+                          _buildAttachmentOption(
+                            icon: Icons.insert_drive_file_rounded,
+                            label: 'Belge',
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF10B981), Color(0xFF06B6D4)],
+                            ),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _pickAndSendFile(FileType.any);
+                            },
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );
@@ -1125,6 +1177,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         filename: filename,
         mimeType: mimeType,
         fileSize: fileBytes.length,
+        isHD: _isHDEnabled,
       );
 
       if (!mounted) return;
@@ -1140,7 +1193,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   Widget _buildInputArea() {
     return ClipRect(
-      child: BackdropFilter(
+      child: AppBackdropFilter(
         filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
         child: Container(
           padding: EdgeInsets.fromLTRB(
@@ -1161,7 +1214,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 onTap: _showAttachmentMenu,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(14),
-                  child: BackdropFilter(
+                  child: AppBackdropFilter(
                     filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                     child: Container(
                       width: 42,
@@ -1186,7 +1239,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               Expanded(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(22),
-                  child: BackdropFilter(
+                  child: AppBackdropFilter(
                     filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 2),
@@ -1366,12 +1419,12 @@ class _MessageBubble extends ConsumerWidget {
         onLongPress: () => _showBubbleMenu(context, ref, message, isMe),
         child: ClipRRect(
           borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(22),
-            topRight: const Radius.circular(22),
-            bottomLeft: Radius.circular(isMe ? 22 : 6),
-            bottomRight: Radius.circular(isMe ? 6 : 22),
+            topLeft: const Radius.circular(24),
+            topRight: const Radius.circular(24),
+            bottomLeft: Radius.circular(isMe ? 24 : 8),
+            bottomRight: Radius.circular(isMe ? 8 : 24),
           ),
-          child: BackdropFilter(
+          child: AppBackdropFilter(
             filter: isMe
                 ? ImageFilter.blur(sigmaX: 0, sigmaY: 0)
                 : ImageFilter.blur(sigmaX: 12, sigmaY: 12),
@@ -1389,10 +1442,10 @@ class _MessageBubble extends ConsumerWidget {
                     : null,
                 color: isMe ? null : AppColors.glassMedium,
                 borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(22),
-                  topRight: const Radius.circular(22),
-                  bottomLeft: Radius.circular(isMe ? 22 : 6),
-                  bottomRight: Radius.circular(isMe ? 6 : 22),
+                  topLeft: const Radius.circular(24),
+                  topRight: const Radius.circular(24),
+                  bottomLeft: Radius.circular(isMe ? 24 : 8),
+                  bottomRight: Radius.circular(isMe ? 8 : 24),
                 ),
                 border: isMe
                     ? null
@@ -1692,7 +1745,7 @@ class _MessageBubble extends ConsumerWidget {
 
           return ClipRRect(
             borderRadius: BorderRadius.circular(10),
-            child: BackdropFilter(
+            child: AppBackdropFilter(
               filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -1739,7 +1792,7 @@ class _MessageBubble extends ConsumerWidget {
         final isWithin15Mins = DateTime.now().difference(msg.createdAt).inMinutes < 15;
         return ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-          child: BackdropFilter(
+          child: AppBackdropFilter(
             filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
             child: Container(
               decoration: BoxDecoration(
@@ -2327,7 +2380,7 @@ class _GlassIconBtn extends StatelessWidget {
       onTap: onTap,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
-        child: BackdropFilter(
+        child: AppBackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Container(
             width: 38,

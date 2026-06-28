@@ -6,6 +6,7 @@ import 'package:iz_mobile/core/theme/app_colors.dart';
 import 'package:iz_mobile/core/localization/locale_provider.dart';
 import 'package:iz_mobile/features/auth/providers/auth_provider.dart';
 
+import 'package:iz_mobile/core/theme/glass_widgets.dart';
 class ChangePasswordDialog extends ConsumerStatefulWidget {
   const ChangePasswordDialog({super.key});
 
@@ -91,7 +92,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
       insetPadding: const EdgeInsets.symmetric(horizontal: 24),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
-        child: BackdropFilter(
+        child: AppBackdropFilter(
           filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
           child: Container(
             padding: const EdgeInsets.all(24),
@@ -226,7 +227,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
   }) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
-      child: BackdropFilter(
+      child: AppBackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: TextField(
           controller: controller,

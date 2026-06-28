@@ -13,6 +13,9 @@ class CallKitService {
   factory CallKitService() => _instance;
   CallKitService._internal();
 
+  static void Function(Map<String, dynamic> extra)? onCallAccepted;
+  static Map<String, dynamic>? pendingAcceptedCall;
+
   /// Gelen bir arama için platform native arama ekranını gösterir.
   Future<void> showIncomingCall({
     required String callId,
@@ -20,6 +23,7 @@ class CallKitService {
     required String callerHandle, // username or phone
     String? callerAvatar,
     bool isVideo = false,
+    Map<String, dynamic>? extra,
   }) async {
     try {
       final params = CallKitParams(
@@ -30,6 +34,7 @@ class CallKitService {
         handle: callerHandle,
         type: isVideo ? 1 : 0, // 0 = audio, 1 = video
         duration: 45000, // 45 seconds ringing timeout
+        extra: extra,
         textAccept: 'Kabul Et',
         textDecline: 'Reddet',
         missedCallNotification: const NotificationParams(

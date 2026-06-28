@@ -82,6 +82,7 @@ class StoryNotifier extends Notifier<List<FriendStoryFeedModel>> {
         fileBytes: fileBytes,
         filename: filename,
         mimeType: mimeType,
+        isHD: true, // Stories are always HD by default
       );
 
       final mediaKey = uploadResult.mediaKeyBase64;

@@ -17,6 +17,9 @@ dependencies:
 
   cupertino_icons: ^1.0.8
 
+  freezed_annotation: ^2.4.4
+  json_annotation: ^4.9.0
+
   # ── State Management ─────────────────────────────────────────────────────────
   # Riverpod 2.x: Mevcut kod tabanı Notifier/NotifierProvider 2.x API'si
   # kullanıyor. 3.x'e geçiş breaking change gerektirir — bekletiliyor.
@@ -45,8 +48,9 @@ dependencies:
   # ── Utilities ─────────────────────────────────────────────────────────────────
   uuid: ^4.5.1
   archive: ^3.6.1                    # 4.x breaking — 3.x stable
-  path: ^1.9.0
+  path: ^1.9.1
   path_provider: ^2.1.5
+  battery_plus: ^6.2.0
 
   # ── Media ─────────────────────────────────────────────────────────────────────
   file_picker: ^8.1.7
@@ -85,8 +89,12 @@ dependencies:
   # ── CallKit / ConnectionService ───────────────────────────────────────────
   # iOS'ta kilitli ekranda gelen arama UI (CallKit) + Android ConnectionService
   flutter_callkit_incoming: ^2.2.2
+  video_compress: ^3.1.4
+  passkeys: ^2.20.0
 
 dev_dependencies:
+  freezed: ^2.5.7
+  json_serializable: ^6.9.0
   flutter_test:
     sdk: flutter
   integration_test:

@@ -12,6 +12,7 @@ import 'package:iz_mobile/core/crypto/identity_manager.dart';
 import 'package:iz_mobile/features/auth/providers/auth_provider.dart';
 import '../widgets/auth_widgets.dart';
 
+import 'package:iz_mobile/core/theme/glass_widgets.dart';
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
 
@@ -420,6 +421,51 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
 
                         const SizedBox(height: 24),
 
+                        // ── Apple & Passkey Options ───────────────
+                        Column(
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(child: Divider(color: AppColors.borderDim)),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                                  child: Text(
+                                    'veya şununla devam et',
+                                    style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 13),
+                                  ),
+                                ),
+                                Expanded(child: Divider(color: AppColors.borderDim)),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _SocialButton(
+                                    icon: Icons.apple, // MDIcons or custom can be used
+                                    label: 'Apple',
+                                    onPressed: () {
+                                      // TODO: Implement Apple Register
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: _SocialButton(
+                                    icon: Icons.fingerprint,
+                                    label: 'Passkey',
+                                    onPressed: () {
+                                      // TODO: Implement Passkey Register
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 32),
+
                         Center(
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -662,7 +708,7 @@ class _RegisterCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(22),
-      child: BackdropFilter(
+      child: AppBackdropFilter(
         filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
         child: Container(
           padding: const EdgeInsets.all(20),
@@ -692,24 +738,63 @@ class _RegisterCard extends StatelessWidget {
 class _SectionLabel extends StatelessWidget {
   final String label;
   final IconData icon;
+
   const _SectionLabel({required this.label, required this.icon});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, color: AppColors.accentGlow, size: 16),
+        Icon(icon, color: AppColors.accentPrimary, size: 20),
         const SizedBox(width: 8),
         Text(
           label,
-          style: GoogleFonts.outfit(
-            color: AppColors.accentGlow,
-            fontSize: 12.5,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.5,
+          style: GoogleFonts.inter(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
           ),
         ),
       ],
+    );
+  }
+}
+
+class _SocialButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onPressed;
+
+  const _SocialButton({required this.icon, required this.label, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: AppColors.glassDim,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.borderDim),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

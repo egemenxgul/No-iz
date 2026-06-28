@@ -24,6 +24,7 @@ import (
 	"io"
 	"golang.org/x/crypto/argon2"
 	"github.com/pquerna/otp/totp"
+	"github.com/go-webauthn/webauthn/webauthn"
 )
 
 // Common errors
@@ -45,11 +46,23 @@ type Service struct {
 	rdb *redis.Client
 	cfg *config.Config
 	log zerolog.Logger
+	wa  *webauthn.WebAuthn
 }
 
 // NewService creates a new auth service.
 func NewService(db *pgxpool.Pool, rdb *redis.Client, cfg *config.Config, log zerolog.Logger) *Service {
-	return &Service{db: db, rdb: rdb, cfg: cfg, log: log.With().Str("svc", "auth").Logger()}
+	// Initialize WebAuthn (Passkey)
+	wa, err := webauthn.New(&webauthn.Config{
+		RPDisplayName: "iz Messenger", // Display Name for your site
+		RPID:          "iz.app",        // Generally the FQDN for your site
+		RPOrigins:     []string{"https://iz.app", "http://localhost:3000"}, 
+		// You can add more RPOrigins like android:apk-key-hash or apple app links if needed
+	})
+	if err != nil {
+		panic(fmt.Sprintf("Failed to initialize WebAuthn: %v", err))
+	}
+
+	return &Service{db: db, rdb: rdb, cfg: cfg, log: log.With().Str("svc", "auth").Logger(), wa: wa}
 }
 
 // ────────────────────────────────────────────────────────────────
@@ -197,33 +210,34 @@ type LoginInput struct {
 
 // LoginOutput is returned on successful login.
 type LoginOutput struct {
-	UserID       string
-	Username     string
-	DisplayName  string
-	AvatarURL    string
-	IsAdmin      bool
-	AccessToken  string `json:"access_token,omitempty"`
-	RefreshToken string `json:"refresh_token,omitempty"`
-	Requires2FA  bool   `json:"requires_2fa"`
-	TempToken    string `json:"temp_token,omitempty"`
+	UserID           string
+	Username         string
+	DisplayName      string
+	AvatarURL        string
+	IsAdmin          bool
+	SubscriptionTier string `json:"subscription_tier"`
+	AccessToken      string `json:"access_token,omitempty"`
+	RefreshToken     string `json:"refresh_token,omitempty"`
+	Requires2FA      bool   `json:"requires_2fa"`
+	TempToken        string `json:"temp_token,omitempty"`
 }
 
 // Login authenticates a user and returns tokens.
 func (s *Service) Login(ctx context.Context, in LoginInput) (*LoginOutput, error) {
-	var userID, hash, username, displayName, avatarURL string
+	var userID, hash, username, displayName, avatarURL, subTier string
 	var isAdmin bool
 
 	var isTotpEnabled bool
 
 	emailHash := s.hashEmail(in.EmailOrUsername)
 	err := s.db.QueryRow(ctx, `
-		SELECT id, password_hash, username, display_name, avatar_url, is_admin, is_totp_enabled FROM users
+		SELECT id, password_hash, username, display_name, avatar_url, subscription_tier, is_admin, is_totp_enabled FROM users
 		WHERE (username = $1 OR email_hash = $2)
 		  AND is_deleted = FALSE AND is_banned = FALSE
 		LIMIT 1`,
 		in.EmailOrUsername,
 		emailHash,
-	).Scan(&userID, &hash, &username, &displayName, &avatarURL, &isAdmin, &isTotpEnabled)
+	).Scan(&userID, &hash, &username, &displayName, &avatarURL, &subTier, &isAdmin, &isTotpEnabled)
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		s.log.Warn().Str("input", in.EmailOrUsername).Msg("user not found in db")
@@ -250,13 +264,14 @@ func (s *Service) Login(ctx context.Context, in LoginInput) (*LoginOutput, error
 			return nil, fmt.Errorf("issue temp token: %w", err)
 		}
 		return &LoginOutput{
-			UserID:      userID,
-			Username:    username,
-			DisplayName: displayName,
-			AvatarURL:   avatarURL,
-			IsAdmin:     isAdmin,
-			Requires2FA: true,
-			TempToken:   tempToken,
+			UserID:           userID,
+			Username:         username,
+			DisplayName:      displayName,
+			AvatarURL:        avatarURL,
+			IsAdmin:          isAdmin,
+			SubscriptionTier: subTier,
+			Requires2FA:      true,
+			TempToken:        tempToken,
 		}, nil
 	}
 
@@ -266,14 +281,15 @@ func (s *Service) Login(ctx context.Context, in LoginInput) (*LoginOutput, error
 	}
 
 	return &LoginOutput{
-		UserID:       userID,
-		Username:     username,
-		DisplayName:  displayName,
-		AvatarURL:    avatarURL,
-		IsAdmin:      isAdmin,
-		AccessToken:  access,
-		RefreshToken: refresh,
-		Requires2FA:  false,
+		UserID:           userID,
+		Username:         username,
+		DisplayName:      displayName,
+		AvatarURL:        avatarURL,
+		IsAdmin:          isAdmin,
+		SubscriptionTier: subTier,
+		AccessToken:      access,
+		RefreshToken:     refresh,
+		Requires2FA:      false,
 	}, nil
 }
 
@@ -411,6 +427,40 @@ func (s *Service) validateTempToken(tokenStr string) (string, error) {
 		return "", ErrTokenInvalid
 	}
 	return claims.Subject, nil
+}
+
+type declineClaims struct {
+	CallID string `json:"cid"`
+	jwt.RegisteredClaims
+}
+
+func (s *Service) GenerateDeclineToken(callID uuid.UUID) (string, error) {
+	now := time.Now()
+	claims := declineClaims{
+		CallID: callID.String(),
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(now.Add(60 * time.Second)),
+			IssuedAt:  jwt.NewNumericDate(now),
+		},
+	}
+	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(s.cfg.JWTAccessSecret))
+}
+
+func (s *Service) ValidateDeclineToken(tokenStr string) (uuid.UUID, error) {
+	token, err := jwt.ParseWithClaims(tokenStr, &declineClaims{}, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method")
+		}
+		return []byte(s.cfg.JWTAccessSecret), nil
+	})
+	if err != nil {
+		return uuid.Nil, ErrTokenInvalid
+	}
+	claims, ok := token.Claims.(*declineClaims)
+	if !ok || !token.Valid {
+		return uuid.Nil, ErrTokenInvalid
+	}
+	return uuid.Parse(claims.CallID)
 }
 
 type izClaims struct {
@@ -930,18 +980,19 @@ func (s *Service) decryptData(cryptoText string) (string, error) {
 type UserProfile struct {
 	UserID      string `json:"user_id"`
 	Username    string `json:"username"`
-	DisplayName string `json:"display_name"`
-	Bio         string `json:"bio"`
-	AvatarURL   string `json:"avatar_url"`
+	DisplayName      string `json:"display_name"`
+	Bio              string `json:"bio"`
+	AvatarURL        string `json:"avatar_url"`
+	SubscriptionTier string `json:"subscription_tier"`
 }
 
 // GetUserProfile queries a user's details by their ID.
 func (s *Service) GetUserProfile(ctx context.Context, userID string) (*UserProfile, error) {
 	var p UserProfile
 	err := s.db.QueryRow(ctx, `
-		SELECT id, username, display_name, bio, avatar_url FROM users
+		SELECT id, username, display_name, bio, avatar_url, subscription_tier FROM users
 		WHERE id = $1 AND is_deleted = FALSE AND is_banned = FALSE
-		LIMIT 1`, userID).Scan(&p.UserID, &p.Username, &p.DisplayName, &p.Bio, &p.AvatarURL)
+		LIMIT 1`, userID).Scan(&p.UserID, &p.Username, &p.DisplayName, &p.Bio, &p.AvatarURL, &p.SubscriptionTier)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrUserNotFound
@@ -1175,6 +1226,7 @@ type PrivacySettings struct {
 	HideOnline       bool `json:"hide_online"`
 	HideTyping       bool `json:"hide_typing"`
 	HideReadReceipts bool `json:"hide_read_receipts"`
+	RelayCalls       bool `json:"relay_calls"`
 }
 
 func (s *Service) GetPrivacySettings(ctx context.Context, userID string) (*PrivacySettings, error) {
@@ -1185,9 +1237,9 @@ func (s *Service) GetPrivacySettings(ctx context.Context, userID string) (*Priva
 
 	var settings PrivacySettings
 	err = s.db.QueryRow(ctx, `
-		SELECT hide_last_seen, hide_online, hide_typing, hide_read_receipts FROM users
+		SELECT hide_last_seen, hide_online, hide_typing, hide_read_receipts, relay_calls FROM users
 		WHERE id = $1 AND is_deleted = FALSE AND is_banned = FALSE
-		LIMIT 1`, uid).Scan(&settings.HideLastSeen, &settings.HideOnline, &settings.HideTyping, &settings.HideReadReceipts)
+		LIMIT 1`, uid).Scan(&settings.HideLastSeen, &settings.HideOnline, &settings.HideTyping, &settings.HideReadReceipts, &settings.RelayCalls)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrUserNotFound
@@ -1205,9 +1257,9 @@ func (s *Service) UpdatePrivacySettings(ctx context.Context, userID string, sett
 
 	_, err = s.db.Exec(ctx, `
 		UPDATE users
-		SET hide_last_seen = $1, hide_online = $2, hide_typing = $3, hide_read_receipts = $4, updated_at = NOW()
-		WHERE id = $5 AND is_deleted = FALSE AND is_banned = FALSE`,
-		settings.HideLastSeen, settings.HideOnline, settings.HideTyping, settings.HideReadReceipts, uid)
+		SET hide_last_seen = $1, hide_online = $2, hide_typing = $3, hide_read_receipts = $4, relay_calls = $5, updated_at = NOW()
+		WHERE id = $6 AND is_deleted = FALSE AND is_banned = FALSE`,
+		settings.HideLastSeen, settings.HideOnline, settings.HideTyping, settings.HideReadReceipts, settings.RelayCalls, uid)
 	if err != nil {
 		return fmt.Errorf("update privacy settings: %w", err)
 	}

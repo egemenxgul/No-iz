@@ -47,6 +47,10 @@ func (h *Handler) Routes() chi.Router {
 	// Messages (REST history — real-time is over WS)
 	r.Get("/{groupID}/messages", h.GetHistory)
 
+	// Sender Keys (Group E2E Encryption)
+	r.Post("/{groupID}/sender_keys", h.UploadSenderKey)
+	r.Get("/{groupID}/sender_keys", h.GetSenderKeys)
+
 	return r
 }
 
@@ -182,50 +186,89 @@ func (h *Handler) PromoteMember(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetHistory(w http.ResponseWriter, r *http.Request) {
 	callerID := h.callerID(r)
 	groupID := parseUUID(chi.URLParam(r, "groupID"))
-
+	
+	limitStr := r.URL.Query().Get("limit")
 	limit := 50
-	if l := r.URL.Query().Get("limit"); l != "" {
-		if n, err := strconv.Atoi(l); err == nil && n > 0 && n <= 100 {
-			limit = n
-		}
+	if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
+		limit = l
 	}
 
+	beforeStr := r.URL.Query().Get("before")
 	var before time.Time
-	if b := r.URL.Query().Get("before"); b != "" {
-		before, _ = time.Parse(time.RFC3339Nano, b)
+	if beforeStr != "" {
+		if t, err := time.Parse(time.RFC3339, beforeStr); err == nil {
+			before = t
+		}
 	}
 
 	msgs, err := h.svc.GroupHistory(r.Context(), callerID, groupID, limit, before)
 	if err != nil {
-		if errors.Is(err, ErrNotMember) {
-			writeError(w, http.StatusForbidden, err.Error())
-			return
-		}
-		writeError(w, http.StatusInternalServerError, "failed to fetch history")
+		writeError(w, http.StatusInternalServerError, "failed to fetch group history")
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]interface{}{"messages": msgs})
 }
 
-// ─── helpers ─────────────────────────────────────────────────────────────────
+// ─── Sender Keys ──────────────────────────────────────────────────────────────
+
+func (h *Handler) UploadSenderKey(w http.ResponseWriter, r *http.Request) {
+	callerID := h.callerID(r)
+	groupID := parseUUID(chi.URLParam(r, "groupID"))
+
+	var body struct {
+		Distribution string `json:"distribution"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if err := h.svc.UploadSenderKey(r.Context(), callerID, groupID, body.Distribution); err != nil {
+		if errors.Is(err, ErrNotMember) {
+			writeError(w, http.StatusForbidden, err.Error())
+			return
+		}
+		writeError(w, http.StatusInternalServerError, "failed to upload sender key")
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *Handler) GetSenderKeys(w http.ResponseWriter, r *http.Request) {
+	callerID := h.callerID(r)
+	groupID := parseUUID(chi.URLParam(r, "groupID"))
+
+	keys, err := h.svc.GetSenderKeys(r.Context(), callerID, groupID)
+	if err != nil {
+		if errors.Is(err, ErrNotMember) {
+			writeError(w, http.StatusForbidden, err.Error())
+			return
+		}
+		writeError(w, http.StatusInternalServerError, "failed to fetch sender keys")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]interface{}{"sender_keys": keys})
+}
+
+// ─── helpers ──────────────────────────────────────────────────────────────────
 
 func (h *Handler) callerID(r *http.Request) uuid.UUID {
-	id, _ := r.Context().Value(userIDCtxKey).(string)
-	uid, _ := uuid.Parse(id)
-	return uid
+	return r.Context().Value(userIDCtxKey).(uuid.UUID)
+}
+
+func writeJSON(w http.ResponseWriter, status int, data interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(data)
+}
+
+func writeError(w http.ResponseWriter, status int, message string) {
+	writeJSON(w, status, map[string]string{"error": message})
 }
 
 func parseUUID(s string) uuid.UUID {
-	id, _ := uuid.Parse(s)
-	return id
-}
-
-func writeJSON(w http.ResponseWriter, status int, v interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(v)
-}
-
-func writeError(w http.ResponseWriter, status int, msg string) {
-	writeJSON(w, status, map[string]string{"error": msg})
+	u, _ := uuid.Parse(s)
+	return u
 }

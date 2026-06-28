@@ -104,8 +104,7 @@ class WebSocketService {
   void disconnect() {
     _manuallyClosed = true;
     _cleanup();
-    _connectivitySub?.cancel();
-    _connectivitySub = null;
+    // Do not cancel connectivity subscription so it resumes automatically when reconnecting manually
   }
 
   // ── Incoming Frame Handling ───────────────────────────────────────

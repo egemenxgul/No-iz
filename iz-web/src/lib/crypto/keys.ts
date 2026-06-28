@@ -73,7 +73,7 @@ export function prepareRegistrationBundle(keys: UserKeys) {
 
 // ─── Web Crypto Encryption Helpers ───────────────────────────────────────────
 
-async function encryptWithPassword(text: string, password: string) {
+export async function encryptWithPassword(text: string, password: string) {
   const enc = new TextEncoder();
   const salt = window.crypto.getRandomValues(new Uint8Array(16));
   

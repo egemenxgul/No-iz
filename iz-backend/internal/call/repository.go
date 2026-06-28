@@ -21,20 +21,19 @@ func NewRepository(db *pgxpool.Pool) *Repository {
 // CreateCall persists a new call record.
 func (r *Repository) CreateCall(ctx context.Context, c *Call) error {
 	return r.db.QueryRow(ctx, `
-		INSERT INTO calls (call_type, status, caller_id, callee_id, group_id)
-		VALUES ($1,$2,$3,$4,$5)
+		INSERT INTO calls (call_type, status, caller_id, callee_id, group_id, force_relay)
+		VALUES ($1,$2,$3,$4,$5,$6)
 		RETURNING id, ringing_at, created_at
-	`, string(c.CallType), string(c.Status), c.CallerID, c.CalleeID, c.GroupID,
+	`, string(c.CallType), string(c.Status), c.CallerID, c.CalleeID, c.GroupID, c.ForceRelay,
 	).Scan(&c.ID, &c.RingingAt, &c.CreatedAt)
 }
 
-// CreateCallWithID persists a call record with a specified ID.
 func (r *Repository) CreateCallWithID(ctx context.Context, c *Call) error {
 	_, err := r.db.Exec(ctx, `
-		INSERT INTO calls (id, call_type, status, caller_id, callee_id, group_id)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		INSERT INTO calls (id, call_type, status, caller_id, callee_id, group_id, force_relay)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		ON CONFLICT (id) DO NOTHING
-	`, c.ID, string(c.CallType), string(c.Status), c.CallerID, c.CalleeID, c.GroupID)
+	`, c.ID, string(c.CallType), string(c.Status), c.CallerID, c.CalleeID, c.GroupID, c.ForceRelay)
 	return err
 }
 
@@ -43,11 +42,11 @@ func (r *Repository) GetCall(ctx context.Context, id uuid.UUID) (*Call, error) {
 	c := &Call{}
 	err := r.db.QueryRow(ctx, `
 		SELECT id, call_type, status, caller_id, callee_id, group_id,
-		       ringing_at, accepted_at, ended_at, duration_secs, created_at
+		       ringing_at, accepted_at, ended_at, duration_secs, force_relay, created_at
 		FROM calls WHERE id=$1
 	`, id).Scan(
 		&c.ID, &c.CallType, &c.Status, &c.CallerID, &c.CalleeID, &c.GroupID,
-		&c.RingingAt, &c.AcceptedAt, &c.EndedAt, &c.DurationSecs, &c.CreatedAt,
+		&c.RingingAt, &c.AcceptedAt, &c.EndedAt, &c.DurationSecs, &c.ForceRelay, &c.CreatedAt,
 	)
 	return c, err
 }
@@ -92,6 +91,23 @@ func (r *Repository) HasActiveCall(ctx context.Context, userID uuid.UUID) (bool,
 		  AND status IN ('ringing','active')
 	`, userID).Scan(&count)
 	return count > 0, err
+}
+
+// GetUserName returns the username of a user.
+func (r *Repository) GetUserName(ctx context.Context, userID uuid.UUID) (string, error) {
+	var username string
+	err := r.db.QueryRow(ctx, `SELECT username FROM users WHERE id=$1`, userID).Scan(&username)
+	if err != nil {
+		return "Bilinmeyen Kullanıcı", nil // Fallback
+	}
+	return username, nil
+}
+
+// GetRelayCalls returns true if the user has enabled relay_calls in privacy settings.
+func (r *Repository) GetRelayCalls(ctx context.Context, userID uuid.UUID) (bool, error) {
+	var relay bool
+	err := r.db.QueryRow(ctx, `SELECT relay_calls FROM users WHERE id=$1`, userID).Scan(&relay)
+	return relay, err
 }
 
 // CallHistory returns paginated call history for a user.

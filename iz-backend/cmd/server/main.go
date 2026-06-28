@@ -22,6 +22,7 @@ import (
 	"github.com/no-iz/iz-backend/internal/story"
 	"github.com/no-iz/iz-backend/internal/report"
 	"github.com/no-iz/iz-backend/internal/backup"
+	"github.com/no-iz/iz-backend/internal/economy"
 	"github.com/no-iz/iz-backend/pkg/config"
 	"github.com/no-iz/iz-backend/pkg/database"
 	"github.com/no-iz/iz-backend/pkg/logger"
@@ -97,9 +98,17 @@ func main() {
 	communitySvc := community.NewService(communityRepo, log)
 	communityHandler := community.NewHandler(communitySvc, log)
 
+	// Economy
+	economyRepo := economy.NewRepository(db)
+	economySvc := economy.NewService(economyRepo, log)
+	economyHandler := economy.NewHandler(economySvc, log)
+	
+	// Start Economy Cron Worker
+	economy.StartCronWorker(context.Background(), economyRepo, log)
+
 	// Calls (WebRTC Signaling)
 	callRepo := call.NewRepository(db)
-	callSvc := call.NewService(callRepo, msgHub, log)
+	callSvc := call.NewService(callRepo, msgHub, notificationSvc, economySvc, authSvc, log)
 	callSvc.SetSocialRepo(socialRepo) // Inject social repository to check user blocks in calls
 	callHandler := call.NewHandler(callSvc, log)
 
@@ -111,7 +120,7 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to initialize media service")
 	}
-	mediaHandler := media.NewHandler(mediaSvc, cfg, log)
+	mediaHandler := media.NewHandler(mediaSvc, economySvc, cfg, log)
 
 	// E2EE Stories
 	storyRepo := story.NewRepository(db)
@@ -129,7 +138,7 @@ func main() {
 	backupHandler := backup.NewHandler(backupSvc, log)
 
 	// Build HTTP server
-	srv := server.New(cfg, log, rdb, authSvc, inviteSvc, msgHandler, groupHandler, communityHandler, callHandler, mediaHandler, socialHandler, storyHandler, reportHandler, backupHandler, notificationHandler)
+	srv := server.New(cfg, log, rdb, authSvc, inviteSvc, msgHandler, groupHandler, communityHandler, callHandler, mediaHandler, socialHandler, storyHandler, reportHandler, backupHandler, notificationHandler, economyHandler)
 
 	httpSrv := &http.Server{
 		Addr:         ":" + cfg.AppPort,

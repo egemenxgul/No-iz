@@ -8,7 +8,9 @@ import 'package:iz_mobile/core/localization/locale_provider.dart';
 import 'package:iz_mobile/features/auth/providers/account_provider.dart';
 import 'package:iz_mobile/features/auth/providers/auth_provider.dart';
 import 'package:iz_mobile/features/backup/presentation/screens/backup_screen.dart';
+import 'package:iz_mobile/core/providers/settings_provider.dart';
 
+import 'package:iz_mobile/core/theme/glass_widgets.dart';
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
@@ -17,13 +19,13 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  bool _autoBackup = true;
   bool _includeMedia = false;
 
   @override
   Widget build(BuildContext context) {
     final accountState = ref.watch(accountProvider);
     final activeId = accountState.activeAccountId;
+    final settingsState = ref.watch(settingsProvider);
 
     final activeAcc = accountState.accounts.firstWhere(
       (acc) => acc.id == activeId,
@@ -41,6 +43,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        automaticallyImplyLeading: false,
         surfaceTintColor: Colors.transparent,
         title: Text(
           context.tr(ref, 'settings'),
@@ -51,7 +54,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
         ),
         flexibleSpace: ClipRect(
-          child: BackdropFilter(
+          child: AppBackdropFilter(
             filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
             child: Container(color: AppColors.bgBase.withValues(alpha: 0.7)),
           ),
@@ -124,6 +127,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     trailing: const Icon(Icons.swap_horiz_rounded, color: AppColors.textMuted),
                     onTap: () => ref.read(localeProvider.notifier).toggleLanguage(),
                   ),
+                  const _Divider(),
+                  _SwitchTile(
+                    icon: Icons.speed_rounded,
+                    iconGradient: const LinearGradient(
+                      colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
+                    ),
+                    title: 'Performans Modu',
+                    subtitle: 'Glassmorphism efektlerini kapatarak FPS artışı sağlar. (%20 şarj altında otomatik açılır)',
+                    value: settingsState.performanceMode,
+                    onChanged: (v) => ref.read(settingsProvider.notifier).togglePerformanceMode(),
+                  ),
                 ],
               ),
               const SizedBox(height: 28),
@@ -151,6 +165,57 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     onTap: activeAcc.id.isNotEmpty
                         ? () => context.push('/settings/profile?id=${activeAcc.id}')
                         : null,
+                  ),
+                  const _Divider(),
+                  _GlassTile(
+                    leading: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: [Color(0xFFFFD97D), Color(0xFFFF9E5E)], // Prism Gold
+                        ),
+                      ),
+                      child: const Icon(Icons.diamond_outlined, color: Colors.white, size: 20),
+                    ),
+                    title: 'No-iz Premium',
+                    subtitle: 'Özel ayrıcalıklar, rozetler ve daha fazlası.',
+                    titleColor: const Color(0xFFFFD97D), // Prism Gold highlight
+                    onTap: () => context.push('/settings/premium'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 28),
+
+              // ── Appearance & Performance ─────────────────────────────
+              _sectionTitle('Görünüm ve Performans'),
+              _GlassSection(
+                children: [
+                  _SwitchTile(
+                    icon: Icons.speed,
+                    iconGradient: const LinearGradient(
+                      colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
+                    ),
+                    title: 'Performans Modu (Basic UI)',
+                    subtitle: 'Eski cihazlarda pili ve GPU\'yu korumak için cam efektlerini kapatır.',
+                    value: settingsState.performanceMode,
+                    onChanged: (v) {
+                      ref.read(settingsProvider.notifier).togglePerformanceMode();
+                    },
+                  ),
+                  const _Divider(),
+                  _SwitchTile(
+                    icon: Icons.compress,
+                    iconGradient: const LinearGradient(
+                      colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
+                    ),
+                    title: 'Orijinal Kalitede Gönder',
+                    subtitle: 'Medya dosyalarını sıkıştırmadan (Cloud Lock kotanızı hızla tüketerek) orijinal boyutuyla gönderir.',
+                    value: !settingsState.compressMedia,
+                    onChanged: (v) {
+                      ref.read(settingsProvider.notifier).toggleCompressMedia();
+                    },
                   ),
                 ],
               ),
@@ -191,8 +256,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                     title: context.tr(ref, 'auto_backup'),
                     subtitle: context.tr(ref, 'auto_backup_sub'),
-                    value: _autoBackup,
-                    onChanged: (v) => setState(() => _autoBackup = v),
+                    value: settingsState.autoBackup,
+                    onChanged: (v) => ref.read(settingsProvider.notifier).toggleAutoBackup(v),
                   ),
                   const _Divider(),
                   _SwitchTile(
@@ -408,7 +473,7 @@ class _GlassSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(22),
-      child: BackdropFilter(
+      child: AppBackdropFilter(
         filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
         child: Container(
           decoration: BoxDecoration(

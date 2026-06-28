@@ -3,6 +3,63 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'app_colors.dart';
 
+import 'package:iz_mobile/core/providers/settings_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+class OptionalGlassFilter extends ConsumerWidget {
+  final double sigmaX;
+  final double sigmaY;
+  final Widget child;
+
+  const OptionalGlassFilter({
+    super.key,
+    required this.sigmaX,
+    required this.sigmaY,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isPerf = ref.watch(settingsProvider).performanceMode;
+    if (isPerf) {
+      return Container(
+        color: AppColors.bgElevated.withValues(alpha: 0.95),
+        child: child,
+      );
+    }
+    return BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: sigmaX, sigmaY: sigmaY),
+      child: child,
+    );
+  }
+}
+
+class AppBackdropFilter extends ConsumerWidget {
+  final ImageFilter filter;
+  final Widget? child;
+
+  const AppBackdropFilter({
+    super.key,
+    required this.filter,
+    this.child,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isPerf = ref.watch(settingsProvider).performanceMode;
+    if (isPerf) {
+      return Container(
+        color: AppColors.bgElevated.withValues(alpha: 0.95),
+        child: child,
+      );
+    }
+    return BackdropFilter(
+      filter: filter,
+      child: child,
+    );
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // LiquidGlassCard — iOS 26/27 style frosted glass with prismatic edges
 // Features: multi-layer blur, specular rim light, prismatic tint refraction
@@ -47,8 +104,8 @@ class LiquidGlassCard extends StatelessWidget {
           // ── Layer 1: Blur + glass fill ──────────────────────────────────
           ClipRRect(
             borderRadius: radius,
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
+            child: OptionalGlassFilter(
+              sigmaX: blurSigma, sigmaY: blurSigma,
               child: Container(
                 padding: padding,
                 decoration: BoxDecoration(
@@ -199,8 +256,8 @@ class LiquidGlassSheet extends StatelessWidget {
       children: [
         ClipRRect(
           borderRadius: radius,
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
+          child: OptionalGlassFilter(
+            sigmaX: blurSigma, sigmaY: blurSigma,
             child: Container(
               padding: padding,
               decoration: BoxDecoration(
@@ -337,8 +394,8 @@ class _LiquidGlassButtonState extends State<LiquidGlassButton>
           children: [
             ClipRRect(
               borderRadius: radius,
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+              child: OptionalGlassFilter(
+                sigmaX: 20, sigmaY: 20,
                 child: Container(
                   padding: widget.padding,
                   decoration: BoxDecoration(
@@ -477,8 +534,8 @@ class _LiquidPillTabState extends State<LiquidPillTab>
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(18),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+      child: OptionalGlassFilter(
+        sigmaX: 18, sigmaY: 18,
         child: Container(
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
@@ -506,9 +563,9 @@ class _LiquidPillTabState extends State<LiquidPillTab>
                           children: [
                             ClipRRect(
                               borderRadius: BorderRadius.circular(13),
-                              child: BackdropFilter(
-                                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                                child: Container(
+                              child: OptionalGlassFilter(
+                              sigmaX: 10, sigmaY: 10,
+                              child: Container(
                                   decoration: BoxDecoration(
                                     gradient: const LinearGradient(
                                       begin: Alignment.topLeft,
@@ -711,8 +768,8 @@ class _LiquidIconButtonState extends State<LiquidIconButton>
               ),
             ClipRRect(
               borderRadius: BorderRadius.circular(widget.size / 2.8),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+              child: OptionalGlassFilter(
+                sigmaX: 16, sigmaY: 16,
                 child: Container(
                   width: widget.size,
                   height: widget.size,
@@ -918,8 +975,8 @@ class GlassBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(30),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+      child: OptionalGlassFilter(
+        sigmaX: 20, sigmaY: 20,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
           decoration: BoxDecoration(

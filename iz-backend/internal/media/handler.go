@@ -13,6 +13,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/no-iz/iz-backend/internal/auth"
+	"github.com/no-iz/iz-backend/internal/economy"
 	"github.com/no-iz/iz-backend/pkg/config"
 	"github.com/rs/zerolog"
 )
@@ -26,14 +27,22 @@ type Storage interface {
 // Handler handles HTTP requests for media uploads and downloads.
 type Handler struct {
 	storage Storage
+	economySvc interface {
+		GetUserLimits(ctx context.Context, userID uuid.UUID) (economy.Features, economy.Tier, int64, error)
+		ConsumeStorage(ctx context.Context, userID uuid.UUID, bytes int64) error
+	}
 	cfg     *config.Config
 	log     zerolog.Logger
 }
 
 // NewHandler creates a new HTTP media handler.
-func NewHandler(storage Storage, cfg *config.Config, log zerolog.Logger) *Handler {
+func NewHandler(storage Storage, economySvc interface {
+	GetUserLimits(ctx context.Context, userID uuid.UUID) (economy.Features, economy.Tier, int64, error)
+	ConsumeStorage(ctx context.Context, userID uuid.UUID, bytes int64) error
+}, cfg *config.Config, log zerolog.Logger) *Handler {
 	return &Handler{
 		storage: storage,
+		economySvc: economySvc,
 		cfg:     cfg,
 		log:     log.With().Str("handler", "media").Logger(),
 	}
@@ -47,14 +56,28 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 1. Impose a strict size limit of 50MB (max possible for video) on the request body to prevent DoS attacks.
-	r.Body = http.MaxBytesReader(w, r.Body, 50*1024*1024)
+	uid, _ := uuid.Parse(userID)
+	features, _, storageUsed, err := h.economySvc.GetUserLimits(r.Context(), uid)
+	if err != nil {
+		h.respondError(w, http.StatusInternalServerError, "failed to get user limits")
+		return
+	}
 
-	// 2. Parse multipart form.
-	// We parse with 50MB limit in memory. If request exceeds it, ParseMultipartForm or MaxBytesReader will return an error.
+	// 1. Storage quota check
+	if storageUsed >= features.MaxStorageBytes {
+		w.Header().Set("X-Storage-Error", "cloud_lock")
+		h.respondError(w, http.StatusPaymentRequired, "storage quota exceeded (Cloud Lock Mode: Read Only)")
+		return
+	}
+
+	// 2. Impose dynamic size limit based on subscription tier
+	maxUpload := features.MaxUploadBytes
+	r.Body = http.MaxBytesReader(w, r.Body, maxUpload)
+
+	// 3. Parse multipart form. (Keep 50MB in memory, spool rest to disk)
 	if err := r.ParseMultipartForm(50 * 1024 * 1024); err != nil {
 		if err.Error() == "http: request body too large" {
-			h.respondError(w, http.StatusRequestEntityTooLarge, "file size exceeds the absolute maximum limit of 50MB")
+			h.respondError(w, http.StatusRequestEntityTooLarge, "file size exceeds your subscription's maximum limit")
 			return
 		}
 		h.log.Warn().Err(err).Str("user_id", userID).Msg("failed to parse multipart form")
@@ -115,18 +138,25 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// 5. Enforce size limits per content type
-	limit := int64(10 * 1024 * 1024) // default 10MB (images, audio)
-	if strings.HasPrefix(detected, "video/") || ext == ".mp4" {
-		limit = 50 * 1024 * 1024
-	} else if strings.HasPrefix(detected, "application/pdf") || strings.HasPrefix(detected, "application/msword") || strings.Contains(detected, "document") || ext == ".pdf" || ext == ".doc" || ext == ".docx" {
-		limit = 20 * 1024 * 1024
+	// 5. Enforce dynamic upload size limit (already checked by MaxBytesReader but good for exact header check)
+	if header.Size > features.MaxUploadBytes {
+		h.log.Warn().Str("user_id", userID).Int64("size", header.Size).Int64("limit", features.MaxUploadBytes).Msg("file size exceeds limit")
+		h.respondError(w, http.StatusRequestEntityTooLarge, "file size exceeds the maximum limit for your subscription")
+		return
+	}
+	
+	// Check if this upload will exceed total storage limit
+	if storageUsed+header.Size > features.MaxStorageBytes {
+		w.Header().Set("X-Storage-Error", "cloud_lock")
+		h.respondError(w, http.StatusPaymentRequired, "this upload will exceed your storage quota (Cloud Lock)")
+		return
 	}
 
-	if header.Size > limit {
-		h.log.Warn().Str("user_id", userID).Int64("size", header.Size).Int64("limit", limit).Msg("file size exceeds limit for type")
-		h.respondError(w, http.StatusRequestEntityTooLarge, "file size exceeds the maximum limit for this file type")
-		return
+	// 80% Warning header
+	warningHeader := ""
+	if float64(storageUsed+header.Size) >= float64(features.MaxStorageBytes)*0.8 {
+		warningHeader = "StorageWarning: quota_almost_full"
+		w.Header().Set("X-Storage-Warning", "80_percent_reached")
 	}
 
 	// 6. Generate unique, unpredictable, path-traversal immune filename via UUIDv4.
@@ -153,19 +183,24 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 8. Return metadata to the client.
+	// Consume storage limit
+	if err := h.economySvc.ConsumeStorage(r.Context(), uid, header.Size); err != nil {
+		h.log.Error().Err(err).Msg("failed to update storage usage")
+	}
+
+	// 9. Return metadata to the client.
 	downloadPath := fmt.Sprintf("/api/media/download/%s", uploadedKey)
 	if isAvatar {
 		downloadPath = fmt.Sprintf("/api/media/download/%s?type=avatar", uploadedKey)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(map[string]interface{}{
-		"key":          uploadedKey,
-		"url":          downloadPath,
-		"size":         header.Size,
-		"content_type": contentType,
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"url":       downloadPath,
+		"filename":  newFilename,
+		"size":      header.Size,
+		"mime_type": contentType,
+		"warning":   warningHeader,
 	})
 }
 

@@ -60,6 +60,12 @@ const (
 	WSEventError        WSEventType = "error"
 	WSEventPing         WSEventType = "ping"
 	WSEventPong         WSEventType = "pong"
+	WSEventDeviceSyncOffer     WSEventType = "device_sync_offer"
+	WSEventDeviceSyncAnswer    WSEventType = "device_sync_answer"
+	WSEventDeviceSyncCandidate WSEventType = "device_sync_candidate"
+	WSEventP2POffer            WSEventType = "p2p_message_offer"
+	WSEventP2PAnswer           WSEventType = "p2p_message_answer"
+	WSEventP2PCandidate        WSEventType = "p2p_message_ice"
 )
 
 // WSEnvelope is the top-level wrapper for all WebSocket messages.

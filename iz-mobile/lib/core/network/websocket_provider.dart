@@ -6,6 +6,8 @@ import '../../features/messages/providers/message_model.dart';
 import '../../core/database/outbound_queue.dart';
 import '../../features/call/providers/call_provider.dart';
 import '../../features/call/models/call_session.dart';
+import '../../features/device_sync/providers/device_sync_provider.dart';
+import '../../features/messages/providers/p2p_provider.dart';
 import 'websocket_service.dart';
 
 /// Tracks which conversation is currently open on screen.
@@ -319,6 +321,30 @@ final webSocketProvider = Provider<WebSocketService?>((ref) {
           userId: userId,
           action: action,
         );
+      }
+
+      else if (type == 'device_sync_offer') {
+        ref.read(deviceSyncProvider.notifier).handleOffer(data['payload'] as Map<String, dynamic>);
+      }
+      else if (type == 'device_sync_answer') {
+        ref.read(deviceSyncProvider.notifier).handleAnswer(data['payload'] as Map<String, dynamic>);
+      }
+      else if (type == 'device_sync_candidate') {
+        ref.read(deviceSyncProvider.notifier).handleCandidate(data['payload'] as Map<String, dynamic>);
+      }
+
+      // ── P2P Messaging ───────────────────────────────────────────────────
+      else if (type == 'p2p_message_offer') {
+        final payload = data['payload'] as Map<String, dynamic>;
+        ref.read(p2pProvider.notifier).handleOffer(payload['from_id'], payload['sdp']);
+      }
+      else if (type == 'p2p_message_answer') {
+        final payload = data['payload'] as Map<String, dynamic>;
+        ref.read(p2pProvider.notifier).handleAnswer(payload['from_id'], payload['sdp']);
+      }
+      else if (type == 'p2p_message_ice') {
+        final payload = data['payload'] as Map<String, dynamic>;
+        ref.read(p2pProvider.notifier).handleIceCandidate(payload['from_id'], payload['candidate']);
       }
 
       else if (type == 'error') {

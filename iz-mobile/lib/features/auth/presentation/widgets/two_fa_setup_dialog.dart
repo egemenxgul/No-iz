@@ -8,6 +8,7 @@ import 'package:iz_mobile/features/auth/providers/auth_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'auth_widgets.dart';
 
+import 'package:iz_mobile/core/theme/glass_widgets.dart';
 class TwoFASetupDialog extends ConsumerStatefulWidget {
   const TwoFASetupDialog({super.key});
 
@@ -84,7 +85,7 @@ class _TwoFASetupDialogState extends ConsumerState<TwoFASetupDialog> {
       elevation: 0,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
-        child: BackdropFilter(
+        child: AppBackdropFilter(
           filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
           child: Container(
             padding: const EdgeInsets.all(24),

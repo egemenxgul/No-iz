@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:iz_mobile/core/theme/app_colors.dart';
 import '../../providers/backup_provider.dart';
 
+import 'package:iz_mobile/core/theme/glass_widgets.dart';
 class BackupScreen extends ConsumerStatefulWidget {
   const BackupScreen({super.key});
 
@@ -46,7 +47,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
-        builder: (context, setModal) => BackdropFilter(
+        builder: (context, setModal) => AppBackdropFilter(
           filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
           child: AlertDialog(
             backgroundColor: Colors.transparent,
@@ -54,7 +55,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
             contentPadding: EdgeInsets.zero,
             content: ClipRRect(
               borderRadius: BorderRadius.circular(28),
-              child: BackdropFilter(
+              child: AppBackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                 child: Container(
                   padding: const EdgeInsets.all(24),
@@ -124,7 +125,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
                       // Password field
                       ClipRRect(
                         borderRadius: BorderRadius.circular(16),
-                        child: BackdropFilter(
+                        child: AppBackdropFilter(
                           filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
                           child: TextField(
                             controller: _passwordController,
@@ -301,7 +302,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
         margin: const EdgeInsets.all(16),
         content: ClipRRect(
           borderRadius: BorderRadius.circular(18),
-          child: BackdropFilter(
+          child: AppBackdropFilter(
             filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
             child: Container(
               padding:
@@ -352,7 +353,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(kToolbarHeight),
           child: ClipRect(
-            child: BackdropFilter(
+            child: AppBackdropFilter(
               filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
               child: AppBar(
                 backgroundColor: AppColors.bgBase.withValues(alpha: 0.75),
@@ -401,7 +402,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
                     // ── Zero-Knowledge Banner ───────────────────────────
                     ClipRRect(
                       borderRadius: BorderRadius.circular(28),
-                      child: BackdropFilter(
+                      child: AppBackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                         child: Container(
                           padding: const EdgeInsets.all(24),
@@ -547,7 +548,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
                       const SizedBox(height: 24),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(16),
-                        child: BackdropFilter(
+                        child: AppBackdropFilter(
                           filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
                           child: Container(
                             padding: const EdgeInsets.all(14),
@@ -592,7 +593,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
   Widget _buildLoadingState() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
-      child: BackdropFilter(
+      child: AppBackdropFilter(
         filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 24),

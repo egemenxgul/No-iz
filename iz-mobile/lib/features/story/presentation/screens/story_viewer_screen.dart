@@ -9,6 +9,7 @@ import '../../models/story_model.dart';
 import '../../providers/story_provider.dart';
 import '../../../messages/providers/media_upload_service.dart';
 
+import 'package:iz_mobile/core/theme/glass_widgets.dart';
 class StoryViewerScreen extends ConsumerStatefulWidget {
   final FriendStoryFeedModel feedItem;
 
@@ -251,7 +252,7 @@ class _StoryViewerScreenState extends ConsumerState<StoryViewerScreen>
                     padding: const EdgeInsets.fromLTRB(24, 48, 24, 56),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(18),
-                      child: BackdropFilter(
+                      child: AppBackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
@@ -407,7 +408,7 @@ class _StoryViewerScreenState extends ConsumerState<StoryViewerScreen>
                             onTap: () => Navigator.pop(context),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(12),
-                              child: BackdropFilter(
+                              child: AppBackdropFilter(
                                 filter:
                                     ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                                 child: Container(
@@ -474,7 +475,7 @@ class _StoryViewerScreenState extends ConsumerState<StoryViewerScreen>
       padding: const EdgeInsets.all(32),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
-        child: BackdropFilter(
+        child: AppBackdropFilter(
           filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
           child: Container(
             padding: const EdgeInsets.all(28),

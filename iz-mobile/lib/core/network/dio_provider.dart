@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import '../../main.dart';
 import '../constants/app_constants.dart';
+import 'package:flutter/material.dart';
 
 const _storage = FlutterSecureStorage();
 
@@ -32,6 +33,9 @@ LogoutCallback? _onForceLogout;
 /// force-logout callback so the interceptor can redirect to login.
 void registerLogoutCallback(LogoutCallback cb) => _onForceLogout = cb;
 
+/// A global provider to track if the user is in "Cloud Lock" read-only mode.
+final cloudLockProvider = StateProvider<bool>((ref) => false);
+
 final dioProvider = Provider<Dio>((ref) {
   final dio = Dio(BaseOptions(
     baseUrl: AppConstants.baseUrl,
@@ -49,12 +53,44 @@ final dioProvider = Provider<Dio>((ref) {
       return handler.next(options);
     },
 
+    // ── 1.5 Intercept Responses for Storage Warning ──────────────────
+    onResponse: (response, handler) {
+      if (response.headers.value('x-storage-warning') == '80_percent_reached') {
+        final context = rootNavigatorKey.currentContext;
+        if (context != null && context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Bulut alanı dolmak üzere (%80), yerel depolamaya geçilecek.'),
+              backgroundColor: Colors.orange,
+              duration: Duration(seconds: 4),
+            ),
+          );
+        }
+      }
+      return handler.next(response);
+    },
+
     // ── 2. Transparent token refresh on 401 ──────────────────────────
     onError: (DioException e, handler) async {
+      // Handle Cloud Lock (HTTP 402 with specific header)
+      if (e.response?.statusCode == 402 && e.response?.headers.value('x-storage-error') == 'cloud_lock') {
+        ref.read(cloudLockProvider.notifier).state = true;
+      }
       // Only handle 401 Unauthorized; skip the refresh endpoint itself.
       final isRefreshCall =
           e.requestOptions.path.contains('/api/auth/refresh');
       if (e.response?.statusCode != 401 || isRefreshCall) {
+        if (e.response?.statusCode == 413) {
+          final context = rootNavigatorKey.currentContext;
+          if (context != null && context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Depolama limitiniz doldu! Cihaz depolamasına geçiliyor...'),
+                backgroundColor: Colors.redAccent,
+              ),
+            );
+          }
+        }
         return handler.next(e);
       }
 

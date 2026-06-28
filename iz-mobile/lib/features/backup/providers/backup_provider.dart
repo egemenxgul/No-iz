@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/database_service.dart';
 import '../../auth/providers/account_provider.dart';
 import '../../messages/providers/chat_provider.dart';
+import '../../../core/crypto/crypto_providers.dart';
 import 'backup_service.dart';
 
 class BackupState {
@@ -40,7 +41,7 @@ class BackupNotifier extends Notifier<BackupState> {
 	final _aesGcm = AesGcm.with256bits();
 	final _pbkdf2 = Pbkdf2(
 		macAlgorithm: Hmac(Sha256()),
-		iterations: 10000,
+		iterations: 600000,
 		bits: 256,
 	);
 
@@ -87,14 +88,29 @@ class BackupNotifier extends Notifier<BackupState> {
 
 			// 1. Fetch all local SQLite tables
 			final conversations = await db.query('conversations');
-			final messages = await db.query('messages');
+			final messages = await db.query(
+				'messages',
+				orderBy: 'created_at DESC',
+				limit: 1000,
+			);
 			final signalKeys = await db.query('signal_keys');
 
-			// 2. Build structured JSON payload
+			// 2. Fetch Secure Storage Identity Keys (Key Escrow)
+			final storage = ref.read(storageProvider);
+			final secureStorageData = {
+				'auth_identity_priv': await storage.read(key: 'auth_identity_priv'),
+				'auth_identity_pub': await storage.read(key: 'auth_identity_pub'),
+				'auth_spk_priv': await storage.read(key: 'auth_spk_priv'),
+				'auth_spk_pub': await storage.read(key: 'auth_spk_pub'),
+				'db_key_$activeAccountId': await storage.read(key: 'db_key_$activeAccountId'),
+			};
+
+			// 3. Build structured JSON payload
 			final payloadMap = {
 				'conversations': conversations,
 				'messages': messages,
 				'signal_keys': signalKeys,
+				'secure_storage': secureStorageData,
 			};
 			final payloadString = jsonEncode(payloadMap);
 			final payloadBytes = utf8.encode(payloadString);
@@ -171,7 +187,20 @@ class BackupNotifier extends Notifier<BackupState> {
 			final payloadString = utf8.decode(decryptedBytes);
 			final payloadMap = jsonDecode(payloadString) as Map<String, dynamic>;
 
-			// 4. Overwrite SQLite database records
+			// 4. Restore Secure Storage Identity Keys (Key Escrow) FIRST
+			// This is critical. The active DB key and E2E keys must be restored
+			// before we attempt to open the DB or load the chat provider.
+			final secureStorageData = payloadMap['secure_storage'] as Map<String, dynamic>?;
+			if (secureStorageData != null) {
+				final storage = ref.read(storageProvider);
+				for (final entry in secureStorageData.entries) {
+					if (entry.value != null) {
+						await storage.write(key: entry.key, value: entry.value.toString());
+					}
+				}
+			}
+
+			// 5. Overwrite SQLite database records
 			final db = await DatabaseService().getDatabase(activeAccountId);
 
 			await db.transaction((txn) async {
@@ -215,6 +244,59 @@ class BackupNotifier extends Notifier<BackupState> {
 			);
 			rethrow;
 		}
+	}
+
+	/// Archival logic to run in background:
+	/// Encrypts messages older than X days or beyond limit, uploads to Vault, and deletes from SQLite.
+	Future<void> archiveOldMessagesToVault(String password, String conversationId) async {
+		// Example architecture implementation for Cloud Storage mode
+		final activeAccountId = ref.read(accountProvider).activeAccountId ?? 'default';
+		final db = await DatabaseService().getDatabase(activeAccountId);
+		final settings = ref.read(settingsProvider);
+		
+		if (settings.storageMode == StorageMode.device) return; // Do not archive to cloud
+		
+		final oldMessages = await db.query(
+			'messages',
+			where: 'conversation_id = ?',
+			whereArgs: [conversationId],
+			orderBy: 'created_at ASC',
+			limit: 100, // Process 100 at a time
+			offset: 1000, // Keep last 1000 locally
+		);
+
+		if (oldMessages.isEmpty) return;
+
+		final saltBytes = _generateSalt();
+		final secretKey = await _deriveKey(password, saltBytes);
+
+		final vaultPayload = [];
+		for (final map in oldMessages) {
+			final msgBytes = utf8.encode(jsonEncode(map));
+			final nonce = _aesGcm.newNonce();
+			final secretBox = await _aesGcm.encrypt(msgBytes, secretKey: secretKey, nonce: nonce);
+			final encryptedBytes = Uint8List.fromList(secretBox.concatenation());
+			
+			vaultPayload.add({
+				'id': map['id'],
+				'conversation_id': conversationId,
+				'ciphertext': base64Encode(encryptedBytes), // Contains nonce + ciphertext + mac
+				'msg_type': map['msg_type'],
+				'original_created_at': map['created_at'],
+			});
+		}
+
+		// Upload to Cloud Vault
+		final service = ref.read(backupServiceProvider);
+		await service.saveVaultMessages(vaultPayload);
+
+		// Delete from local SQLite ONLY after successful upload
+		final idsToDelete = oldMessages.map((e) => e['id']).toList();
+		await db.delete(
+			'messages',
+			where: 'id IN (${List.filled(idsToDelete.length, '?').join(',')})',
+			whereArgs: idsToDelete,
+		);
 	}
 }
 

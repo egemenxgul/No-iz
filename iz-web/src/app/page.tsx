@@ -1,131 +1,154 @@
 'use client';
+
 import Link from 'next/link';
-import styles from './page.module.css';
 import ThemeToggle from '@/components/ThemeToggle';
 import LanguageToggle from '@/components/LanguageToggle';
 import { useI18n } from '@/lib/i18n/I18nContext';
+import { Button } from '@/components/ui/button';
+import { Shield, MessageCircle, Users, Globe, Phone, EyeOff, ArrowRight } from 'lucide-react';
 
 export default function LandingPage() {
   const { t } = useI18n();
 
   const features = [
     {
-      icon: '🔐',
+      icon: <Shield className="w-6 h-6 text-indigo-400" />,
       title: t('landing.features.signal.title'),
       desc: t('landing.features.signal.desc'),
     },
     {
-      icon: '💬',
+      icon: <MessageCircle className="w-6 h-6 text-blue-400" />,
       title: t('landing.features.instant.title'),
       desc: t('landing.features.instant.desc'),
     },
     {
-      icon: '👥',
+      icon: <Users className="w-6 h-6 text-purple-400" />,
       title: t('landing.features.groups.title'),
       desc: t('landing.features.groups.desc'),
     },
     {
-      icon: '🌐',
+      icon: <Globe className="w-6 h-6 text-pink-400" />,
       title: t('landing.features.communities.title'),
       desc: t('landing.features.communities.desc'),
     },
     {
-      icon: '📞',
+      icon: <Phone className="w-6 h-6 text-green-400" />,
       title: t('landing.features.calls.title'),
       desc: t('landing.features.calls.desc'),
     },
     {
-      icon: '🕵️',
+      icon: <EyeOff className="w-6 h-6 text-red-400" />,
       title: t('landing.features.blind.title'),
       desc: t('landing.features.blind.desc'),
     },
   ];
 
   return (
-    <main className={styles.landing}>
-      {/* Background orbs */}
-      <div className={styles.orb1} />
-      <div className={styles.orb2} />
-      <div className={styles.orb3} />
+    <main className="relative min-h-screen overflow-hidden flex flex-col">
+      {/* Background Orbs */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-600/20 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-5%] w-[50%] h-[50%] rounded-full bg-purple-600/20 blur-[150px] pointer-events-none" />
+      <div className="absolute top-[30%] left-[60%] w-[30%] h-[30%] rounded-full bg-blue-500/10 blur-[100px] pointer-events-none" />
 
-      {/* Nav */}
-      <nav className={styles.nav}>
-        <div className={styles.logo}>
-          <span className={styles.logoMark}>iz</span>
+      {/* Navigation */}
+      <nav className="relative z-10 flex items-center justify-between px-6 py-4 md:px-12 md:py-6 max-w-7xl mx-auto w-full">
+        <div className="flex items-center gap-2">
+          <span className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-indigo-400 to-purple-400">iz</span>
         </div>
-        <div className={styles.navLinks}>
+        <div className="flex items-center gap-4">
           <LanguageToggle />
           <ThemeToggle />
-          <Link href="/login" className={styles.navLink}>{t('landing.login')}</Link>
-          <Link href="/register" className={styles.navCta}>{t('landing.start')}</Link>
+          <div className="hidden sm:flex items-center gap-4">
+            <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              {t('landing.login')}
+            </Link>
+            <Button asChild className="rounded-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/25 transition-all">
+              <Link href="/register">{t('landing.start')}</Link>
+            </Button>
+          </div>
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className={styles.hero}>
-        <div className={styles.heroBadge}>
-          <span className={styles.badgeDot} />
-          <span>{t('landing.encrypted')}</span>
+      {/* Hero Section */}
+      <section className="relative z-10 flex flex-col items-center justify-center text-center px-4 pt-20 pb-32 flex-1">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass border border-white/10 mb-8 animate-fade-in">
+          <span className="flex w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+          <span className="text-sm font-medium text-muted-foreground">{t('landing.encrypted')}</span>
         </div>
 
-        <h1 className={styles.heroTitle}>
+        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight max-w-4xl animate-fade-in [animation-delay:100ms] opacity-0" style={{ animationFillMode: 'forwards' }}>
           {t('landing.hero_title')}
-          <br />
-          <span className="gradient-text">{t('landing.hero_subtitle')}</span>
+          <br className="hidden sm:block" />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
+            {t('landing.hero_subtitle')}
+          </span>
         </h1>
 
-        <p className={styles.heroSubtitle}>
+        <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-2xl animate-fade-in [animation-delay:200ms] opacity-0" style={{ animationFillMode: 'forwards' }}>
           {t('landing.hero_desc')}
         </p>
 
-        <div className={styles.heroActions}>
-          <Link href="/register" className={styles.ctaPrimary} id="get-started-btn">
-            {t('landing.cta_start')}
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </Link>
-          <Link href="/login" className={styles.ctaSecondary} id="login-btn">
-            {t('landing.cta_login')}
-          </Link>
+        <div className="mt-10 flex flex-col sm:flex-row items-center gap-4 animate-fade-in [animation-delay:300ms] opacity-0" style={{ animationFillMode: 'forwards' }}>
+          <Button asChild size="lg" className="rounded-full px-8 bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-500/30 transition-all hover:scale-105 group">
+            <Link href="/register">
+              {t('landing.cta_start')}
+              <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </Button>
+          <Button asChild size="lg" variant="outline" className="rounded-full px-8 glass hover:bg-white/5 border-white/10 transition-all">
+            <Link href="/login">
+              {t('landing.cta_login')}
+            </Link>
+          </Button>
         </div>
 
-        {/* Stats */}
-        <div className={styles.stats}>
-          <div className={styles.stat}>
-            <span className={styles.statNum}>E2EE</span>
-            <span className={styles.statLabel}>{t('landing.stat_encryption')}</span>
+        {/* Stats Section */}
+        <div className="mt-20 grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12 w-full max-w-3xl animate-fade-in [animation-delay:400ms] opacity-0" style={{ animationFillMode: 'forwards' }}>
+          <div className="flex flex-col items-center gap-2">
+            <span className="text-4xl font-bold text-foreground">E2EE</span>
+            <span className="text-sm text-muted-foreground font-medium">{t('landing.stat_encryption')}</span>
           </div>
-          <div className={styles.statDivider} />
-          <div className={styles.stat}>
-            <span className={styles.statNum}>0</span>
-            <span className={styles.statLabel}>{t('landing.stat_access')}</span>
+          <div className="hidden sm:block w-[1px] h-12 bg-border mx-auto" />
+          <div className="flex flex-col items-center gap-2">
+            <span className="text-4xl font-bold text-foreground">0</span>
+            <span className="text-sm text-muted-foreground font-medium">{t('landing.stat_access')}</span>
           </div>
-          <div className={styles.statDivider} />
-          <div className={styles.stat}>
-            <span className={styles.statNum}>500K</span>
-            <span className={styles.statLabel}>{t('app.communities')}</span>
+          <div className="hidden sm:block w-[1px] h-12 bg-border mx-auto" />
+          <div className="flex flex-col items-center gap-2">
+            <span className="text-4xl font-bold text-foreground">500K</span>
+            <span className="text-sm text-muted-foreground font-medium">{t('app.communities')}</span>
           </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section className={styles.features}>
-        {features.map((f, i) => (
-          <div key={i} className={styles.featureCard}>
-            <div className={styles.featureIcon}>{f.icon}</div>
-            <h3 className={styles.featureTitle}>{f.title}</h3>
-            <p className={styles.featureDesc}>{f.desc}</p>
-          </div>
-        ))}
+      {/* Features Section */}
+      <section className="relative z-10 max-w-7xl mx-auto px-6 py-24 w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {features.map((feature, i) => (
+            <div 
+              key={i} 
+              className="glass p-8 rounded-3xl hover:bg-white/[0.02] transition-colors border-white/5 hover:border-white/10 flex flex-col gap-4 animate-fade-in opacity-0"
+              style={{ animationDelay: `\${500 + i * 100}ms`, animationFillMode: 'forwards' }}
+            >
+              <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center border border-white/5">
+                {feature.icon}
+              </div>
+              <h3 className="text-xl font-semibold text-foreground">{feature.title}</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                {feature.desc}
+              </p>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* Footer */}
-      <footer className={styles.footer}>
-        <span className={styles.footerLogo}>iz</span>
-        <span className={styles.footerText}>{t('landing.footer')}</span>
+      <footer className="relative z-10 border-t border-border/40 mt-auto">
+        <div className="max-w-7xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <span className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-indigo-400 to-purple-400">iz</span>
+          <span className="text-sm text-muted-foreground">{t('landing.footer')}</span>
+        </div>
       </footer>
     </main>
   );
 }
-

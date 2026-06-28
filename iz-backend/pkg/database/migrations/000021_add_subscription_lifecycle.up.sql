@@ -1,0 +1,3 @@
+ALTER TABLE users 
+ADD COLUMN subscription_period_end TIMESTAMP WITH TIME ZONE DEFAULT NOW() + INTERVAL '30 days',
+ADD COLUMN scheduled_downgrade_tier VARCHAR(20) DEFAULT NULL;

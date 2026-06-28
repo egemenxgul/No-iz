@@ -8,9 +8,12 @@ import 'package:iz_mobile/core/theme/app_colors.dart';
 import 'package:iz_mobile/core/localization/locale_provider.dart';
 import 'package:iz_mobile/features/auth/providers/auth_provider.dart';
 import 'package:iz_mobile/features/auth/providers/apple_auth_service.dart';
+import 'package:iz_mobile/features/backup/providers/backup_provider.dart';
+import 'package:iz_mobile/features/backup/providers/backup_service.dart';
 import '../widgets/auth_widgets.dart';
 import '../widgets/forgot_password_sheet.dart';
 
+import 'package:iz_mobile/core/theme/glass_widgets.dart';
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -125,8 +128,125 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         ),
       );
     } else if (newState.isAuthenticated) {
-      context.go('/app');
+      // Check if a cloud backup exists
+      try {
+        final backupService = ref.read(backupServiceProvider);
+        final backup = await backupService.getBackup();
+        if (backup != null && mounted) {
+          // Backup exists, prompt for restore
+          _showRestorePrompt();
+        } else {
+          // No backup, proceed to app (keys will be generated in ChatProvider)
+          context.go('/app');
+        }
+      } catch (e) {
+        // Error checking backup, just proceed
+        if (mounted) context.go('/app');
+      }
     }
+  }
+
+  void _showRestorePrompt() {
+    final pwdController = TextEditingController();
+    bool isRestoring = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx).viewInsets.bottom,
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: AppColors.bgBase,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              border: Border.all(color: AppColors.glassBorder, width: 1),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.glassBorder, borderRadius: BorderRadius.circular(2))),
+                const SizedBox(height: 24),
+                const Icon(Icons.cloud_download_rounded, color: AppColors.accent, size: 48),
+                const SizedBox(height: 16),
+                Text(
+                  'Bulut Yedeği Bulundu',
+                  style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Daha önce web\'den veya başka bir cihazdan aldığınız uçtan uca şifreli bulut yedeğiniz (Cloud Backup) bulundu. Geri yüklemek için yedekleme şifrenizi girin.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary),
+                ),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: pwdController,
+                  obscureText: true,
+                  style: GoogleFonts.inter(color: Colors.white),
+                  decoration: InputDecoration(
+                    hintText: 'Yedekleme Şifresi',
+                    hintStyle: GoogleFonts.inter(color: AppColors.textMuted),
+                    filled: true,
+                    fillColor: AppColors.glassDark,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                if (isRestoring)
+                  const CircularProgressIndicator(color: AppColors.accent)
+                else
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            context.go('/app'); // Skip and generate new keys
+                          },
+                          child: Text('Atla (Yeni Anahtar Üret)', style: GoogleFonts.inter(color: AppColors.textMuted)),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.accent,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          ),
+                          onPressed: () async {
+                            final pwd = pwdController.text.trim();
+                            if (pwd.isEmpty) return;
+                            setModalState(() => isRestoring = true);
+                            try {
+                              await ref.read(backupProvider.notifier).downloadAndRestoreBackup(pwd);
+                              if (ctx.mounted) {
+                                Navigator.pop(ctx);
+                                context.go('/app');
+                              }
+                            } catch (e) {
+                              setModalState(() => isRestoring = false);
+                              if (ctx.mounted) {
+                                ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text('Hata: Şifre yanlış olabilir.')));
+                              }
+                            }
+                          },
+                          child: Text('Geri Yükle', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w700)),
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -575,7 +695,7 @@ class _IzGlassCard extends StatelessWidget {
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(28),
-          child: BackdropFilter(
+          child: AppBackdropFilter(
             filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
             child: Container(
               padding: const EdgeInsets.all(24),

@@ -3,12 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:iz_mobile/features/auth/providers/account_provider.dart';
 import 'package:iz_mobile/core/theme/app_colors.dart';
 import 'package:iz_mobile/core/theme/glass_widgets.dart';
 import 'package:iz_mobile/core/localization/locale_provider.dart';
-import 'package:iz_mobile/features/auth/providers/account_provider.dart';
 import 'package:iz_mobile/features/auth/providers/auth_provider.dart';
 import 'package:iz_mobile/features/auth/presentation/widgets/change_email_dialog.dart';
+import 'package:iz_mobile/features/economy/providers/subscription_provider.dart';
 
 class ProfileDetailScreen extends ConsumerStatefulWidget {
   final String accountId;
@@ -137,7 +138,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
         margin: const EdgeInsets.all(16),
         content: ClipRRect(
           borderRadius: BorderRadius.circular(18),
-          child: BackdropFilter(
+          child: AppBackdropFilter(
             filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
             child: Container(
               padding: const EdgeInsets.all(14),
@@ -185,7 +186,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
       builder: (ctx) {
         return ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-          child: BackdropFilter(
+          child: AppBackdropFilter(
             filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
             child: Container(
               decoration: BoxDecoration(
@@ -294,7 +295,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
                   const SizedBox(height: 10),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(18),
-                    child: BackdropFilter(
+                    child: AppBackdropFilter(
                       filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                       child: TextField(
                         controller: textController,
@@ -380,7 +381,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
           ),
         ),
         flexibleSpace: ClipRect(
-          child: BackdropFilter(
+          child: AppBackdropFilter(
             filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
             child: Container(color: AppColors.bgBase.withValues(alpha: 0.6)),
           ),
@@ -500,12 +501,38 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
 
                 // ── Status badge ──────────────────────────────────────
                 Center(
-                  child: GlassBadge(
-                    label: isActive
-                        ? context.tr(ref, 'active_account')
-                        : context.tr(ref, 'switch_account_tap'),
-                    color: isActive ? AppColors.success : AppColors.textMuted,
-                    icon: isActive ? Icons.verified_rounded : Icons.swap_horiz_rounded,
+                  child: Consumer(
+                    builder: (context, ref, _) {
+                      final isElite = account.subscriptionTier == 'elite';
+                      final isPro = account.subscriptionTier == 'pro';
+                      final isPlus = account.subscriptionTier == 'plus';
+                      
+                      String label = isActive ? context.tr(ref, 'active_account') : context.tr(ref, 'switch_account_tap');
+                      Color color = isActive ? AppColors.success : AppColors.textMuted;
+                      IconData icon = isActive ? Icons.check_circle_outline_rounded : Icons.swap_horiz_rounded;
+                      
+                      if (isActive) {
+                        if (isElite) {
+                          label = 'Elite Üye';
+                          color = const Color(0xFFFFD97D);
+                          icon = Icons.diamond_outlined;
+                        } else if (isPro) {
+                          label = 'Pro Üye';
+                          color = const Color(0xFF8B5CF6);
+                          icon = Icons.diamond_outlined;
+                        } else if (isPlus) {
+                          label = 'Plus Üye';
+                          color = const Color(0xFF3B82F6);
+                          icon = Icons.diamond_outlined;
+                        }
+                      }
+                      
+                      return GlassBadge(
+                        label: label,
+                        color: color,
+                        icon: icon,
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(height: 36),
@@ -581,6 +608,42 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
                     ),
                   ),
                   const SizedBox(height: 20),
+                  
+                  // ── Abonelik ───────────────────────────────────────
+                  _fieldLabel('Abonelik Paketi'),
+                  GestureDetector(
+                    onTap: _isLoading
+                        ? null
+                        : () {
+                            context.push('/economy');
+                          },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      decoration: BoxDecoration(
+                        color: AppColors.glassLight,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: AppColors.glassBorder, width: 0.5),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.workspace_premium_outlined, color: Colors.amber, size: 20),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Text(
+                              'Aboneliği Yönet / Yükselt',
+                              style: GoogleFonts.inter(
+                                color: AppColors.textPrimary,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted, size: 20),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
                 ],
 
                 // ── Bio ────────────────────────────────────────────────
@@ -625,7 +688,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
 
           // Loading overlay
           if (_isLoading)
-            BackdropFilter(
+            AppBackdropFilter(
               filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
               child: Container(
                 color: Colors.black.withValues(alpha: 0.4),
@@ -693,7 +756,7 @@ class _GlassField extends StatelessWidget {
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(18),
-      child: BackdropFilter(
+      child: AppBackdropFilter(
         filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
         child: TextField(
           controller: controller,
@@ -808,7 +871,7 @@ class _DangerButton extends StatelessWidget {
       onTap: onTap,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(18),
-        child: BackdropFilter(
+        child: AppBackdropFilter(
           filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
           child: Container(
             width: double.infinity,

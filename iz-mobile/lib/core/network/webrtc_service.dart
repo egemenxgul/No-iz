@@ -4,6 +4,7 @@ class WebrtcService {
   final Map<String, RTCPeerConnection> _peerConnections = {};
   final Map<String, MediaStream> _remoteStreams = {};
   final Map<String, RTCVideoRenderer> remoteRenderers = {};
+  final Map<String, RTCDataChannel> _dataChannels = {};
 
   MediaStream? _localStream;
 
@@ -13,7 +14,10 @@ class WebrtcService {
 
   Function(String peerId, RTCVideoRenderer renderer)? onRemoteRendererAdded;
   Function(String peerId)? onRemoteRendererRemoved;
+  Function(String peerId, String message)? onDataMessage;
 
+  bool forceRelay = false;
+  String tier = 'free';
   bool _initialized = false;
 
   Future<void> initializeRenderers() async {
@@ -84,9 +88,25 @@ class WebrtcService {
   ) async {
     // 1. Get user media if not already captured
     if (_localStream == null) {
+      String minWidth = '1280';
+      String minHeight = '720';
+      if (tier == 'pro' || tier == 'elite') {
+        minWidth = '3840';
+        minHeight = '2160';
+      } else if (tier == 'plus') {
+        minWidth = '1920';
+        minHeight = '1080';
+      }
+
       final mediaConstraints = {
         'audio': true,
-        'video': isVideo ? {'facingMode': 'user'} : false,
+        'video': isVideo ? {
+          'facingMode': 'user',
+          'mandatory': {
+            'minWidth': minWidth,
+            'minHeight': minHeight,
+          }
+        } : false,
       };
       _localStream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
       localRenderer.srcObject = _localStream;
@@ -98,7 +118,14 @@ class WebrtcService {
     final configuration = {
       'iceServers': [
         {'urls': 'stun:stun.l.google.com:19302'},
-      ]
+        if (forceRelay)
+          {
+            'urls': 'turn:turn.no-iz.app:3478', // Default TURN for premium
+            'username': 'iz_premium',
+            'credential': 'iz_premium_password'
+          }
+      ],
+      if (forceRelay) 'iceTransportPolicy': 'relay',
     };
     final constraints = {
       'mandatory': {},
@@ -137,6 +164,15 @@ class WebrtcService {
       'optional': [],
     };
     RTCSessionDescription offer = await pc.createOffer(offerConstraints);
+    
+    // Modify SDP for audio bitrate
+    final isHighBitrate = tier == 'plus' || tier == 'pro' || tier == 'elite';
+    final bitrate = isHighBitrate ? '128' : '32';
+    offer.sdp = offer.sdp?.replaceAll(
+      'a=mid:audio\r\n', 
+      'a=mid:audio\r\nb=AS:$bitrate\r\n'
+    );
+
     await pc.setLocalDescription(offer);
 
     return offer;
@@ -150,9 +186,25 @@ class WebrtcService {
   ) async {
     // 1. Get user media if not already captured
     if (_localStream == null) {
+      String minWidth = '1280';
+      String minHeight = '720';
+      if (tier == 'pro' || tier == 'elite') {
+        minWidth = '3840';
+        minHeight = '2160';
+      } else if (tier == 'plus') {
+        minWidth = '1920';
+        minHeight = '1080';
+      }
+
       final mediaConstraints = {
         'audio': true,
-        'video': isVideo ? {'facingMode': 'user'} : false,
+        'video': isVideo ? {
+          'facingMode': 'user',
+          'mandatory': {
+            'minWidth': minWidth,
+            'minHeight': minHeight,
+          }
+        } : false,
       };
       _localStream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
       localRenderer.srcObject = _localStream;
@@ -164,7 +216,14 @@ class WebrtcService {
     final configuration = {
       'iceServers': [
         {'urls': 'stun:stun.l.google.com:19302'},
-      ]
+        if (forceRelay)
+          {
+            'urls': 'turn:turn.no-iz.app:3478', // Default TURN for premium
+            'username': 'iz_premium',
+            'credential': 'iz_premium_password'
+          }
+      ],
+      if (forceRelay) 'iceTransportPolicy': 'relay',
     };
     final constraints = {
       'mandatory': {},
@@ -206,6 +265,15 @@ class WebrtcService {
       'optional': [],
     };
     RTCSessionDescription answer = await pc.createAnswer(answerConstraints);
+    
+    // Modify SDP for audio bitrate
+    final isHighBitrate = tier == 'plus' || tier == 'pro' || tier == 'elite';
+    final bitrate = isHighBitrate ? '128' : '32';
+    answer.sdp = answer.sdp?.replaceAll(
+      'a=mid:audio\r\n', 
+      'a=mid:audio\r\nb=AS:$bitrate\r\n'
+    );
+
     await pc.setLocalDescription(answer);
 
     return answer;
@@ -254,5 +322,88 @@ class WebrtcService {
 
   void toggleSpeaker(bool isSpeakerOn) {
     Helper.setSpeakerphoneOn(isSpeakerOn);
+  }
+
+  // ── P2P Data Channel Methods (Cloud Lock Bypass) ──────────────────────────
+
+  Future<RTCSessionDescription> createDataOffer(
+    String peerId,
+    Function(RTCIceCandidate) onIceCandidate,
+  ) async {
+    await closePeerConnection(peerId);
+
+    final configuration = {
+      'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]
+    };
+    final constraints = {
+      'mandatory': {},
+      'optional': [{'DtlsSrtpKeyAgreement': true}],
+    };
+
+    final pc = await createPeerConnection(configuration, constraints);
+    _peerConnections[peerId] = pc;
+
+    final dataChannelDict = RTCDataChannelInit()..id = 1..negotiated = false;
+    final dc = await pc.createDataChannel('chat', dataChannelDict);
+    _setupDataChannel(peerId, dc);
+
+    pc.onIceCandidate = (candidate) => onIceCandidate(candidate);
+
+    final offerConstraints = {'mandatory': {}, 'optional': []};
+    RTCSessionDescription offer = await pc.createOffer(offerConstraints);
+    await pc.setLocalDescription(offer);
+
+    return offer;
+  }
+
+  Future<RTCSessionDescription> acceptDataOffer(
+    String peerId,
+    String sdp,
+    Function(RTCIceCandidate) onIceCandidate,
+  ) async {
+    await closePeerConnection(peerId);
+
+    final configuration = {
+      'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]
+    };
+    final constraints = {
+      'mandatory': {},
+      'optional': [{'DtlsSrtpKeyAgreement': true}],
+    };
+
+    final pc = await createPeerConnection(configuration, constraints);
+    _peerConnections[peerId] = pc;
+
+    pc.onDataChannel = (dc) {
+      _setupDataChannel(peerId, dc);
+    };
+
+    pc.onIceCandidate = (candidate) => onIceCandidate(candidate);
+
+    await pc.setRemoteDescription(RTCSessionDescription(sdp, 'offer'));
+
+    final answerConstraints = {'mandatory': {}, 'optional': []};
+    RTCSessionDescription answer = await pc.createAnswer(answerConstraints);
+    await pc.setLocalDescription(answer);
+
+    return answer;
+  }
+
+  void _setupDataChannel(String peerId, RTCDataChannel dc) {
+    _dataChannels[peerId] = dc;
+    dc.onMessage = (RTCDataChannelMessage message) {
+      if (message.type == MessageType.text) {
+        onDataMessage?.call(peerId, message.text);
+      }
+    };
+  }
+
+  Future<bool> sendDataMessage(String peerId, String text) async {
+    final dc = _dataChannels[peerId];
+    if (dc != null && dc.state == RTCDataChannelState.RTCDataChannelOpen) {
+      await dc.send(RTCDataChannelMessage(text));
+      return true;
+    }
+    return false;
   }
 }

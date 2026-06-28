@@ -9,6 +9,7 @@ class AccountInfo {
   final String? displayName;
   final String? avatarUrl;
   final String? bio;
+  final String? subscriptionTier;
 
   AccountInfo({
     required this.id,
@@ -16,6 +17,7 @@ class AccountInfo {
     this.displayName,
     this.avatarUrl,
     this.bio,
+    this.subscriptionTier,
   });
 
   Map<String, dynamic> toJson() => {
@@ -24,6 +26,7 @@ class AccountInfo {
     'display_name': displayName,
     'avatar_url': avatarUrl,
     'bio': bio,
+    'subscription_tier': subscriptionTier,
   };
 
   factory AccountInfo.fromJson(Map<String, dynamic> json) => AccountInfo(
@@ -32,12 +35,14 @@ class AccountInfo {
     displayName: json['display_name'] as String?,
     avatarUrl: json['avatar_url'] as String?,
     bio: json['bio'] as String?,
+    subscriptionTier: json['subscription_tier'] as String?,
   );
 
   AccountInfo copyWith({
     String? displayName,
     String? avatarUrl,
     String? bio,
+    String? subscriptionTier,
   }) {
     return AccountInfo(
       id: id,
@@ -45,6 +50,7 @@ class AccountInfo {
       displayName: displayName ?? this.displayName,
       avatarUrl: avatarUrl ?? this.avatarUrl,
       bio: bio ?? this.bio,
+      subscriptionTier: subscriptionTier ?? this.subscriptionTier,
     );
   }
 }

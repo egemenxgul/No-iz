@@ -53,9 +53,44 @@ class MinimizedCallWidget extends ConsumerStatefulWidget {
   ConsumerState<MinimizedCallWidget> createState() => _MinimizedCallWidgetState();
 }
 
-class _MinimizedCallWidgetState extends ConsumerState<MinimizedCallWidget> {
+class _MinimizedCallWidgetState extends ConsumerState<MinimizedCallWidget> with SingleTickerProviderStateMixin {
   double _xOffset = 20.0;
   double _yOffset = 100.0;
+  bool _isDragging = false;
+  
+  late AnimationController _appearController;
+
+  @override
+  void initState() {
+    super.initState();
+    _appearController = AnimationController(
+      vsync: this, 
+      duration: const Duration(milliseconds: 350)
+    )..forward();
+  }
+
+  @override
+  void dispose() {
+    _appearController.dispose();
+    super.dispose();
+  }
+
+  void _snapToEdge() {
+    final size = MediaQuery.of(context).size;
+    setState(() {
+      _isDragging = false;
+      // Snap to closest edge
+      if (_xOffset < size.width / 2 - 70) {
+        _xOffset = 20.0;
+      } else {
+        _xOffset = size.width - 160.0;
+      }
+      
+      // Keep within vertical bounds
+      if (_yOffset < 100) _yOffset = 100;
+      if (_yOffset > size.height - 250) _yOffset = size.height - 250;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,21 +98,33 @@ class _MinimizedCallWidgetState extends ConsumerState<MinimizedCallWidget> {
     final isCameraOff = widget.session.isCameraOff;
     final webrtc = ref.watch(webrtcServiceProvider);
 
-    return Positioned(
+    return AnimatedPositioned(
+      duration: _isDragging ? Duration.zero : const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
       right: _xOffset,
       bottom: _yOffset,
       width: 140,
       height: 200,
-      child: GestureDetector(
-        onPanUpdate: (details) {
-          setState(() {
-            _xOffset -= details.delta.dx;
-            _yOffset -= details.delta.dy;
-          });
-        },
-        onTap: () {
-          ref.read(callProvider.notifier).toggleMinimize();
-        },
+      child: ScaleTransition(
+        scale: CurvedAnimation(
+          parent: _appearController,
+          curve: Curves.easeOutBack,
+        ),
+        child: GestureDetector(
+          onPanStart: (_) {
+            setState(() => _isDragging = true);
+          },
+          onPanUpdate: (details) {
+            setState(() {
+              _xOffset -= details.delta.dx;
+              _yOffset -= details.delta.dy;
+            });
+          },
+          onPanEnd: (_) => _snapToEdge(),
+          onPanCancel: () => _snapToEdge(),
+          onTap: () {
+            ref.read(callProvider.notifier).toggleMinimize();
+          },
         child: Container(
           decoration: BoxDecoration(
             color: const Color(0xFF0F172A).withValues(alpha: 0.85),

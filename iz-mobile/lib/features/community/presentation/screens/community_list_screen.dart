@@ -97,10 +97,7 @@ class _CommunityListScreenState extends ConsumerState<CommunityListScreen> {
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
-            onPressed: () => context.pop(),
-          ),
+          automaticallyImplyLeading: false,
           title: Text(
             'Topluluklar',
             style: GoogleFonts.outfit(
@@ -122,7 +119,7 @@ class _CommunityListScreenState extends ConsumerState<CommunityListScreen> {
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(50),
             child: ClipRRect(
-              child: BackdropFilter(
+              child: AppBackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),

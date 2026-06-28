@@ -182,6 +182,14 @@ func (h *Handler) readPump(c *Client, conn *websocket.Conn) {
 		case "call_promote":
 			h.handleCall(c, "promote", raw)
 
+		// ── WebRTC Device Sync ────────────────────────────────────
+		case WSEventDeviceSyncOffer, WSEventDeviceSyncAnswer, WSEventDeviceSyncCandidate:
+			h.handleDeviceSync(c, env.Type, raw)
+
+		// ── P2P Messaging (Cloud Lock Bypass) ─────────────────────
+		case WSEventP2POffer, WSEventP2PAnswer, WSEventP2PCandidate:
+			h.handleP2PSignaling(c, env.Type, raw)
+
 		// ── Group Crypto ───────────────────────────────────────────
 		case "group_key_distribution":
 			h.handleGroupKeyDistribution(c, env.Payload)
@@ -874,3 +882,42 @@ func (h *Handler) UnmuteChat(w http.ResponseWriter, r *http.Request) {
 // authContextKey mirrors the private context key type used in the auth package.
 // We redeclare it here to avoid an import cycle (auth ↔ messaging).
 type authContextKey string
+
+// handleDeviceSync routes WebRTC signaling events for Device Sync (Web to Mobile).
+// Since the sender and recipient are the SAME user, we just broadcast the payload to all clients of the user.
+// The clients themselves must differentiate between themselves (e.g., Mobile ignores offers it didn't ask for, or checks device type).
+func (h *Handler) handleDeviceSync(c *Client, eventType WSEventType, raw []byte) {
+	// Deliver the raw payload back to all clients belonging to this user
+	// (h.hub.Deliver will send it to c.UserID)
+	// We need to parse raw to WSEnvelope and maybe inject the sender device ID if we had one.
+	// For simplicity, we just broadcast it, and Web/Mobile handles ignore-self logic based on a randomly generated device ID in the payload.
+	
+	h.hub.Deliver(c.UserID, raw)
+}
+
+// handleP2PSignaling routes WebRTC signaling events for P2P messaging bypass.
+func (h *Handler) handleP2PSignaling(c *Client, eventType WSEventType, raw []byte) {
+	var env WSEnvelope
+	if err := json.Unmarshal(raw, &env); err != nil {
+		return
+	}
+	
+	payloadMap, ok := env.Payload.(map[string]interface{})
+	if !ok {
+		return
+	}
+	
+	targetIDStr, ok := payloadMap["target_id"].(string)
+	if !ok {
+		return
+	}
+	
+	targetID, err := uuid.Parse(targetIDStr)
+	if err != nil {
+		return
+	}
+	
+	// Deliver the raw payload directly to the target user (Cloud Lock Bypass)
+	h.hub.Deliver(targetID, raw)
+}
+

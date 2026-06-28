@@ -20,9 +20,13 @@ import (
 	"github.com/no-iz/iz-backend/internal/story"
 	"github.com/no-iz/iz-backend/internal/report"
 	"github.com/no-iz/iz-backend/internal/backup"
+	"github.com/no-iz/iz-backend/internal/economy"
 	"github.com/no-iz/iz-backend/pkg/config"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
+
+	httpSwagger "github.com/swaggo/http-swagger"
+	_ "github.com/no-iz/iz-backend/docs"
 )
 
 // Server holds the router and its dependencies.
@@ -42,6 +46,7 @@ type Server struct {
 	reportHandler    *report.Handler
 	backupHandler    *backup.Handler
 	notificationHandler *notification.Handler
+	economyHandler   *economy.Handler
 }
 
 // New creates a new Server.
@@ -61,6 +66,7 @@ func New(
 	reportHandler *report.Handler,
 	backupHandler *backup.Handler,
 	notificationHandler *notification.Handler,
+	economyHandler *economy.Handler,
 ) *Server {
 	return &Server{
 		cfg:              cfg,
@@ -78,6 +84,7 @@ func New(
 		reportHandler:    reportHandler,
 		backupHandler:    backupHandler,
 		notificationHandler: notificationHandler,
+		economyHandler:   economyHandler,
 	}
 }
 
@@ -120,13 +127,35 @@ func (s *Server) Router() http.Handler {
 	// ── Public routes ──────────────────────────────────────────────
 	r.Get("/api/health", auth.HealthCheck)
 
+	// Swagger Documentation
+	r.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("/swagger/doc.json"),
+	))
+
 	// Auth (no token required) — rate-limited
 	qrHub := auth.NewQRHub(s.log)
 	authHandler := auth.NewHandler(s.authSvc, qrHub)
 	r.With(registerRL.Middleware).Post("/api/auth/register", authHandler.Register)
+	r.With(registerRL.Middleware).Post("/api/auth/passkey/register/begin", authHandler.PasskeyRegisterBegin)
+	r.With(registerRL.Middleware).Post("/api/auth/passkey/register/finish", authHandler.PasskeyRegisterFinish)
+
+	// Call Decline (Public / Stateless using decline_token)
+	r.Post("/api/calls/{id}/decline", s.callHandler.DeclineCall)
+
 	r.With(loginRL.Middleware).Post("/api/auth/login", authHandler.Login)
+	r.With(loginRL.Middleware).Post("/api/auth/passkey/login/begin", authHandler.PasskeyLoginBegin)
+	r.With(loginRL.Middleware).Post("/api/auth/passkey/login/finish", authHandler.PasskeyLoginFinish)
+	
 	r.With(loginRL.Middleware).Post("/api/auth/login/2fa", authHandler.Login2FA)
 	r.With(refreshRL.Middleware).Post("/api/auth/refresh", authHandler.RefreshToken)
+
+	// Protected routes (require auth token)
+	r.With(s.authSvc.Middleware).Group(func(r chi.Router) {
+		r.Post("/api/auth/pin/setup", authHandler.SetupPIN)
+		r.Post("/api/auth/pin/verify", authHandler.VerifyPIN)
+	})
+	
+	r.Post("/api/auth/pin/reset/request", authHandler.ResetPasswordWithPin)
 	r.Get("/api/auth/qr-poll", authHandler.PollQRAuth) // HTTPS Polling endpoint for QR Auth
 	r.Post("/api/auth/apple", authHandler.AppleSignIn)
 	r.With(loginRL.Middleware).Post("/api/auth/forgot-password", authHandler.ForgotPassword)
@@ -306,13 +335,19 @@ func (s *Server) zerologMiddleware() func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
 			start := time.Now()
-			next.ServeHTTP(ww, r)
-			s.log.Info().
+			
+			// Inject logger with request_id into context
+			reqID := middleware.GetReqID(r.Context())
+			ctxLog := s.log.With().Str("request_id", reqID).Logger()
+			ctx := ctxLog.WithContext(r.Context())
+			
+			next.ServeHTTP(ww, r.WithContext(ctx))
+			
+			ctxLog.Info().
 				Str("method", r.Method).
 				Str("path", r.URL.Path).
 				Int("status", ww.Status()).
 				Dur("latency", time.Since(start)).
-				Str("request_id", middleware.GetReqID(r.Context())).
 				Msg("request")
 		})
 	}

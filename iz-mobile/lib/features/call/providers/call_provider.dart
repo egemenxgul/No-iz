@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/network/webrtc_service.dart';
+import '../../../core/network/dio_provider.dart';
+import '../../economy/providers/subscription_provider.dart';
 import '../../../core/network/websocket_provider.dart';
 import '../models/call_session.dart';
 import '../../messages/providers/chat_provider.dart';
@@ -49,7 +51,46 @@ class CallNotifier extends Notifier<CallSession?> {
       }
     };
 
+    // Handle CallKit accept events
+    CallKitService.onCallAccepted = _handleCallKitAccept;
+
+    // Check if app was launched via CallKit accept
+    if (CallKitService.pendingAcceptedCall != null) {
+      final extra = CallKitService.pendingAcceptedCall!;
+      CallKitService.pendingAcceptedCall = null;
+      Future.microtask(() => _handleCallKitAccept(extra));
+    }
+
     return null;
+  }
+
+  void _handleCallKitAccept(Map<String, dynamic> extra) async {
+    final callerId = extra['caller_id'] as String?;
+    final sdp = extra['sdp'] as String?;
+    final callTypeStr = extra['call_type'] as String? ?? 'audio';
+    
+    if (callerId != null && sdp != null) {
+      final callType = callTypeStr == 'video' ? CallType.video : CallType.audio;
+      final peerName = _resolvePeerName(callerId);
+      
+      // Fake an incoming call state so acceptCall works
+      state = CallSession(
+        callId: extra['call_id'] ?? const Uuid().v4(),
+        peerId: callerId,
+        peerName: peerName,
+        type: callType,
+        status: CallStatus.ringing,
+        isGroup: false,
+        activeParticipants: [callerId],
+        peerNames: {callerId: peerName},
+      );
+      
+      final webrtc = ref.read(webrtcServiceProvider);
+      await webrtc.initializeRenderers();
+      _incomingSdp = sdp;
+      
+      await acceptCall();
+    }
   }
 
   String _resolvePeerName(String userId) {
@@ -88,6 +129,19 @@ class CallNotifier extends Notifier<CallSession?> {
 
     try {
       await webrtc.initializeRenderers();
+
+      try {
+        final dio = ref.read(dioProvider);
+        final res = await dio.get('/api/users/privacy');
+        if (res.statusCode == 200 && res.data != null) {
+          webrtc.forceRelay = res.data['relay_calls'] ?? false;
+        }
+      } catch (_) {}
+
+      final sub = ref.read(subscriptionProvider);
+      if (sub != null) {
+        webrtc.tier = sub.tier;
+      }
 
       final offer = await webrtc.createOffer(
         peerId,
@@ -315,6 +369,19 @@ class CallNotifier extends Notifier<CallSession?> {
     final webrtc = ref.read(webrtcServiceProvider);
 
     try {
+      try {
+        final dio = ref.read(dioProvider);
+        final res = await dio.get('/api/users/privacy');
+        if (res.statusCode == 200 && res.data != null) {
+          webrtc.forceRelay = res.data['relay_calls'] ?? false;
+        }
+      } catch (_) {}
+
+      final sub = ref.read(subscriptionProvider);
+      if (sub != null) {
+        webrtc.tier = sub.tier;
+      }
+
       if (currentSession.isGroup) {
         // Joining group call
         _sendSignalingEvent('group_call_join', {
@@ -637,6 +704,7 @@ class CallNotifier extends Notifier<CallSession?> {
     _saveCallLog();
     state = null;
     ref.read(webrtcServiceProvider).closeConnection();
+    CallKitService().endAllCalls();
   }
 
   void _saveCallLog() {

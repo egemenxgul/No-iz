@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/no-iz/iz-backend/internal/economy"
 	"github.com/rs/zerolog"
 )
 
@@ -29,20 +31,46 @@ type SocialRepository interface {
 	HasBlocked(ctx context.Context, blocker, blocked uuid.UUID) (bool, error)
 }
 
+// NotificationService interface abstraction
+type NotificationService interface{}
+
+// EconomyService interface abstraction
+type EconomyService interface {
+	GetUserLimits(ctx context.Context, userID uuid.UUID) (economy.Features, economy.Tier, int64, error)
+}
+
+// AuthService interface abstraction
+type AuthService interface {
+	ValidateDeclineToken(tokenStr string) (uuid.UUID, error)
+}
+
 // Service provides call signaling logic.
 type Service struct {
-	repo        *Repository
-	broadcaster Broadcaster
-	socialRepo  SocialRepository
-	log         zerolog.Logger
+	repo            *Repository
+	broadcaster     Broadcaster
+	notificationSvc NotificationService
+	economySvc      EconomyService
+	authSvc         AuthService
+	socialRepo      SocialRepository
+	log             zerolog.Logger
 }
 
 // NewService creates a new call Service.
-func NewService(repo *Repository, broadcaster Broadcaster, log zerolog.Logger) *Service {
+func NewService(
+	repo *Repository,
+	broadcaster Broadcaster,
+	notificationSvc NotificationService,
+	economySvc EconomyService,
+	authSvc AuthService,
+	log zerolog.Logger,
+) *Service {
 	return &Service{
-		repo:        repo,
-		broadcaster: broadcaster,
-		log:         log.With().Str("svc", "call").Logger(),
+		repo:            repo,
+		broadcaster:     broadcaster,
+		notificationSvc: notificationSvc,
+		economySvc:      economySvc,
+		authSvc:         authSvc,
+		log:             log.With().Str("svc", "call").Logger(),
 	}
 }
 
@@ -92,6 +120,15 @@ func (s *Service) Offer(ctx context.Context, callerID uuid.UUID, raw []byte) (*C
 	}
 	if call.CallType == "" {
 		call.CallType = CallTypeAudio
+	}
+
+	// Determine if ForceRelay should be active
+	callerRelay, _ := s.repo.GetRelayCalls(ctx, callerID)
+	calleeRelay, _ := s.repo.GetRelayCalls(ctx, calleeID)
+
+	if callerRelay || calleeRelay {
+		call.ForceRelay = true
+		s.log.Info().Str("call_id", call.ID.String()).Msg("forced relay enabled for call due to privacy settings")
 	}
 
 	if err := s.repo.CreateCall(ctx, call); err != nil {
@@ -255,6 +292,33 @@ func (s *Service) End(ctx context.Context, userID uuid.UUID, raw []byte) error {
 	return nil
 }
 
+// DeclineCallREST ends the call via REST API without requiring participant verification (auth done via token)
+func (s *Service) DeclineCallREST(ctx context.Context, callID uuid.UUID) error {
+	call, err := s.repo.GetCall(ctx, callID)
+	if err != nil {
+		return ErrCallNotFound
+	}
+	if err := s.repo.End(ctx, callID); err != nil {
+		return err
+	}
+	s.log.Info().Str("call_id", callID.String()).Msg("call declined via rest")
+	
+	ended := CallEndedPush{CallID: callID.String(), EndedBy: "system"}
+	s.deliver(call.CallerID, EventCallEnded, ended)
+	if call.CalleeID != nil {
+		s.deliver(*call.CalleeID, EventCallEnded, ended)
+	}
+	return nil
+}
+
+// ValidateDeclineToken delegates to auth service
+func (s *Service) ValidateDeclineToken(tokenStr string) (uuid.UUID, error) {
+	if s.authSvc != nil {
+		return s.authSvc.ValidateDeclineToken(tokenStr)
+	}
+	return uuid.Nil, fmt.Errorf("auth service not available")
+}
+
 // RelayICE forwards an ICE candidate to the specified target peer.
 func (s *Service) RelayICE(ctx context.Context, fromID uuid.UUID, raw []byte) error {
 	var p ICECandidatePayload
@@ -265,6 +329,20 @@ func (s *Service) RelayICE(ctx context.Context, fromID uuid.UUID, raw []byte) er
 	targetID, err := uuid.Parse(p.TargetID)
 	if err != nil {
 		return fmt.Errorf("invalid target_id")
+	}
+
+	callID, err := uuid.Parse(p.CallID)
+	if err == nil {
+		if call, err := s.repo.GetCall(ctx, callID); err == nil && call.ForceRelay {
+			var candMap map[string]interface{}
+			if err := json.Unmarshal([]byte(p.Candidate), &candMap); err == nil {
+				candidateStr, ok := candMap["candidate"].(string)
+				if ok && !strings.Contains(candidateStr, "typ relay") {
+					// Drop non-relay candidate
+					return nil
+				}
+			}
+		}
 	}
 
 	s.deliver(targetID, EventICECandidate, ICECandidatePush{
