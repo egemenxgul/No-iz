@@ -9,7 +9,7 @@ import 'package:iz_mobile/features/auth/presentation/widgets/change_password_dia
 import 'package:iz_mobile/features/auth/presentation/widgets/two_fa_setup_dialog.dart';
 import 'package:iz_mobile/features/auth/presentation/widgets/export_data_dialog.dart';
 import 'package:iz_mobile/features/auth/presentation/widgets/delete_account_dialog.dart';
-import 'package:iz_mobile/features/economy/providers/subscription_provider.dart';
+
 
 import 'package:iz_mobile/core/theme/glass_widgets.dart';
 class PrivacySettingsScreen extends ConsumerStatefulWidget {
