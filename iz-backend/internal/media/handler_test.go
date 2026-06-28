@@ -14,7 +14,9 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 	"github.com/no-iz/iz-backend/internal/auth"
+	"github.com/no-iz/iz-backend/internal/economy"
 	"github.com/no-iz/iz-backend/pkg/config"
 	"github.com/rs/zerolog"
 )
@@ -39,12 +41,31 @@ func (m *MockStorage) DownloadFile(ctx context.Context, bucket string, filename 
 	return io.NopCloser(strings.NewReader("mocked content")), 14, "image/png", nil
 }
 
+type MockEconomyService struct {
+	ConsumeStorageFunc func(ctx context.Context, userID uuid.UUID, bytes int64) error
+	GetUserLimitsFunc  func(ctx context.Context, userID uuid.UUID) (economy.Features, economy.Tier, int64, error)
+}
+
+func (m *MockEconomyService) ConsumeStorage(ctx context.Context, userID uuid.UUID, bytes int64) error {
+	if m.ConsumeStorageFunc != nil {
+		return m.ConsumeStorageFunc(ctx, userID, bytes)
+	}
+	return nil
+}
+
+func (m *MockEconomyService) GetUserLimits(ctx context.Context, userID uuid.UUID) (economy.Features, economy.Tier, int64, error) {
+	if m.GetUserLimitsFunc != nil {
+		return m.GetUserLimitsFunc(ctx, userID)
+	}
+	return economy.Features{StorageMB: 100}, economy.TierFree, 0, nil
+}
+
 func setupTestHandler(storage Storage) (*Handler, *config.Config) {
 	cfg := &config.Config{
 		MinioBucketMedia:   "iz-media",
 		MinioBucketAvatars: "iz-avatars",
 	}
-	h := NewHandler(storage, cfg, zerolog.Nop())
+	h := NewHandler(storage, &MockEconomyService{}, cfg, zerolog.Nop())
 	return h, cfg
 }
 
