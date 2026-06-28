@@ -89,7 +89,7 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final subInfo = ref.watch(subscriptionProvider);
+
 
     return Scaffold(
       backgroundColor: AppColors.bgBase,

@@ -162,10 +162,6 @@ class MediaUploadService {
     // For this demonstration, we'll read the file chunks and simulate a chunked stream.
     
 
-      final fullBytes = await file.readAsBytes();
-      final secretBox = await _aesGcm.encrypt(fullBytes, secretKey: secretKey, nonce: nonce);
-      yield secretBox.concatenation().sublist(12); // yield MAC + Ciphertext
-    }
 
     Uint8List finalBytes = await file.readAsBytes();
     String finalMimeType = mimeType;
