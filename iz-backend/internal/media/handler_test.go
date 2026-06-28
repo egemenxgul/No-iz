@@ -57,7 +57,7 @@ func (m *MockEconomyService) GetUserLimits(ctx context.Context, userID uuid.UUID
 	if m.GetUserLimitsFunc != nil {
 		return m.GetUserLimitsFunc(ctx, userID)
 	}
-	return economy.Features{StorageMB: 100}, economy.TierFree, 0, nil
+	return economy.Features{MaxStorageBytes: 100 * 1024 * 1024}, economy.TierFree, 0, nil
 }
 
 func setupTestHandler(storage Storage) (*Handler, *config.Config) {
