@@ -177,8 +177,8 @@ export default function LoginPage() {
     <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
       {/* Background elements */}
       <div className="absolute inset-0 bg-background" />
-      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-500/20 blur-[120px]" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-purple-500/20 blur-[150px]" />
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-blue-500/20 blur-[120px] animate-pulse" style={{ animationDuration: '8s' }} />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-purple-500/20 blur-[150px] animate-pulse" style={{ animationDuration: '10s' }} />
 
       <div className="absolute top-6 right-6 flex items-center gap-4 z-20">
         <LanguageToggle />
@@ -187,12 +187,12 @@ export default function LoginPage() {
 
       <div className="relative z-10 w-full max-w-md animate-scale-in">
         <div className="flex justify-center mb-8">
-          <Link href="/" className="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-indigo-400 to-purple-400">
+          <Link href="/" className="text-4xl font-extrabold tracking-tight gradient-text">
             iz
           </Link>
         </div>
 
-        <Card className="glass shadow-2xl backdrop-blur-2xl">
+        <Card className="glass glass-interactive shadow-2xl backdrop-blur-2xl">
           <CardHeader className="text-center space-y-2">
             <CardTitle className="text-2xl">Giriş Yap</CardTitle>
             <CardDescription>
@@ -225,13 +225,13 @@ export default function LoginPage() {
                       value={username}
                       onChange={e => setUsername(e.target.value)}
                       required
-                      className="bg-background/50 focus-visible:ring-indigo-500"
+                      className="bg-background/50 focus-visible:ring-blue-500 transition-all"
                     />
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <Label htmlFor="password">Şifre</Label>
-                      <Link href="/forgot-password" className="text-sm font-medium text-indigo-400 hover:text-indigo-300">
+                      <Link href="/forgot-password" className="text-sm font-medium text-blue-500 hover:text-blue-400">
                         Şifremi Unuttum
                       </Link>
                     </div>
@@ -243,7 +243,7 @@ export default function LoginPage() {
                       value={password}
                       onChange={e => setPassword(e.target.value)}
                       required
-                      className="bg-background/50 focus-visible:ring-indigo-500"
+                      className="bg-background/50 focus-visible:ring-blue-500 transition-all"
                     />
                   </div>
 
@@ -253,7 +253,7 @@ export default function LoginPage() {
                     </div>
                   )}
 
-                  <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white" disabled={isSubmitLoading}>
+                  <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20 transition-all hover:scale-[1.02]" disabled={isSubmitLoading}>
                     {isSubmitLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -272,7 +272,7 @@ export default function LoginPage() {
               <TabsContent value="qr" className="flex flex-col items-center py-4">
                 {loading ? (
                   <div className="flex items-center justify-center h-64">
-                    <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+                    <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
                   </div>
                 ) : error ? (
                   <div className="p-4 text-sm text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg w-full text-center">
@@ -300,7 +300,7 @@ export default function LoginPage() {
           <CardFooter className="flex justify-center border-t border-border pt-6">
             <p className="text-sm text-muted-foreground">
               Hesabınız yok mu?{' '}
-              <Link href="/register" className="font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
+              <Link href="/register" className="font-medium text-blue-500 hover:text-blue-400 transition-colors">
                 Kayıt Ol
               </Link>
             </p>

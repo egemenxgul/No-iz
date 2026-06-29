@@ -55,8 +55,8 @@ export default function RegisterPage() {
     <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
       {/* Background elements */}
       <div className="absolute inset-0 bg-background" />
-      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-500/20 blur-[120px]" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-pink-500/20 blur-[150px]" />
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-blue-500/20 blur-[120px] animate-pulse" style={{ animationDuration: '8s' }} />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-purple-500/20 blur-[150px] animate-pulse" style={{ animationDuration: '10s' }} />
 
       <div className="absolute top-6 right-6 flex items-center gap-4 z-20">
         <LanguageToggle />
@@ -65,12 +65,12 @@ export default function RegisterPage() {
 
       <div className="relative z-10 w-full max-w-md animate-scale-in my-8">
         <div className="flex justify-center mb-8">
-          <Link href="/" className="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-indigo-400 to-purple-400">
+          <Link href="/" className="text-4xl font-extrabold tracking-tight gradient-text">
             iz
           </Link>
         </div>
 
-        <Card className="glass shadow-2xl backdrop-blur-2xl">
+        <Card className="glass glass-interactive shadow-2xl backdrop-blur-2xl transition-all">
           <CardHeader className="text-center space-y-2">
             <CardTitle className="text-2xl">{t('register.title')}</CardTitle>
             <CardDescription>
@@ -89,7 +89,7 @@ export default function RegisterPage() {
                   value={displayName}
                   onChange={e => setDisplayName(e.target.value)}
                   required
-                  className="bg-background/50 focus-visible:ring-indigo-500"
+                  className="bg-background/50 focus-visible:ring-blue-500 transition-all"
                 />
               </div>
 
@@ -103,7 +103,7 @@ export default function RegisterPage() {
                   value={username}
                   onChange={e => setUsername(e.target.value)}
                   required
-                  className="bg-background/50 focus-visible:ring-indigo-500"
+                  className="bg-background/50 focus-visible:ring-blue-500 transition-all"
                 />
               </div>
 
@@ -117,7 +117,7 @@ export default function RegisterPage() {
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   required
-                  className="bg-background/50 focus-visible:ring-indigo-500"
+                  className="bg-background/50 focus-visible:ring-blue-500 transition-all"
                 />
               </div>
 
@@ -132,7 +132,7 @@ export default function RegisterPage() {
                   onChange={e => setPassword(e.target.value)}
                   minLength={8}
                   required
-                  className="bg-background/50 focus-visible:ring-indigo-500"
+                  className="bg-background/50 focus-visible:ring-blue-500 transition-all"
                 />
               </div>
 
@@ -145,7 +145,7 @@ export default function RegisterPage() {
                   value={inviteCode}
                   onChange={e => setInviteCode(e.target.value)}
                   required
-                  className="bg-background/50 border-accent/30 text-foreground placeholder:text-muted-foreground focus-visible:ring-indigo-500"
+                  className="bg-background/50 border-accent/30 text-foreground placeholder:text-muted-foreground focus-visible:ring-blue-500 transition-all"
                 />
               </div>
 
@@ -155,7 +155,7 @@ export default function RegisterPage() {
                 </div>
               )}
 
-              <Button type="submit" className="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white" disabled={loading} id="register-submit">
+              <Button type="submit" className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20 transition-all hover:scale-[1.02]" disabled={loading} id="register-submit">
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -174,7 +174,7 @@ export default function RegisterPage() {
           <CardFooter className="flex justify-center border-t border-border pt-6">
             <p className="text-sm text-muted-foreground">
               {t('register.has_account')}{' '}
-              <Link href="/login" className="font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
+              <Link href="/login" className="font-medium text-blue-500 hover:text-blue-400 transition-colors">
                 {t('register.login')}
               </Link>
             </p>
