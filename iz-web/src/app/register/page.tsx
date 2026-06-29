@@ -70,7 +70,7 @@ export default function RegisterPage() {
           </Link>
         </div>
 
-        <Card className="glass border-white/10 shadow-2xl backdrop-blur-2xl bg-card/60">
+        <Card className="glass shadow-2xl backdrop-blur-2xl">
           <CardHeader className="text-center space-y-2">
             <CardTitle className="text-2xl">{t('register.title')}</CardTitle>
             <CardDescription>
@@ -89,7 +89,7 @@ export default function RegisterPage() {
                   value={displayName}
                   onChange={e => setDisplayName(e.target.value)}
                   required
-                  className="bg-background/50 border-white/10 focus-visible:ring-indigo-500"
+                  className="bg-background/50 focus-visible:ring-indigo-500"
                 />
               </div>
 
@@ -103,7 +103,7 @@ export default function RegisterPage() {
                   value={username}
                   onChange={e => setUsername(e.target.value)}
                   required
-                  className="bg-background/50 border-white/10 focus-visible:ring-indigo-500"
+                  className="bg-background/50 focus-visible:ring-indigo-500"
                 />
               </div>
 
@@ -117,7 +117,7 @@ export default function RegisterPage() {
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   required
-                  className="bg-background/50 border-white/10 focus-visible:ring-indigo-500"
+                  className="bg-background/50 focus-visible:ring-indigo-500"
                 />
               </div>
 
@@ -132,12 +132,12 @@ export default function RegisterPage() {
                   onChange={e => setPassword(e.target.value)}
                   minLength={8}
                   required
-                  className="bg-background/50 border-white/10 focus-visible:ring-indigo-500"
+                  className="bg-background/50 focus-visible:ring-indigo-500"
                 />
               </div>
 
-              <div className="space-y-2 pt-2 border-t border-white/10">
-                <Label htmlFor="invite-code" className="text-indigo-400">{t('register.invite_code')}</Label>
+              <div className="space-y-2 pt-2 border-t border-border">
+                <Label htmlFor="invite-code" className="text-accent">{t('register.invite_code')}</Label>
                 <Input
                   id="invite-code"
                   type="text"
@@ -145,7 +145,7 @@ export default function RegisterPage() {
                   value={inviteCode}
                   onChange={e => setInviteCode(e.target.value)}
                   required
-                  className="bg-indigo-500/10 border-indigo-500/30 text-indigo-100 placeholder:text-indigo-300/50 focus-visible:ring-indigo-500"
+                  className="bg-background/50 border-accent/30 text-foreground placeholder:text-muted-foreground focus-visible:ring-indigo-500"
                 />
               </div>
 
@@ -171,7 +171,7 @@ export default function RegisterPage() {
             </form>
           </CardContent>
           
-          <CardFooter className="flex justify-center border-t border-white/5 pt-6">
+          <CardFooter className="flex justify-center border-t border-border pt-6">
             <p className="text-sm text-muted-foreground">
               {t('register.has_account')}{' '}
               <Link href="/login" className="font-medium text-indigo-400 hover:text-indigo-300 transition-colors">

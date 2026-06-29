@@ -192,7 +192,7 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        <Card className="glass border-white/10 shadow-2xl backdrop-blur-2xl bg-card/60">
+        <Card className="glass shadow-2xl backdrop-blur-2xl">
           <CardHeader className="text-center space-y-2">
             <CardTitle className="text-2xl">Giriş Yap</CardTitle>
             <CardDescription>
@@ -202,7 +202,7 @@ export default function LoginPage() {
           
           <CardContent>
             <Tabs defaultValue="password" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6 bg-background/50 border border-white/5">
+              <TabsList className="grid w-full grid-cols-2 mb-6 bg-background/50 border border-border">
                 <TabsTrigger value="password" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
                   <KeyRound className="w-4 h-4 mr-2" />
                   Şifre
@@ -225,7 +225,7 @@ export default function LoginPage() {
                       value={username}
                       onChange={e => setUsername(e.target.value)}
                       required
-                      className="bg-background/50 border-white/10 focus-visible:ring-indigo-500"
+                      className="bg-background/50 focus-visible:ring-indigo-500"
                     />
                   </div>
                   <div className="space-y-2">
@@ -243,7 +243,7 @@ export default function LoginPage() {
                       value={password}
                       onChange={e => setPassword(e.target.value)}
                       required
-                      className="bg-background/50 border-white/10 focus-visible:ring-indigo-500"
+                      className="bg-background/50 focus-visible:ring-indigo-500"
                     />
                   </div>
 
@@ -280,11 +280,11 @@ export default function LoginPage() {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-6 w-full animate-fade-in">
-                    <div className="p-4 bg-white rounded-2xl shadow-xl border border-white/20">
+                    <div className="p-4 bg-white rounded-2xl shadow-xl border border-border">
                       <QRCodeSVG value={qrUri} size={220} level="H" />
                     </div>
                     
-                    <div className="w-full p-4 rounded-xl bg-background/40 border border-white/5 text-sm text-muted-foreground leading-relaxed">
+                    <div className="w-full p-4 rounded-xl bg-background/40 border border-border text-sm text-muted-foreground leading-relaxed">
                       <ol className="list-decimal list-inside space-y-1">
                         <li>Telefonunuzdan <strong>iz</strong> uygulamasını açın</li>
                         <li>Ayarlar {'>'} <strong className="text-foreground">Web&apos;e Bağlan</strong> menüsüne gidin</li>
@@ -297,7 +297,7 @@ export default function LoginPage() {
             </Tabs>
           </CardContent>
           
-          <CardFooter className="flex justify-center border-t border-white/5 pt-6">
+          <CardFooter className="flex justify-center border-t border-border pt-6">
             <p className="text-sm text-muted-foreground">
               Hesabınız yok mu?{' '}
               <Link href="/register" className="font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
