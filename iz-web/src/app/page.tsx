@@ -53,7 +53,7 @@ export default function LandingPage() {
       {/* Navigation */}
       <nav className="relative z-10 flex items-center justify-between px-6 py-4 md:px-12 md:py-6 max-w-7xl mx-auto w-full">
         <div className="flex items-center gap-2">
-          <span className="text-3xl font-extrabold tracking-tight gradient-text">iz</span>
+          <span className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-blue-700 to-blue-400">iz</span>
         </div>
         <div className="flex items-center gap-4">
           <LanguageToggle />
@@ -145,8 +145,15 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="relative z-10 border-t border-border/40 mt-auto">
         <div className="max-w-7xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <span className="text-2xl font-extrabold gradient-text">iz</span>
-          <span className="text-sm text-muted-foreground">{t('landing.footer')}</span>
+          <span className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-blue-700 to-blue-400">iz</span>
+          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <Link href="/terms" className="hover:text-foreground transition-colors">Kullanım Şartları</Link>
+              <Link href="/privacy" className="hover:text-foreground transition-colors">Gizlilik Politikası</Link>
+              <Link href="/cookies" className="hover:text-foreground transition-colors">Çerez Politikası</Link>
+            </div>
+            <span className="text-sm text-muted-foreground">{t('landing.footer')}</span>
+          </div>
         </div>
       </footer>
     </main>

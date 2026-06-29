@@ -66,7 +66,7 @@ export default function RegisterPage() {
 
       <div className="relative z-10 w-full max-w-md animate-scale-in my-8">
         <div className="flex justify-center mb-8">
-          <Link href="/" className="text-4xl font-extrabold tracking-tight gradient-text">
+          <Link href="/" className="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-blue-700 to-blue-400">
             iz
           </Link>
         </div>
