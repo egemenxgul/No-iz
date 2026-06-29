@@ -46,14 +46,14 @@ export default function LandingPage() {
   return (
     <main className="relative min-h-screen overflow-hidden flex flex-col">
       {/* Background Orbs */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-600/20 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-5%] w-[50%] h-[50%] rounded-full bg-purple-600/20 blur-[150px] pointer-events-none" />
-      <div className="absolute top-[30%] left-[60%] w-[30%] h-[30%] rounded-full bg-blue-500/10 blur-[100px] pointer-events-none" />
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-600/20 blur-[120px] pointer-events-none animate-pulse" style={{ animationDuration: '8s' }} />
+      <div className="absolute bottom-[-10%] right-[-5%] w-[50%] h-[50%] rounded-full bg-purple-600/20 blur-[150px] pointer-events-none animate-pulse" style={{ animationDuration: '10s' }} />
+      <div className="absolute top-[30%] left-[60%] w-[30%] h-[30%] rounded-full bg-indigo-500/10 blur-[100px] pointer-events-none" />
 
       {/* Navigation */}
       <nav className="relative z-10 flex items-center justify-between px-6 py-4 md:px-12 md:py-6 max-w-7xl mx-auto w-full">
         <div className="flex items-center gap-2">
-          <span className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-indigo-400 to-purple-400">iz</span>
+          <span className="text-3xl font-extrabold tracking-tight gradient-text">iz</span>
         </div>
         <div className="flex items-center gap-4">
           <LanguageToggle />
@@ -62,7 +62,7 @@ export default function LandingPage() {
             <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               {t('landing.login')}
             </Link>
-            <Button asChild className="rounded-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/25 transition-all">
+            <Button asChild className="rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25 transition-all">
               <Link href="/register">{t('landing.start')}</Link>
             </Button>
           </div>
@@ -79,7 +79,7 @@ export default function LandingPage() {
         <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight max-w-4xl animate-fade-in [animation-delay:100ms] opacity-0" style={{ animationFillMode: 'forwards' }}>
           {t('landing.hero_title')}
           <br className="hidden sm:block" />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
+          <span className="gradient-text">
             {t('landing.hero_subtitle')}
           </span>
         </h1>
@@ -89,7 +89,7 @@ export default function LandingPage() {
         </p>
 
         <div className="mt-10 flex flex-col sm:flex-row items-center gap-4 animate-fade-in [animation-delay:300ms] opacity-0" style={{ animationFillMode: 'forwards' }}>
-          <Button asChild size="lg" className="rounded-full px-8 bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-500/30 transition-all hover:scale-105 group">
+          <Button asChild size="lg" className="rounded-full px-8 bg-blue-600 hover:bg-blue-700 text-white shadow-xl shadow-blue-500/30 transition-all hover:scale-105 group">
             <Link href="/register">
               {t('landing.cta_start')}
               <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -105,17 +105,17 @@ export default function LandingPage() {
         {/* Stats Section */}
         <div className="mt-20 grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12 w-full max-w-3xl animate-fade-in [animation-delay:400ms] opacity-0" style={{ animationFillMode: 'forwards' }}>
           <div className="flex flex-col items-center gap-2">
-            <span className="text-4xl font-bold text-foreground">E2EE</span>
+            <span className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-green-400 to-emerald-600">E2EE</span>
             <span className="text-sm text-muted-foreground font-medium">{t('landing.stat_encryption')}</span>
           </div>
           <div className="hidden sm:block w-[1px] h-12 bg-border mx-auto" />
           <div className="flex flex-col items-center gap-2">
-            <span className="text-4xl font-bold text-foreground">0</span>
+            <span className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-orange-400 to-red-500">0</span>
             <span className="text-sm text-muted-foreground font-medium">{t('landing.stat_access')}</span>
           </div>
           <div className="hidden sm:block w-[1px] h-12 bg-border mx-auto" />
           <div className="flex flex-col items-center gap-2">
-            <span className="text-4xl font-bold text-foreground">500K</span>
+            <span className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-blue-400 to-purple-500">500K</span>
             <span className="text-sm text-muted-foreground font-medium">{t('app.communities')}</span>
           </div>
         </div>
@@ -145,7 +145,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="relative z-10 border-t border-border/40 mt-auto">
         <div className="max-w-7xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <span className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-indigo-400 to-purple-400">iz</span>
+          <span className="text-2xl font-extrabold gradient-text">iz</span>
           <span className="text-sm text-muted-foreground">{t('landing.footer')}</span>
         </div>
       </footer>
