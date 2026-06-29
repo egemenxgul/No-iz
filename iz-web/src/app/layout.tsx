@@ -18,6 +18,7 @@ export const metadata: Metadata = {
 };
 
 import { I18nProvider } from '@/lib/i18n/I18nContext';
+import CookieBanner from '@/components/CookieBanner';
 
 import { headers } from 'next/headers';
 
@@ -55,6 +56,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body>
         <I18nProvider>
           {children}
+          <CookieBanner />
         </I18nProvider>
       </body>
     </html>

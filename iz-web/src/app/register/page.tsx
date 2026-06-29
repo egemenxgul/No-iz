@@ -26,6 +26,7 @@ export default function RegisterPage() {
   const [inviteCode, setInviteCode]   = useState('');
   const [error, setError]             = useState('');
   const [loading, setLoading]         = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -147,6 +148,21 @@ export default function RegisterPage() {
                   required
                   className="bg-background/50 border-accent/30 text-foreground placeholder:text-muted-foreground focus-visible:ring-blue-500 transition-all"
                 />
+              </div>
+
+              <div className="flex items-start space-x-3 pt-4">
+                <input
+                  type="checkbox"
+                  id="terms"
+                  checked={termsAccepted}
+                  onChange={(e) => setTermsAccepted(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-accent/30 bg-background/50 accent-blue-600 focus-visible:ring-blue-500 cursor-pointer"
+                  required
+                />
+                <Label htmlFor="terms" className="text-sm font-normal text-muted-foreground leading-relaxed cursor-pointer">
+                  <Link href="/terms" target="_blank" className="text-blue-500 hover:underline">Kullanım Şartları</Link>'nı ve{' '}
+                  <Link href="/privacy" target="_blank" className="text-blue-500 hover:underline">Gizlilik Politikası</Link>'nı okudum, kabul ediyorum.
+                </Label>
               </div>
 
               {error && (
