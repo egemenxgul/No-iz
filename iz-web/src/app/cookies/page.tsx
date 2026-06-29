@@ -38,14 +38,14 @@ export default function CookiePolicyPage() {
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-foreground mb-4">2. iz Platformu Çerezleri Nasıl Kullanır?</h2>
+              <h2 className="text-xl font-bold text-foreground mb-4">2. iz Platformu Çerezleri ve Yerel Depolamayı (Local Storage) Nasıl Kullanır?</h2>
               <p className="mb-4">
-                Platformumuz, gizlilik odaklı bir felsefeyle tasarlandığından, reklam veya üçüncü taraf takip (tracking) çerezleri kesinlikle kullanılmaz. Yalnızca aşağıdaki amaçlara yönelik, "Zorunlu ve İşlevsel Çerezler" (Essential Cookies) kullanılmaktadır:
+                Platformumuz, gizlilik odaklı bir felsefeyle tasarlandığından, reklam veya üçüncü taraf takip (tracking) çerezleri kesinlikle kullanılmaz. Tarayıcınızda yalnızca aşağıdaki amaçlara yönelik, "Zorunlu ve İşlevsel" veriler tutulmaktadır:
               </p>
               <ul className="list-disc pl-6 space-y-2">
-                <li><strong>Oturum Yönetimi:</strong> Hesabınıza giriş yaptığınızda oturumunuzun aktif kalmasını sağlamak ve yetkisiz erişimleri engellemek için geçici oturum çerezleri kullanılır.</li>
-                <li><strong>Kullanıcı Tercihleri:</strong> Dil seçimi (örneğin Türkçe veya İngilizce) ve tema tercihleri (Karanlık veya Aydınlık mod) gibi arayüz seçimlerinizin cihazınızda hatırlanması için kullanılır. (Örn: `iz_language` çerezi veya `localStorage` içindeki `theme` anahtarı).</li>
-                <li><strong>GDPR Onayı:</strong> Çerez politikamızı onaylayıp onaylamadığınızı hatırlamak ve size aynı uyarıyı sürekli göstermemek için kullanılır. (Örn: `iz_cookie_consent`).</li>
+                <li><strong>Oturum ve Tercih Yönetimi (Çerezler & Yerel Depolama):</strong> Dil seçimi (Örn: `iz_language`), tema tercihleri (`theme`) ve çerez politikamızı onaylayıp onaylamadığınızı (`iz_cookie_consent`) hatırlamak için kullanılır.</li>
+                <li><strong>Uçtan Uca Şifreleme Anahtarları (Kritik):</strong> Sistemimizin Sıfır Bilgi prensibi gereği; uçtan uca şifreleme anahtarlarınız (`iz_keys`), cihaz oturum verileriniz (`iz_sessions`), grup şifreleme anahtarları (`iz_group_keys`) ve QR Kod ile giriş geçici anahtarları (`qr_login_private_key`) tarayıcınızın HTML5 Yerel Depolama (Local Storage) alanında şifreli olarak tutulur. <strong>Bu veriler klasik çerezlerin aksine hiçbir HTTP isteğiyle sunucularımıza gönderilmez.</strong></li>
+                <li><strong>Çevrimdışı Çalışma (İşlevsel):</strong> İnternet bağlantınız koptuğunda gönderilemeyen mesajlarınız (`iz_outbound_queue`) ve arşivlediğiniz sohbetlerin listesi (`iz_archived_chats`) geçici olarak tarayıcınızda tutulur ve sunucuya gönderildikten sonra senkronize edilir.</li>
               </ul>
             </section>
 
