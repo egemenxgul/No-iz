@@ -56,13 +56,13 @@ export default function PrivacyPolicyPage() {
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-foreground mb-4">4. Bulut Yedekleme (Cloud Backup)</h2>
+              <h2 className="text-xl font-bold text-foreground mb-4">4. Güvenli Bulut Yedekleme (Cloud Backup)</h2>
               <p className="mb-4">
-                Mesaj geçmişinizi kaybetmemeniz için isteğe bağlı Bulut Yedekleme hizmeti sunuyoruz. Ancak bu süreç tamamen sizin kontrolünüzdedir ve bizim sunucularımızı pas geçer:
+                Yeni bir cihaza geçtiğinizde veya uygulamayı sildiğinizde verilerinizi kaybetmemeniz için uçtan uca şifrelenmiş Bulut Yedekleme hizmeti sunuyoruz. Bu yedekleme işlemi tamamen iz Platformu'nun kendi güvenli bulut sunucularında gerçekleşir:
               </p>
               <ul className="list-disc pl-6 space-y-2">
-                <li><strong>Google Drive / iCloud Entegrasyonu:</strong> Yedeklemeler doğrudan kişisel Google Drive veya iCloud hesaplarınızın gizli (AppData) klasörlerine yapılır.</li>
-                <li><strong>Şifreli Yedekleme:</strong> Buluta aktarılan yedek dosyası (iz_backup.zip), cihazınızdan çıkmadan önce AES-256 ile şifrelenir. Bulut sağlayıcınız (Google/Apple) veya biz, yedeklerinizin içeriğini çözemez ve okuyamayız.</li>
+                <li><strong>Sunucu Tarafı Şifreli Saklama:</strong> Tüm sohbet geçmişiniz cihazınızda kendi şifreleme anahtarlarınızla şifrelenir ve iz Platformu sunucularına yalnızca şifreli bir metin yığını olarak gönderilir.</li>
+                <li><strong>Kusursuz İzolasyon:</strong> Yedekler sunucumuzda barındırılsa dahi şifre çözme anahtarı yalnızca sizin cihazınızda olduğu için, bizim veya herhangi bir siber saldırganın sunucudaki mesaj arşivinize ulaşıp içeriğini okuması kriptografik olarak imkansızdır.</li>
               </ul>
             </section>
 
