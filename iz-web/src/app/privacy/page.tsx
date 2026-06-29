@@ -33,61 +33,70 @@ export default function PrivacyPolicyPage() {
             <section>
               <h2 className="text-xl font-bold text-foreground mb-4">1. Giriş</h2>
               <p>
-                iz Platformu olarak gizliliğinize en üst düzeyde önem veriyoruz. Misyonumuz, kullanıcıların iletişim verilerini uçtan uca şifreleyerek kimsenin (biz dahil) erişemeyeceği güvenli bir ortam sunmaktır. Bu Gizlilik Politikası, hangi verileri nasıl topladığımızı, neden işlediğimizi ve gizliliğinizi nasıl koruduğumuzu açıklamaktadır.
+                iz Platformu olarak gizliliğinize en üst düzeyde önem veriyoruz. Misyonumuz, kullanıcıların iletişim verilerini uçtan uca şifreleyerek kimsenin (biz dahil) erişemeyeceği güvenli bir ortam sunmaktır. Bu Gizlilik Politikası, hangi verileri nasıl topladığımızı, cihazınızdaki verilerin nasıl korunduğunu ve bulut yedekleme süreçlerini detaylandırmaktadır.
               </p>
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-foreground mb-4">2. Veri Şifreleme ve Sıfır Bilgi Prensibi</h2>
+              <h2 className="text-xl font-bold text-foreground mb-4">2. Uçtan Uca Şifreleme (E2EE) ve Sıfır Bilgi</h2>
               <p className="mb-4">
-                Platform üzerinde gönderilen tüm mesajlar, aramalar, medya dosyaları ve gruplara ait iletişim verileri uçtan uca şifrelenir (E2EE). 
+                Platform üzerinde gönderilen tüm mesajlar, medya dosyaları ve grup iletişim verileri Double Ratchet ve X3DH protokolleri kullanılarak uçtan uca şifrelenir. 
               </p>
               <ul className="list-disc pl-6 space-y-2">
-                <li><strong>Sıfır Bilgi:</strong> Şifreleme anahtarlarınız cihazınızda oluşturulur ve cihazınızda kalır. Sunucularımızda şifre çözme anahtarlarınız hiçbir zaman düz metin olarak saklanmaz.</li>
-                <li><strong>İçerik Gizliliği:</strong> Sunucularımız üzerinden geçen veriler sadece şifreli veri paketlerinden ibarettir. Gönderdiğiniz fotoğraf, video veya metin içerikleri bizim tarafımızdan okunamaz, taranamaz veya analiz edilemez.</li>
+                <li><strong>Sıfır Bilgi:</strong> Şifreleme anahtarlarınız yalnızca cihazınızda oluşturulur. Sunucularımızda şifre çözme anahtarlarınız asla tutulmaz.</li>
+                <li><strong>Yerel Şifreleme (SQLCipher):</strong> Telefonunuzdaki mesaj geçmişiniz ve veritabanınız (iz_vault.db), cihazınıza özel AES-256 şifrelemesi ile kilitlenir. Uygulama kapalıyken cihazınıza fiziksel erişim sağlansa bile verileriniz okunamaz.</li>
               </ul>
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-foreground mb-4">3. Hangi Verileri Topluyoruz?</h2>
+              <h2 className="text-xl font-bold text-foreground mb-4">3. Sesli ve Görüntülü Aramalar (WebRTC)</h2>
+              <p>
+                Sesli ve görüntülü aramalarınız WebRTC altyapısı kullanılarak tamamen eşler arası (P2P - Peer-to-Peer) olarak gerçekleşir. Aramalar DTLS-SRTP protokolleriyle uçtan uca şifrelenir. Bu sayede ses ve görüntü verileriniz hiçbir zaman sunucularımız üzerinden şifresiz olarak geçmez ve kaydedilemez.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-bold text-foreground mb-4">4. Bulut Yedekleme (Cloud Backup)</h2>
+              <p className="mb-4">
+                Mesaj geçmişinizi kaybetmemeniz için isteğe bağlı Bulut Yedekleme hizmeti sunuyoruz. Ancak bu süreç tamamen sizin kontrolünüzdedir ve bizim sunucularımızı pas geçer:
+              </p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li><strong>Google Drive / iCloud Entegrasyonu:</strong> Yedeklemeler doğrudan kişisel Google Drive veya iCloud hesaplarınızın gizli (AppData) klasörlerine yapılır.</li>
+                <li><strong>Şifreli Yedekleme:</strong> Buluta aktarılan yedek dosyası (iz_backup.zip), cihazınızdan çıkmadan önce AES-256 ile şifrelenir. Bulut sağlayıcınız (Google/Apple) veya biz, yedeklerinizin içeriğini çözemez ve okuyamayız.</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-bold text-foreground mb-4">5. Hangi Verileri Topluyoruz?</h2>
               <p className="mb-4">Hizmetlerimizi sunabilmek için minimum düzeyde veri topluyoruz:</p>
               <ul className="list-disc pl-6 space-y-2">
-                <li><strong>Hesap Bilgileri:</strong> Kayıt sırasında alınan rastgele veya anonim kullanıcı adı (username). İsteğe bağlı olarak e-posta adresi (hesap kurtarma amacıyla).</li>
-                <li><strong>Bağlantı Metadata'sı:</strong> Sistem güvenliğini sağlamak ve DDoS saldırılarını önlemek amacıyla anlık IP adresiniz ağ geçitlerinde geçici olarak tutulabilir ancak kalıcı loglanmaz. Kimin kiminle iletişim kurduğu (sosyal ağ grafiği) şifreli olarak saklanır ve tarafımızca analiz edilemez.</li>
-                <li><strong>Cihaz ve İstemci Bilgisi:</strong> Anlık bildirim (Push Notification) iletimi için cihazınıza özel anonim bildirim jetonları (token).</li>
+                <li><strong>Kimlik Doğrulama:</strong> Parolasız giriş (Passkeys) teknolojisi ile şifrenizi sunucuya göndermeden biyometrik doğrulama kullanıyoruz. Kayıt sırasında sadece anonim bir kullanıcı adı alınır.</li>
+                <li><strong>Anlık Bildirimler (Push):</strong> Firebase/APNs üzerinden cihazınıza mesaj geldiğini bildirmek için anonim cihaz jetonları (token) kullanılır. Bildirim içerikleri (mesaj metni) sunucudan "boş yük (blank payload)" olarak gider, mesajın içeriği cihazınızda yerel olarak çözülüp bildirime yazılır.</li>
               </ul>
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-foreground mb-4">4. Verilerin Kullanım Amacı</h2>
+              <h2 className="text-xl font-bold text-foreground mb-4">6. Veri Paylaşımı ve Yasal Süreçler</h2>
               <p>
-                Topladığımız sınırlı sayıdaki veriler, yalnızca hesabınızın çalışmasını sağlamak, anlık bildirimleri iletebilmek, spam ve sistem suistimallerini engellemek ve yasal mevzuat gerekliliklerini (varsa, sadece yasal ve teknik sınırlar dahilinde) yerine getirmek amacıyla kullanılır. Verileriniz kesinlikle reklam, pazarlama veya ticari analiz amaçlarıyla üçüncü taraflara satılamaz.
+                iz Platformu, "Okuyamadığımızı paylaşamayız" ilkesiyle hareket eder. Şifrelenmiş içeriklerinize, yerel veritabanınıza veya kişisel bulut yedeklerinize erişimimiz olmadığı için, bu içeriklerin yasal mercilerle dahi paylaşılması kriptografik olarak imkansızdır. Paylaşılabilecek tek bilgi (mahkeme kararı durumunda) hesabınızın oluşturulma tarihi gibi temel metadatalardır.
               </p>
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-foreground mb-4">5. Veri Paylaşımı</h2>
-              <p>
-                iz Platformu, "Okuyamadığımızı paylaşamayız" ilkesiyle hareket eder. Şifrelenmiş içeriklerinize erişimimiz olmadığı için, bu içeriklerin yasal mercilerle dahi paylaşılması teknik olarak imkansızdır. Paylaşılabilecek tek bilgi (yasal bir mahkeme kararı durumunda) hesabınızın oluşturulma tarihi veya varsa kayıtlı e-posta adresiniz gibi anonim/temel verilerdir.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-bold text-foreground mb-4">6. Kullanıcı Hakları (GDPR Uyumluluğu)</h2>
+              <h2 className="text-xl font-bold text-foreground mb-4">7. Kullanıcı Hakları ve Unutulma Hakkı</h2>
               <p className="mb-4">
-                Avrupa Birliği Genel Veri Koruma Tüzüğü (GDPR) ve diğer uluslararası standartlar gereği aşağıdaki haklara sahipsiniz:
+                Avrupa Birliği Genel Veri Koruma Tüzüğü (GDPR) gereği aşağıdaki haklara sahipsiniz:
               </p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>Hesap verilerinize erişme ve bunları dışa aktarma hakkı.</li>
-                <li>Yanlış bilgilerin düzeltilmesini talep etme hakkı.</li>
-                <li><strong>Unutulma Hakkı:</strong> Hesabınızı sildiğinizde, sunucularımızdaki size ait tüm şifreli içerikler ve hesap bilgileri kalıcı olarak yok edilir. Yedeklerden silinmesi en fazla 30 gün sürebilir.</li>
+                <li><strong>Unutulma Hakkı:</strong> Hesabınızı sildiğinizde, sunucularımızdaki size ait tüm şifreli anahtarlar, jetonlar ve veriler kalıcı olarak yok edilir. Buluttaki (Drive/iCloud) yedeklerinizi silmek sizin sorumluluğunuzdadır.</li>
               </ul>
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-foreground mb-4">7. İletişim</h2>
+              <h2 className="text-xl font-bold text-foreground mb-4">8. İletişim</h2>
               <p>
-                Gizlilik politikamız veya veri işleme süreçlerimiz hakkında sorularınız için bizimle <strong>privacy@no-iz.app</strong> adresi üzerinden iletişime geçebilirsiniz.
+                Gizlilik politikamız, şifreleme altyapımız veya veri işleme süreçlerimiz hakkında detaylı teknik sorularınız için bizimle <strong>privacy@no-iz.app</strong> adresi üzerinden iletişime geçebilirsiniz.
               </p>
             </section>
 
