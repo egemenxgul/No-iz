@@ -127,7 +127,7 @@ export default function LandingPage() {
           {features.map((feature, i) => (
             <div 
               key={i} 
-              className="glass p-8 rounded-3xl hover:bg-muted/50 transition-colors border-border flex flex-col gap-4 animate-fade-in opacity-0"
+              className="glass glass-interactive p-8 rounded-3xl flex flex-col gap-4 animate-fade-in opacity-0"
               style={{ animationDelay: `\${500 + i * 100}ms`, animationFillMode: 'forwards' }}
             >
               <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center border border-border">

@@ -10,6 +10,15 @@
   text-align: center;
   animation: fadeIn 250ms ease forwards;
 }
-.emptyIcon { font-size: 48px; filter: grayscale(0.5); }
+@keyframes floatIcon {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.emptyIcon { 
+  font-size: 48px; 
+  filter: grayscale(0.2); 
+  animation: floatIcon 3s ease-in-out infinite;
+}
 .emptyTitle { font-size: 18px; font-weight: 600; color: var(--text-secondary); }
 .emptyText  { font-size: 14px; max-width: 280px; line-height: 1.6; }

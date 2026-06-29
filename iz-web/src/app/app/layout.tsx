@@ -16,6 +16,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { t } = useI18n();
   const [auth, setAuth] = useState(getAuth());
   const [wsStatus, setWsStatus] = useState<'connected' | 'disconnected'>('disconnected');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
     { href: '/app/messages',    icon: '💬', label: t('app.messages') },
@@ -50,9 +51,31 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className={styles.shell}>
       <div className={styles.orb1} />
       <div className={styles.orb2} />
+
+      {/* Mobile Header */}
+      <div className={styles.mobileHeader}>
+        <span className={styles.logo}>iz</span>
+        <button 
+          className={styles.mobileMenuBtn} 
+          onClick={() => setIsMobileMenuOpen(true)}
+          aria-label="Open menu"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="4" y1="12" x2="20" y2="12"></line>
+            <line x1="4" y1="6" x2="20" y2="6"></line>
+            <line x1="4" y1="18" x2="20" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      {/* Sidebar Overlay */}
+      <div 
+        className={`${styles.sidebarOverlay} ${isMobileMenuOpen ? styles.open : ''}`} 
+        onClick={() => setIsMobileMenuOpen(false)}
+      />
       
       {/* Sidebar */}
-      <aside className={styles.sidebar}>
+      <aside className={`${styles.sidebar} ${isMobileMenuOpen ? styles.open : ''}`}>
         {/* Logo */}
         <div className={styles.sidebarHeader}>
           <span className={styles.logo}>iz</span>
@@ -67,6 +90,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               href={item.href}
               className={`${styles.navItem} ${pathname?.startsWith(item.href) ? styles.navItemActive : ''}`}
               id={`nav-${item.href.split('/').pop()}`}
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               <span className={styles.navIcon}>{item.icon}</span>
               <span className={styles.navLabel}>{item.label}</span>
