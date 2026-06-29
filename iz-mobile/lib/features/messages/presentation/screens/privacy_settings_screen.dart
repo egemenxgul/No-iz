@@ -171,7 +171,7 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
                         _SwitchTile(
                           icon: Icons.edit_note_outlined,
                           iconGradient: const LinearGradient(
-                            colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
+                            colors: [Color(0xFFA855F7), Color(0xFF3B82F6)],
                           ),
                           title: context.tr(ref, 'hide_typing'),
                           subtitle: context.tr(ref, 'hide_typing_sub'),
@@ -203,7 +203,7 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
                         _SwitchTile(
                           icon: Icons.vpn_lock_outlined,
                           iconGradient: const LinearGradient(
-                            colors: [Color(0xFF6366F1), Color(0xFFEC4899)],
+                            colors: [Color(0xFF3B82F6), Color(0xFFEC4899)],
                           ),
                           title: "Aramalarda IP Gizle",
                           subtitle: "Trafiği röle sunucuları üzerinden aktararak ağ adresinizi maskeleyin.",

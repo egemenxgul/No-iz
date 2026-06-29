@@ -159,7 +159,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Row(
           children: [
-            Icon(Icons.security, color: Color(0xFF6366F1), size: 28),
+            Icon(Icons.security, color: Color(0xFF3B82F6), size: 28),
             SizedBox(width: 12),
             Text(
               'Web Girişini Onayla',
@@ -181,13 +181,13 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
                 color: const Color(0xFF2D2D3D),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: const Color(0xFF6366F1).withValues(alpha: 0.3),
+                  color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
                 ),
               ),
               child: Row(
                 children: [
                   const CircleAvatar(
-                    backgroundColor: Color(0xFF6366F1),
+                    backgroundColor: Color(0xFF3B82F6),
                     radius: 20,
                     child: Icon(Icons.person, color: Colors.white, size: 22),
                   ),
@@ -262,7 +262,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
           ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6366F1),
+              backgroundColor: const Color(0xFF3B82F6),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -417,7 +417,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
       animation: _pulseAnimation,
       builder: (_, __) => CustomPaint(
         painter: _ScanOverlayPainter(
-          borderColor: const Color(0xFF6366F1),
+          borderColor: const Color(0xFF3B82F6),
           pulseScale: _pulseAnimation.value,
         ),
         child: Container(),
@@ -433,11 +433,11 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
         color: Colors.black.withValues(alpha: 0.75),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: const Color(0xFF6366F1).withValues(alpha: 0.4),
+          color: const Color(0xFF3B82F6).withValues(alpha: 0.4),
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF6366F1).withValues(alpha: 0.2),
+            color: const Color(0xFF3B82F6).withValues(alpha: 0.2),
             blurRadius: 24,
             spreadRadius: 2,
           ),
@@ -446,7 +446,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.qr_code_scanner, color: Color(0xFF6366F1), size: 32),
+          const Icon(Icons.qr_code_scanner, color: Color(0xFF3B82F6), size: 32),
           const SizedBox(height: 12),
           const Text(
             'iz Web QR Kodunu Tara',
@@ -512,7 +512,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF6366F1).withValues(alpha: 0.4),
+                    color: const Color(0xFF3B82F6).withValues(alpha: 0.4),
                     blurRadius: 30,
                     spreadRadius: 5,
                   ),
@@ -521,7 +521,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
               child: const Padding(
                 padding: EdgeInsets.all(20),
                 child: CircularProgressIndicator(
-                  color: Color(0xFF6366F1),
+                  color: Color(0xFF3B82F6),
                   strokeWidth: 3,
                 ),
               ),

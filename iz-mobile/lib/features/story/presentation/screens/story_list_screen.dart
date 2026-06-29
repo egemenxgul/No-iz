@@ -553,13 +553,13 @@ class _AddStoryFAB extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: const LinearGradient(
-            colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+            colors: [Color(0xFF3B82F6), Color(0xFFA855F7)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF6366F1).withValues(alpha: 0.45),
+              color: const Color(0xFF3B82F6).withValues(alpha: 0.45),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),

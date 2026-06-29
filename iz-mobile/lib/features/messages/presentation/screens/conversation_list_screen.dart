@@ -1198,7 +1198,7 @@ class _StoryRingItem extends StatelessWidget {
                     shape: BoxShape.circle,
                     gradient: hasStory
                         ? const LinearGradient(
-                            colors: [Color(0xFF6366F1), Color(0xFFEC4899), Color(0xFFF59E0B)],
+                            colors: [Color(0xFF3B82F6), Color(0xFFEC4899), Color(0xFFF59E0B)],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           )
@@ -1238,7 +1238,7 @@ class _StoryRingItem extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: const LinearGradient(
-                        colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                        colors: [Color(0xFF3B82F6), Color(0xFFA855F7)],
                       ),
                       border: Border.all(color: AppColors.bgBase, width: 2),
                     ),

@@ -693,13 +693,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     gradient: LinearGradient(
                       colors: conv.isGroup
                           ? [const Color(0xFFA855F7), const Color(0xFF6B21A8)]
-                          : [const Color(0xFF6366F1), const Color(0xFF8B5CF6)],
+                          : [const Color(0xFF3B82F6), const Color(0xFFA855F7)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: (conv.isGroup ? const Color(0xFF6B21A8) : const Color(0xFF6366F1)).withValues(alpha: 0.3),
+                        color: (conv.isGroup ? const Color(0xFF6B21A8) : const Color(0xFF3B82F6)).withValues(alpha: 0.3),
                         blurRadius: 10,
                       ),
                     ],
@@ -1041,7 +1041,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                             icon: Icons.image_rounded,
                             label: 'Galeri',
                             gradient: const LinearGradient(
-                              colors: [Color(0xFF3B82F6), Color(0xFF6366F1)],
+                              colors: [Color(0xFF3B82F6), Color(0xFF3B82F6)],
                             ),
                             onTap: () {
                               Navigator.pop(context);
@@ -1278,13 +1278,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                      colors: [Color(0xFF3B82F6), Color(0xFFA855F7)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF6366F1).withValues(alpha: 0.4),
+                        color: const Color(0xFF3B82F6).withValues(alpha: 0.4),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -1435,7 +1435,7 @@ class _MessageBubble extends ConsumerWidget {
               decoration: BoxDecoration(
                 gradient: isMe
                     ? const LinearGradient(
-                        colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                        colors: [Color(0xFF3B82F6), Color(0xFFA855F7)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       )
@@ -1453,7 +1453,7 @@ class _MessageBubble extends ConsumerWidget {
                 boxShadow: isMe
                     ? [
                         BoxShadow(
-                          color: const Color(0xFF6366F1).withValues(alpha: 0.3),
+                          color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         )

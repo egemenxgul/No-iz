@@ -610,7 +610,7 @@ class _PickPhotoButton extends StatelessWidget {
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: LinearGradient(
-                      colors: [Color(0xFF3B82F6), Color(0xFF6366F1)],
+                      colors: [Color(0xFF3B82F6), Color(0xFF3B82F6)],
                     ),
                   ),
                   child: const Icon(Icons.photo_library_rounded,

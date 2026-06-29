@@ -153,7 +153,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: LinearGradient(
-                          colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
+                          colors: [Color(0xFFA855F7), Color(0xFF3B82F6)],
                         ),
                       ),
                       child: const Icon(Icons.person_outline, color: Colors.white, size: 20),
@@ -208,7 +208,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   _SwitchTile(
                     icon: Icons.compress,
                     iconGradient: const LinearGradient(
-                      colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
+                      colors: [Color(0xFFA855F7), Color(0xFF6D28D9)],
                     ),
                     title: 'Orijinal Kalitede Gönder',
                     subtitle: 'Medya dosyalarını sıkıştırmadan (Cloud Lock kotanızı hızla tüketerek) orijinal boyutuyla gönderir.',
@@ -305,7 +305,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: LinearGradient(
-                          colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                          colors: [Color(0xFF3B82F6), Color(0xFFA855F7)],
                         ),
                       ),
                       child: const Icon(Icons.lock_outline, color: Colors.white, size: 20),

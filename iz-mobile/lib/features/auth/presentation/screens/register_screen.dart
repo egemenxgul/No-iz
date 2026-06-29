@@ -239,7 +239,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                     top: -60 + o1,
                     left: -80,
                     child: const _Orb(
-                      color: Color(0xFF8B5CF6),
+                      color: Color(0xFFA855F7),
                       size: 320,
                       opacity: 0.18,
                     ),
@@ -248,7 +248,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                     bottom: -40 + o2,
                     right: -60,
                     child: const _Orb(
-                      color: Color(0xFF6366F1),
+                      color: Color(0xFF3B82F6),
                       size: 280,
                       opacity: 0.15,
                     ),

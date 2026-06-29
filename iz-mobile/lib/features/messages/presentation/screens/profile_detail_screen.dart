@@ -517,7 +517,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen>
                           icon = Icons.diamond_outlined;
                         } else if (isPro) {
                           label = 'Pro Üye';
-                          color = const Color(0xFF8B5CF6);
+                          color = const Color(0xFFA855F7);
                           icon = Icons.diamond_outlined;
                         } else if (isPlus) {
                           label = 'Plus Üye';

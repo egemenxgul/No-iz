@@ -111,7 +111,7 @@ class _RingingScreenState extends ConsumerState<RingingScreen>
                       shape: BoxShape.circle,
                       gradient: RadialGradient(
                         colors: [
-                          const Color(0xFF6366F1).withValues(alpha: 0.25),
+                          const Color(0xFF3B82F6).withValues(alpha: 0.25),
                           Colors.transparent,
                         ],
                       ),
@@ -133,12 +133,12 @@ class _RingingScreenState extends ConsumerState<RingingScreen>
                 height: 260,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.14),
+                  color: const Color(0xFFA855F7).withValues(alpha: 0.14),
                 ),
                 child: ImageFiltered(
                   imageFilter: ImageFilter.blur(sigmaX: 60, sigmaY: 60),
                   child: Container(
-                    color: const Color(0xFF8B5CF6).withValues(alpha: 0.14),
+                    color: const Color(0xFFA855F7).withValues(alpha: 0.14),
                   ),
                 ),
               ),
@@ -198,7 +198,7 @@ class _RingingScreenState extends ConsumerState<RingingScreen>
                             const SizedBox(width: 8),
                             Icon(
                               isVideo ? Icons.videocam_rounded : Icons.phone_in_talk_rounded,
-                              color: const Color(0xFF818CF8),
+                              color: const Color(0xFF60A5FA),
                               size: 15,
                             ),
                           ],
@@ -243,14 +243,14 @@ class _RingingScreenState extends ConsumerState<RingingScreen>
                         // Outer ripple 1
                         _buildRipple(
                           _pulseController.value,
-                          const Color(0xFF6366F1),
+                          const Color(0xFF3B82F6),
                           170,
                           0.18,
                         ),
                         // Outer ripple 2
                         _buildRipple(
                           (_pulseController.value + 0.5) % 1.0,
-                          const Color(0xFF8B5CF6),
+                          const Color(0xFFA855F7),
                           160,
                           0.14,
                         ),
@@ -279,11 +279,11 @@ class _RingingScreenState extends ConsumerState<RingingScreen>
                                 gradient: const LinearGradient(
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
-                                  colors: [Color(0xFF818CF8), Color(0xFF4F46E5)],
+                                  colors: [Color(0xFF60A5FA), Color(0xFF4F46E5)],
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: const Color(0xFF6366F1).withValues(alpha: 0.6),
+                                    color: const Color(0xFF3B82F6).withValues(alpha: 0.6),
                                     blurRadius: 40,
                                     spreadRadius: 4,
                                   ),

@@ -202,11 +202,11 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
                       gradient: const LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [Color(0xFF6366F1), Color(0xFF4338CA)],
+                        colors: [Color(0xFF3B82F6), Color(0xFF4338CA)],
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF6366F1).withValues(alpha: 0.3),
+                          color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
                           blurRadius: 30,
                           spreadRadius: 2,
                         )
@@ -245,7 +245,7 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
                               width: 8,
                               height: h,
                               decoration: BoxDecoration(
-                                color: const Color(0xFF818CF8).withValues(alpha: 0.85 - (index * 0.08)),
+                                color: const Color(0xFF60A5FA).withValues(alpha: 0.85 - (index * 0.08)),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                             );
@@ -363,8 +363,8 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
                       // Speakerphone Routing Toggle
                       _buildControlButton(
                         icon: isSpeakerOn ? Icons.volume_up : Icons.volume_down,
-                        color: isSpeakerOn ? const Color(0xFF818CF8).withValues(alpha: 0.2) : Colors.white10,
-                        iconColor: isSpeakerOn ? const Color(0xFF818CF8) : Colors.white.withValues(alpha: 0.87),
+                        color: isSpeakerOn ? const Color(0xFF60A5FA).withValues(alpha: 0.2) : Colors.white10,
+                        iconColor: isSpeakerOn ? const Color(0xFF60A5FA) : Colors.white.withValues(alpha: 0.87),
                         onPressed: () {
                           ref.read(callProvider.notifier).toggleSpeaker();
                         },
@@ -432,7 +432,7 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
             const SizedBox(
               width: 40,
               height: 40,
-              child: CircularProgressIndicator(color: Color(0xFF818CF8), strokeWidth: 3.5),
+              child: CircularProgressIndicator(color: Color(0xFF60A5FA), strokeWidth: 3.5),
             ),
             const SizedBox(height: 20),
             Text(
@@ -507,11 +507,11 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                       gradient: const LinearGradient(
-                                        colors: [Color(0xFF818CF8), Color(0xFF4F46E5)],
+                                        colors: [Color(0xFF60A5FA), Color(0xFF4F46E5)],
                                       ),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: const Color(0xFF818CF8).withValues(alpha: 0.3),
+                                          color: const Color(0xFF60A5FA).withValues(alpha: 0.3),
                                           blurRadius: 15,
                                         )
                                       ],
@@ -619,7 +619,7 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.check_circle, color: Color(0xFF818CF8)),
+                                const Icon(Icons.check_circle, color: Color(0xFF60A5FA)),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
@@ -772,7 +772,7 @@ class _InviteSheetContentState extends ConsumerState<_InviteSheetContent> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               gradient: const LinearGradient(
-                                colors: [Color(0xFF6366F1), Color(0xFF4F46E5)],
+                                colors: [Color(0xFF3B82F6), Color(0xFF4F46E5)],
                               ),
                               border: Border.all(color: Colors.white10),
                             ),
@@ -817,10 +817,10 @@ class _InviteSheetContentState extends ConsumerState<_InviteSheetContent> {
                           // Interactive Invite Action Trigger
                           TextButton(
                             style: TextButton.styleFrom(
-                              backgroundColor: const Color(0xFF818CF8).withValues(alpha: 0.15),
+                              backgroundColor: const Color(0xFF60A5FA).withValues(alpha: 0.15),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                side: const BorderSide(color: Color(0xFF818CF8), width: 1),
+                                side: const BorderSide(color: Color(0xFF60A5FA), width: 1),
                               ),
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             ),
@@ -828,7 +828,7 @@ class _InviteSheetContentState extends ConsumerState<_InviteSheetContent> {
                             child: const Text(
                               'Davet Et',
                               style: TextStyle(
-                                color: Color(0xFF818CF8),
+                                color: Color(0xFF60A5FA),
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
                               ),

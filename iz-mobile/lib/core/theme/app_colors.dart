@@ -42,15 +42,15 @@ class AppColors {
   static const Color prismGold = Color(0x0AFFD97D);
 
   // ─── Accent Colors ────────────────────────────────────────────────────────────
-  /// Primary indigo-violet (iOS blue feel)
-  static const Color accent = Color(0xFF6366F1);
-  static const Color accentLight = Color(0xFF818CF8);
-  static const Color accentGlow = Color(0xFFA5B4FC);
-  static const Color accentDim = Color(0x296366F1);
-  static const Color accentBorder = Color(0x4D6366F1);
+  /// Primary blue (Matches web --accent)
+  static const Color accent = Color(0xFF3B82F6);
+  static const Color accentLight = Color(0xFF60A5FA);
+  static const Color accentGlow = Color(0xFF93C5FD);
+  static const Color accentDim = Color(0x293B82F6);
+  static const Color accentBorder = Color(0x4D3B82F6);
 
-  /// Secondary purple gradient complement
-  static const Color accentSecondary = Color(0xFF8B5CF6);
+  /// Secondary purple gradient complement (Matches web --accent-glow/purple)
+  static const Color accentSecondary = Color(0xFFA855F7);
 
   // ─── Semantic Colors ──────────────────────────────────────────────────────────
   static const Color success = Color(0xFF34D399);

@@ -289,8 +289,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        const Color(0xFF6366F1).withValues(alpha: 0.22),
-                        const Color(0xFF6366F1).withValues(alpha: 0.0),
+                        const Color(0xFF3B82F6).withValues(alpha: 0.22),
+                        const Color(0xFF3B82F6).withValues(alpha: 0.0),
                       ],
                     ),
                   ),
@@ -314,8 +314,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        const Color(0xFF8B5CF6).withValues(alpha: 0.16),
-                        const Color(0xFF8B5CF6).withValues(alpha: 0.0),
+                        const Color(0xFFA855F7).withValues(alpha: 0.16),
+                        const Color(0xFFA855F7).withValues(alpha: 0.0),
                       ],
                     ),
                   ),
@@ -399,7 +399,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                   height: 74,
                                   decoration: BoxDecoration(
                                     gradient: const LinearGradient(
-                                      colors: [Color(0xFF5558EA), Color(0xFF8B5CF6)],
+                                      colors: [Color(0xFF5558EA), Color(0xFFA855F7)],
                                       begin: Alignment.topLeft,
                                       end: Alignment.bottomRight,
                                     ),

@@ -163,7 +163,7 @@ class _MinimizedCallWidgetState extends ConsumerState<MinimizedCallWidget> with 
                         height: 54,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: const Color(0xFF6366F1).withValues(alpha: 0.2),
+                          color: const Color(0xFF3B82F6).withValues(alpha: 0.2),
                           border: Border.all(color: Colors.white24),
                         ),
                         child: Center(
