@@ -38,14 +38,15 @@ export default function TermsOfServicePage() {
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-foreground mb-4">2. Hizmetin Niteliği</h2>
+              <h2 className="text-xl font-bold text-foreground mb-4">2. Hizmetin Niteliği ve Teknik Altyapı</h2>
               <p className="mb-4">
                 iz Platformu, uçtan uca şifreleme (End-to-End Encryption - E2EE) teknolojisini temel alan güvenli bir anlık mesajlaşma, sesli/görüntülü görüşme ve topluluk oluşturma platformudur. Hizmetlerimizin temel felsefesi "Sıfır Bilgi" (Zero-Knowledge) prensibine dayanır. Bu prensip gereği;
               </p>
               <ul className="list-disc pl-6 space-y-2">
-                <li>İçerikleriniz (mesajlar, medya dosyaları, ses kayıtları) yalnızca sizin ve iletişim kurduğunuz cihazlar tarafından çözülebilir.</li>
-                <li>Biz dahil olmak üzere hiçbir üçüncü taraf şifrelenmiş içeriklere erişemez veya bunları okuyamaz.</li>
-                <li>Platform, şifreleme anahtarlarınızı sunucularında saklamaz.</li>
+                <li><strong>Mesajlar ve Medya:</strong> İçerikleriniz Double Ratchet ve X3DH kullanılarak uçtan uca şifrelenir ve yalnızca iletişim kurduğunuz cihazlar tarafından çözülebilir.</li>
+                <li><strong>Aramalar:</strong> Sesli ve görüntülü aramalarınız, WebRTC üzerinden eşler arası (P2P) ve DTLS-SRTP ile şifrelenmiş olarak gerçekleşir.</li>
+                <li><strong>Yerel Şifreleme:</strong> Cihazınızdaki sohbet arşiviniz, AES-256 (SQLCipher) ile yerel olarak kilitlenir.</li>
+                <li><strong>Bulut Yedekleme:</strong> Sunucularımıza gönderilen yedeklemeler tamamen şifrelenmiş metin bloklarından ibarettir; biz dahil hiçbir üçüncü taraf içeriği okuyamaz veya şifreleme anahtarlarınıza erişemez.</li>
               </ul>
             </section>
 
@@ -54,7 +55,7 @@ export default function TermsOfServicePage() {
               <p className="mb-4">Kullanıcı, Platformu kullanırken aşağıdaki kurallara riayet edeceğini kabul eder:</p>
               <ul className="list-disc pl-6 space-y-2">
                 <li><strong>Yasalara Uyum:</strong> Platform üzerinden gerçekleştirilen her türlü iletişim, Türkiye Cumhuriyeti yasalarına, Kullanıcı'nın bulunduğu ülkenin yerel yasalarına ve uluslararası hukuka uygun olmalıdır.</li>
-                <li><strong>Hesap Güvenliği:</strong> E2EE mimarisi gereği, hesabınıza erişim için kullanılan şifre ve cihazların güvenliği tamamen Kullanıcı'nın sorumluluğundadır. Şifrenin kaybedilmesi durumunda, verilerin kurtarılamayacağı Kullanıcı tarafından peşinen kabul edilir.</li>
+                <li><strong>Hesap Güvenliği (Passkeys):</strong> Hesabınıza erişim, şifresiz biyometrik doğrulama (Passkeys) teknolojisi ile sağlanmaktadır. Kullanılan cihazın güvenliği, biyometrik verilerin korunması ve erişim kilitleri tamamen Kullanıcı'nın sorumluluğundadır. Cihaz veya Passkey kaybı durumunda (eğer şifreli bulut yedeği veya kurtarma kodu yoksa) verilerin kurtarılamayacağı peşinen kabul edilir.</li>
                 <li><strong>Kabul Edilebilir Kullanım:</strong> Platform; zararlı yazılım (malware) dağıtmak, kimlik avı (phishing) yapmak, taciz veya nefret söyleminde bulunmak, telif hakkı ihlali yapmak veya herhangi bir yasa dışı faaliyeti organize etmek amacıyla kullanılamaz.</li>
               </ul>
             </section>
