@@ -35,8 +35,8 @@ export default function CookieBanner() {
             <p className="text-sm text-muted-foreground leading-relaxed">
               Platformumuzda reklam veya takip amaçlı üçüncü taraf çerezler <strong>kullanılmaz</strong>. 
               Sadece güvenliğinizi sağlamak ve tema/dil gibi temel tercihlerinizi hatırlamak için zorunlu çerezleri kullanıyoruz. 
-              Daha fazla bilgi için <Link href="/cookies" className="text-blue-500 hover:underline">Çerez Politikamızı</Link> ve{' '}
-              <Link href="/privacy" className="text-blue-500 hover:underline">Gizlilik Politikamızı</Link> inceleyebilirsiniz.
+              Daha fazla bilgi için <a href="/cookies" target="_blank" className="text-blue-500 hover:underline">Çerez Politikamızı</a> ve{' '}
+              <a href="/privacy" target="_blank" className="text-blue-500 hover:underline">Gizlilik Politikamızı</a> inceleyebilirsiniz.
             </p>
           </div>
         </div>
