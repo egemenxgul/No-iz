@@ -68,9 +68,12 @@ export default function TermsOfServicePage() {
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-foreground mb-4">5. Sorumlulukların Sınırlandırılması</h2>
-              <p>
+              <h2 className="text-xl font-bold text-foreground mb-4">5. Sorumlulukların Sınırlandırılması ve İçerik Denetimi</h2>
+              <p className="mb-4">
                 Platform "olduğu gibi" (as is) esasıyla sunulmaktadır. Kesintisiz erişim veya hatasız çalışma garantisi verilmemektedir. iz Platformu, donanım arızaları, ağ sorunları, Kullanıcı'nın kendi güvenlik ihmalleri (cihazının hacklenmesi vb.) veya mücbir sebeplerden doğabilecek veri kayıplarından, iletişim kesintilerinden ve maddi/manevi zararlardan doğrudan veya dolaylı olarak sorumlu tutulamaz.
+              </p>
+              <p>
+                <strong>İçerik Denetimi (Moderasyon):</strong> Uçtan uca şifreleme ve Sıfır Bilgi mimarisi nedeniyle, iz Platformu yönetimi olarak Özel Mesajlar, Gruplar veya Topluluklar içerisinde paylaşılan hiçbir metin, ses, veya medya içeriğine teknik olarak erişimimiz bulunmamaktadır. Bu sebeple, platform üzerinden paylaşılan yasa dışı veya ihlal edici içeriklerin denetimini, filtrelenmesini veya moderasyonunu yapamayacağımızı beyan ederiz. Tüm hukuki ve cezai sorumluluk, içeriği oluşturan ve gönderen Kullanıcı'ya aittir.
               </p>
             </section>
 

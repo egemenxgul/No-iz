@@ -67,18 +67,20 @@ export default function PrivacyPolicyPage() {
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-foreground mb-4">5. Hangi Verileri Topluyoruz?</h2>
+              <h2 className="text-xl font-bold text-foreground mb-4">5. Hangi Verileri Topluyoruz ve Nasıl İşliyoruz?</h2>
               <p className="mb-4">Hizmetlerimizi sunabilmek için minimum düzeyde veri topluyoruz:</p>
               <ul className="list-disc pl-6 space-y-2">
-                <li><strong>Kimlik Doğrulama:</strong> Parolasız giriş (Passkeys) teknolojisi ile şifrenizi sunucuya göndermeden biyometrik doğrulama kullanıyoruz. Kayıt sırasında sadece anonim bir kullanıcı adı alınır.</li>
-                <li><strong>Anlık Bildirimler (Push):</strong> Firebase/APNs üzerinden cihazınıza mesaj geldiğini bildirmek için anonim cihaz jetonları (token) kullanılır. Bildirim içerikleri (mesaj metni) sunucudan "boş yük (blank payload)" olarak gider, mesajın içeriği cihazınızda yerel olarak çözülüp bildirime yazılır.</li>
+                <li><strong>Kimlik Doğrulama:</strong> Parolasız giriş (Passkeys) teknolojisi ile şifrenizi sunucuya göndermeden biyometrik doğrulama kullanıyoruz. Ek olarak, iki faktörlü doğrulama (2FA - TOTP) desteklenmektedir. Kayıt sırasında sadece anonim bir kullanıcı adı alınır.</li>
+                <li><strong>İletişim ve IP Adresi:</strong> Mesajların anlık iletimi için cihaz IP adresleriniz geçici olarak ağ geçitlerinde kullanılır ancak <strong>hiçbir şekilde veritabanlarımızda kalıcı olarak loglanmaz veya analiz edilmez.</strong></li>
+                <li><strong>Anlık Bildirimler (Push):</strong> Firebase/APNs üzerinden cihazınıza mesaj geldiğini bildirmek için anonim cihaz jetonları (token) kullanılır. Bildirim içerikleri sunucudan "boş yük (blank payload)" olarak gider, mesajın içeriği cihazınızda yerel olarak çözülüp bildirime yazılır.</li>
+                <li><strong>Kullanıcı Gizlilik Seçimleri:</strong> "Son görülme", "okundu bilgisi", ve "yazıyor" gibi özellikler veritabanımızda tercihlerinize göre kaydedilir ve istediğiniz an tamamen devre dışı bırakılabilir.</li>
               </ul>
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-foreground mb-4">6. Veri Paylaşımı ve Yasal Süreçler</h2>
+              <h2 className="text-xl font-bold text-foreground mb-4">6. Veri Paylaşımı, Yasal Süreçler ve Yönetici Erişimi (Admin)</h2>
               <p>
-                iz Platformu, "Okuyamadığımızı paylaşamayız" ilkesiyle hareket eder. Şifrelenmiş içeriklerinize, yerel veritabanınıza veya kişisel bulut yedeklerinize erişimimiz olmadığı için, bu içeriklerin yasal mercilerle dahi paylaşılması kriptografik olarak imkansızdır. Paylaşılabilecek tek bilgi (mahkeme kararı durumunda) hesabınızın oluşturulma tarihi gibi temel metadatalardır.
+                iz Platformu, "Okuyamadığımızı paylaşamayız" ilkesiyle hareket eder. Teknik altyapımız, yönetim (Admin) panelimizin veya şirket çalışanlarımızın dahi kullanıcı mesajlarına, şifreli içeriklere veya medya dosyalarına erişmesini imkansız kılacak şekilde tasarlanmıştır. Şifrelenmiş içeriklerinize, yerel veritabanınıza veya kişisel bulut yedeklerinize kriptografik erişimimiz olmadığı için, bu içeriklerin yasal mercilerle dahi paylaşılması matematiksel olarak imkansızdır. Paylaşılabilecek tek bilgi (yasal bir emir durumunda) hesabınızın oluşturulma tarihi gibi platform kullanımına ilişkin temel metadatalardır.
               </p>
             </section>
 
