@@ -71,7 +71,7 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <section className="relative z-10 flex flex-col items-center justify-center text-center px-4 pt-20 pb-32 flex-1">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass border border-white/10 mb-8 animate-fade-in">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass border border-border mb-8 animate-fade-in">
           <span className="flex w-2 h-2 rounded-full bg-green-500 animate-pulse" />
           <span className="text-sm font-medium text-muted-foreground">{t('landing.encrypted')}</span>
         </div>
@@ -95,7 +95,7 @@ export default function LandingPage() {
               <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </Button>
-          <Button asChild size="lg" variant="outline" className="rounded-full px-8 glass hover:bg-white/5 border-white/10 transition-all">
+          <Button asChild size="lg" variant="outline" className="rounded-full px-8 glass hover:bg-muted border-border transition-all">
             <Link href="/login">
               {t('landing.cta_login')}
             </Link>
@@ -127,10 +127,10 @@ export default function LandingPage() {
           {features.map((feature, i) => (
             <div 
               key={i} 
-              className="glass p-8 rounded-3xl hover:bg-white/[0.02] transition-colors border-white/5 hover:border-white/10 flex flex-col gap-4 animate-fade-in opacity-0"
+              className="glass p-8 rounded-3xl hover:bg-muted/50 transition-colors border-border flex flex-col gap-4 animate-fade-in opacity-0"
               style={{ animationDelay: `\${500 + i * 100}ms`, animationFillMode: 'forwards' }}
             >
-              <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center border border-white/5">
+              <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center border border-border">
                 {feature.icon}
               </div>
               <h3 className="text-xl font-semibold text-foreground">{feature.title}</h3>
