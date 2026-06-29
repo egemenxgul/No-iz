@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { fetchAndDecryptMedia } from '@/lib/crypto/media';
+import Image from 'next/image';
 
 interface MediaRendererProps {
   payloadJson: string; // The plaintext which is a JSON string for media messages
@@ -60,12 +61,15 @@ export default function MediaRenderer({ payloadJson, msgType }: MediaRendererPro
 
   if (msgType === 'image') {
     return (
-      <img 
-        src={mediaUrl} 
-        alt="Encrypted Image" 
-        style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: 8, cursor: 'pointer' }}
-        onClick={() => window.open(mediaUrl, '_blank')}
-      />
+      <div style={{ position: 'relative', width: '100%', height: '300px' }}>
+        <Image 
+          src={mediaUrl} 
+          alt="Encrypted Image" 
+          fill
+          style={{ objectFit: 'contain', borderRadius: 8, cursor: 'pointer' }}
+          onClick={() => window.open(mediaUrl, '_blank')}
+        />
+      </div>
     );
   }
 

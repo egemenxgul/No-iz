@@ -1,6 +1,7 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { FriendStoryFeed } from '@/types';
 import { api } from '@/lib/api';
+import Image from 'next/image';
 import styles from './StoryViewer.module.css';
 
 interface StoryViewerProps {
@@ -25,7 +26,7 @@ export default function StoryViewer({ feed, onClose, onNextFeed, onPrevFeed }: S
     }
   }, [story]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (currentIndex < feed.stories.length - 1) {
       setCurrentIndex(i => i + 1);
     } else if (onNextFeed) {
@@ -33,7 +34,7 @@ export default function StoryViewer({ feed, onClose, onNextFeed, onPrevFeed }: S
     } else {
       onClose();
     }
-  };
+  }, [currentIndex, feed.stories.length, onNextFeed, onClose]);
 
   const handlePrev = () => {
     if (currentIndex > 0) {
@@ -66,7 +67,7 @@ export default function StoryViewer({ feed, onClose, onNextFeed, onPrevFeed }: S
     }, step);
 
     return () => clearInterval(timerRef.current);
-  }, [currentIndex, isPaused, feed.stories.length, onNextFeed, onClose]);
+  }, [currentIndex, isPaused, feed.stories.length, handleNext]);
 
   useEffect(() => {
     setProgress(0);
@@ -114,7 +115,7 @@ export default function StoryViewer({ feed, onClose, onNextFeed, onPrevFeed }: S
           onTouchEnd={() => setIsPaused(false)}
         >
           {story.media_type === 'image' ? (
-            <img src={story.media_url} className={styles.media} alt={story.caption || 'Story'} />
+            <Image src={story.media_url} fill style={{objectFit: 'contain'}} className={styles.media} alt={story.caption || 'Story'} />
           ) : (
             <video src={story.media_url} className={styles.media} autoPlay playsInline loop={false} />
           )}

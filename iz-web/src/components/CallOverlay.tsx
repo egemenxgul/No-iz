@@ -87,27 +87,26 @@ export default function CallOverlay() {
     };
   };
 
-  const handleMouseMove = (e: globalThis.MouseEvent) => {
-    if (!isDragging || !isPip) return;
-    
-    let newX = e.clientX - dragOffset.current.x;
-    let newY = e.clientY - dragOffset.current.y;
-    
-    const maxX = window.innerWidth - 240;
-    const maxY = window.innerHeight - 320;
-    if (newX < 0) newX = 0;
-    if (newX > maxX) newX = maxX;
-    if (newY < 0) newY = 0;
-    if (newY > maxY) newY = maxY;
-    
-    setPosition({ x: newX, y: newY });
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
   useEffect(() => {
+    const handleMouseMove = (e: globalThis.MouseEvent) => {
+      if (!isDragging || !isPip) return;
+      let newX = e.clientX - dragOffset.current.x;
+      let newY = e.clientY - dragOffset.current.y;
+      
+      const maxX = window.innerWidth - 240;
+      const maxY = window.innerHeight - 320;
+      if (newX < 0) newX = 0;
+      if (newX > maxX) newX = maxX;
+      if (newY < 0) newY = 0;
+      if (newY > maxY) newY = maxY;
+      
+      setPosition({ x: newX, y: newY });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
     if (isDragging) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
@@ -119,7 +118,7 @@ export default function CallOverlay() {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDragging]);
+  }, [isDragging, isPip]);
 
   useEffect(() => {
     const handleResize = () => {

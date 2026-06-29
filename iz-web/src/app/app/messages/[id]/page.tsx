@@ -71,7 +71,7 @@ export default function ConversationPage() {
       }
     }
     load();
-  }, [id]);
+  }, [id, auth?.user_id]);
 
   // UX-1: Load older messages when scrolled to top
   async function loadMore() {
@@ -165,7 +165,7 @@ export default function ConversationPage() {
       unsubRead();
       unsubReacted();
     };
-  }, [id, auth]);
+  }, [id, auth?.user_id]);
 
   // Scroll to bottom
   useEffect(() => {
