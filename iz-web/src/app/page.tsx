@@ -103,7 +103,7 @@ export default function LandingPage() {
         </div>
 
         {/* Stats Section */}
-        <div className="mt-20 grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12 w-full max-w-3xl animate-fade-in [animation-delay:400ms] opacity-0" style={{ animationFillMode: 'forwards' }}>
+        <div className="mt-20 flex flex-col sm:flex-row items-center justify-center sm:justify-around w-full max-w-3xl gap-8 animate-fade-in [animation-delay:400ms] opacity-0" style={{ animationFillMode: 'forwards' }}>
           <div className="flex flex-col items-center gap-2">
             <span className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-green-400 to-emerald-600">E2EE</span>
             <span className="text-sm text-muted-foreground font-medium">{t('landing.stat_encryption')}</span>
