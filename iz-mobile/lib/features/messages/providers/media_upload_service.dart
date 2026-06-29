@@ -163,6 +163,14 @@ class MediaUploadService {
     
 
 
+    final fileSize = await file.length();
+    // TODO: Abonelik limitine göre bu değer (örn. Free: 50MB, Premium: 500MB) ayarlanmalıdır.
+    // OOM çökmesini engellemek için şimdilik RAM'e almadan önce kontrol ediyoruz.
+    const maxAllowedSize = 50 * 1024 * 1024; // 50 MB
+    if (fileSize > maxAllowedSize) {
+      throw 'Dosya boyutu çok büyük. Maksimum yükleme limiti: ${maxAllowedSize ~/ (1024 * 1024)} MB. Yüksek boyutlar için aboneliğinizi yükseltin veya format değiştirin.';
+    }
+
     Uint8List finalBytes = await file.readAsBytes();
     String finalMimeType = mimeType;
     if (compressMedia && MediaCompressor.shouldCompress(mimeType)) {

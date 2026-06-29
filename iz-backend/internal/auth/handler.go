@@ -9,6 +9,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/no-iz/iz-backend/pkg/i18n"
+	"github.com/golang-jwt/jwt/v4"
+	"github.com/MicahParks/keyfunc"
 )
 
 // Handler returns http.HandlerFunc functions for auth routes.
@@ -675,6 +677,8 @@ type appleSignInRequest struct {
 	FullName string `json:"full_name"`
 }
 
+var appleJWKS *keyfunc.JWKS
+
 func (h *Handler) AppleSignIn(w http.ResponseWriter, r *http.Request) {
 	var req appleSignInRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -682,15 +686,46 @@ func (h *Handler) AppleSignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.UserID == "" {
-		writeError(w, http.StatusBadRequest, "user_id is required")
+	if req.UserID == "" || req.IdentityToken == "" {
+		writeError(w, http.StatusBadRequest, "user_id and identity_token are required")
 		return
 	}
 
-	// NOTE: In production, validate req.IdentityToken against Apple's public keys.
-	// For now we trust the UserID passed from the client (secured by TLS).
-	// A full implementation would fetch https://appleid.apple.com/auth/keys and
-	// verify the JWT signature before processing.
+	// Validate Apple JWT
+	if appleJWKS == nil {
+		jwks, err := keyfunc.Get("https://appleid.apple.com/auth/keys", keyfunc.Options{})
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, "failed to get apple public keys")
+			return
+		}
+		appleJWKS = jwks
+	}
+
+	token, err := jwt.Parse(req.IdentityToken, appleJWKS.Keyfunc)
+	if err != nil || !token.Valid {
+		writeError(w, http.StatusUnauthorized, "invalid apple identity token")
+		return
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		writeError(w, http.StatusUnauthorized, "invalid token claims")
+		return
+	}
+
+	// Verify Audience (aud) matches the App ID or Service ID
+	aud, ok := claims["aud"].(string)
+	if !ok || (aud != "app.iz.mobile" && aud != "app.iz.mobile.service") {
+		writeError(w, http.StatusUnauthorized, "invalid audience in apple token")
+		return
+	}
+
+	// Verify Subject (sub) matches the UserID
+	sub, ok := claims["sub"].(string)
+	if !ok || sub != req.UserID {
+		writeError(w, http.StatusUnauthorized, "user_id does not match token subject")
+		return
+	}
 
 	result, err := h.svc.AuthenticateWithApple(r.Context(), req.UserID, req.Email, req.FullName)
 	if err != nil {

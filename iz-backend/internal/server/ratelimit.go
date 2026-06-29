@@ -39,9 +39,10 @@ func (rl *RateLimiter) Middleware(next http.Handler) http.Handler {
 
 		count, ttl, err := rl.increment(r.Context(), key)
 		if err != nil {
-			// Fail open: if Redis is unavailable, let the request through.
-			// TODO(security): consider fail-closed policy once Redis is HA.
-			next.ServeHTTP(w, r)
+			// Fail-closed policy: if Redis is unavailable, block requests.
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusServiceUnavailable)
+			_, _ = w.Write([]byte(`{"error":"service temporarily unavailable due to internal error"}`))
 			return
 		}
 

@@ -445,7 +445,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                                     icon: Icons.apple, // MDIcons or custom can be used
                                     label: 'Apple',
                                     onPressed: () {
-                                      // TODO: Implement Apple Register
+                                      ref.read(authProvider.notifier).loginWithApple();
                                     },
                                   ),
                                 ),
@@ -455,7 +455,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                                     icon: Icons.fingerprint,
                                     label: 'Passkey',
                                     onPressed: () {
-                                      // TODO: Implement Passkey Register
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Passkey ile giriş yakında eklenecektir. (FIDO2 yapılandırması bekleniyor)')),
+                                      );
                                     },
                                   ),
                                 ),

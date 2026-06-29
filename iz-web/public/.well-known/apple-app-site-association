@@ -1,0 +1,14 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "DPU6CH4YY8.app.iz.mobile",
+        "paths": ["*"]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["DPU6CH4YY8.app.iz.mobile"]
+  }
+}

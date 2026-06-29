@@ -1,3 +1,4 @@
+import 'dart:developer' as dart_developer;
 import 'package:dio/dio.dart';
 
 class AuthService {
@@ -8,6 +9,9 @@ class AuthService {
   String _parseError(DioException e, String defaultMsg) {
     try {
       final data = e.response?.data;
+      // TODO(Analytics): Integrate Sentry or Firebase Crashlytics here.
+      dart_developer.log('Network Error: ${e.message}', error: e, stackTrace: e.stackTrace, name: 'AuthService');
+      
       if (data is Map && data.containsKey('error')) {
         return data['error']?.toString() ?? defaultMsg;
       }
