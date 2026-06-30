@@ -23,7 +23,10 @@ import 'dart:convert';
 import 'dart:ui';
 import 'dart:math';
 import 'dart:io';
+import 'dart:async';
 import 'package:go_router/go_router.dart';
+import 'package:record/record.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 import 'package:iz_mobile/core/theme/glass_widgets.dart';
 class ChatScreen extends ConsumerStatefulWidget {
@@ -46,6 +49,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   int _pinnedMessageIndex = 0;
   final Map<String, GlobalKey> _messageKeys = {};
 
+  // Sesli mesaj durumu
+  bool _isRecording = false;
+  int _recordDuration = 0;
+  Timer? _recordTimer;
+  final AudioRecorder _audioRecorder = AudioRecorder();
+
   @override
   void initState() {
     super.initState();
@@ -67,6 +76,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     }
     // Clear active conversation so background messages are NOT auto-marked read
     ref.read(activeChatConversationId.notifier).set(null);
+    _recordTimer?.cancel();
+    _audioRecorder.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -204,6 +215,94 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       // Only send read receipt for messages THEY sent TO us that we haven't read
       if (msg.senderId != myUserId && msg.readAt == null) {
         ws.sendMessage('message_read', {'message_id': msg.id});
+      }
+    }
+  }
+
+  Future<void> _startRecording() async {
+    try {
+      if (await _audioRecorder.hasPermission()) {
+        final tempDir = await getTemporaryDirectory();
+        final filePath = path.join(tempDir.path, 'audio_record_${DateTime.now().millisecondsSinceEpoch}.m4a');
+        
+        await _audioRecorder.start(
+          const RecordConfig(encoder: AudioEncoder.aacLc),
+          path: filePath,
+        );
+        
+        setState(() {
+          _isRecording = true;
+          _recordDuration = 0;
+        });
+        
+        _recordTimer = Timer.periodic(const Duration(seconds: 1), (Timer t) {
+          setState(() => _recordDuration++);
+        });
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Mikrofon izni verilmedi.')),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Kayıt başlatılamadı: $e');
+    }
+  }
+
+  Future<void> _stopRecording() async {
+    _recordTimer?.cancel();
+    final filePath = await _audioRecorder.stop();
+    setState(() {
+      _isRecording = false;
+      _recordDuration = 0;
+    });
+
+    if (filePath != null) {
+      final file = File(filePath);
+      if (await file.exists() && await file.length() > 0) {
+        final bytes = await file.readAsBytes();
+        _sendVoiceMessage(bytes);
+      }
+    }
+  }
+
+  Future<void> _cancelRecording() async {
+    _recordTimer?.cancel();
+    await _audioRecorder.stop();
+    setState(() {
+      _isRecording = false;
+      _recordDuration = 0;
+    });
+  }
+
+  Future<void> _sendVoiceMessage(Uint8List audioBytes) async {
+    try {
+      final dio = ref.read(dioProvider);
+      final uploadService = MediaUploadService(dio, compressMedia: false);
+
+      final result = await uploadService.uploadMedia(
+        fileBytes: audioBytes,
+        filename: 'audio_${DateTime.now().millisecondsSinceEpoch}.m4a',
+        mimeType: 'audio/m4a',
+      );
+
+      final payload = {
+        'media_url': result.url,
+        'media_key': result.mediaKeyBase64,
+        'mime_type': result.mimeType,
+      };
+
+      ref.read(chatProvider(widget.otherUserId).notifier).sendMessage(
+            jsonEncode(payload),
+            msgType: 'audio',
+            expiresIn: _selectedDuration, // Assuming _selectedDuration handles disappearing messages if active
+          );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ses mesajı gönderilemedi: $e')),
+        );
       }
     }
   }
@@ -1270,62 +1369,116 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               ),
               const SizedBox(width: 8),
 
-              // Text input
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(22),
-                  child: AppBackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.glassMedium,
-                        borderRadius: BorderRadius.circular(22),
-                        border: Border.all(color: AppColors.glassBorder, width: 0.5),
-                      ),
-                      child: TextField(
-                        controller: _controller,
-                        maxLines: null,
-                        onChanged: _onTextChanged,
-                        style: GoogleFonts.inter(
-                          color: AppColors.textPrimary,
-                          fontSize: 15,
+              // Text input OR Recording UI
+              if (_isRecording)
+                Expanded(
+                  child: Container(
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(22),
+                      border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        const SizedBox(width: 16),
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: AppColors.error,
+                            shape: BoxShape.circle,
+                          ),
                         ),
-                        decoration: const InputDecoration(
-                          hintText: 'Mesaj yaz...',
-                          hintStyle: TextStyle(color: AppColors.textMuted),
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(vertical: 10),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${(_recordDuration ~/ 60).toString().padLeft(2, '0')}:${(_recordDuration % 60).toString().padLeft(2, '0')}',
+                          style: GoogleFonts.inter(
+                            color: AppColors.error,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(Icons.close, color: AppColors.textSecondary, size: 20),
+                          onPressed: _cancelRecording,
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(22),
+                    child: AppBackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.glassMedium,
+                          borderRadius: BorderRadius.circular(22),
+                          border: Border.all(color: AppColors.glassBorder, width: 0.5),
+                        ),
+                        child: TextField(
+                          controller: _controller,
+                          maxLines: null,
+                          onChanged: _onTextChanged,
+                          style: GoogleFonts.inter(
+                            color: AppColors.textPrimary,
+                            fontSize: 15,
+                          ),
+                          decoration: const InputDecoration(
+                            hintText: 'Mesaj yaz...',
+                            hintStyle: TextStyle(color: AppColors.textMuted),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(vertical: 10),
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
               const SizedBox(width: 8),
 
-              // Send button
+              // Send button OR Mic button
               GestureDetector(
-                onTap: _sendMessage,
+                onTap: _isRecording
+                    ? _stopRecording
+                    : (_controller.text.trim().isEmpty ? _startRecording : _sendMessage),
                 child: Container(
                   width: 42,
                   height: 42,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF3B82F6), Color(0xFFA855F7)],
+                    gradient: LinearGradient(
+                      colors: _isRecording
+                          ? [AppColors.error, AppColors.error]
+                          : (_controller.text.trim().isEmpty
+                              ? [AppColors.glassMedium, AppColors.glassMedium]
+                              : [const Color(0xFF3B82F6), const Color(0xFFA855F7)]),
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF3B82F6).withValues(alpha: 0.4),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
+                      if (!_isRecording && _controller.text.trim().isNotEmpty)
+                        BoxShadow(
+                          color: const Color(0xFF3B82F6).withValues(alpha: 0.4),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
                     ],
                   ),
-                  child: const Icon(Icons.arrow_upward_rounded, size: 22, color: Colors.white),
+                  child: Icon(
+                    _isRecording
+                        ? Icons.send_rounded
+                        : (_controller.text.trim().isEmpty ? Icons.mic_rounded : Icons.arrow_upward_rounded),
+                    size: 22,
+                    color: _controller.text.trim().isEmpty && !_isRecording
+                        ? AppColors.textSecondary
+                        : Colors.white,
+                  ),
                 ),
               ),
             ],
@@ -1373,7 +1526,7 @@ class _MessageBubble extends ConsumerWidget {
       bubbleContent = _buildCallLogBubble(context, plaintext);
     } else if (msgType == 'group_invite') {
       bubbleContent = _buildGroupInviteBubble(context, ref, plaintext);
-    } else if ((msgType == 'image' || msgType == 'file') && plaintext != null && plaintext.trim().startsWith('{')) {
+    } else if ((msgType == 'image' || msgType == 'file' || msgType == 'audio') && plaintext != null && plaintext.trim().startsWith('{')) {
       try {
         final mediaData = jsonDecode(plaintext);
         final status = mediaData['status'] as String?;
@@ -1391,7 +1544,9 @@ class _MessageBubble extends ConsumerWidget {
           final mimeType = mediaData['mime_type'] as String? ?? 'application/octet-stream';
           final size = mediaData['size'] as int? ?? 0;
 
-          if (mimeType.startsWith('image/')) {
+          if (msgType == 'audio' || mimeType.startsWith('audio/')) {
+            bubbleContent = _buildAudioBubble(context, ref, mediaUrl, mediaKey, size);
+          } else if (mimeType.startsWith('image/')) {
             bubbleContent = _buildImageBubble(context, ref, mediaUrl, mediaKey, filename, size);
           } else {
             bubbleContent = _buildFileBubble(context, ref, mediaUrl, mediaKey, filename, size);
@@ -2605,6 +2760,140 @@ class _DisappearingMessageSheet extends ConsumerWidget {
               const Icon(Icons.timer_outlined, color: AppColors.accent, size: 20),
           ],
         ),
+      ),
+    );
+  }
+}
+
+Widget _buildAudioBubble(BuildContext context, WidgetRef ref, String mediaUrl, String mediaKey, int size) {
+  return AudioBubbleContent(mediaUrl: mediaUrl, mediaKey: mediaKey, size: size);
+}
+
+class AudioBubbleContent extends ConsumerStatefulWidget {
+  final String mediaUrl;
+  final String mediaKey;
+  final int size;
+  const AudioBubbleContent({super.key, required this.mediaUrl, required this.mediaKey, required this.size});
+
+  @override
+  ConsumerState<AudioBubbleContent> createState() => _AudioBubbleContentState();
+}
+
+class _AudioBubbleContentState extends ConsumerState<AudioBubbleContent> {
+  final AudioPlayer _player = AudioPlayer();
+  bool _isPlaying = false;
+  Duration _duration = Duration.zero;
+  Duration _position = Duration.zero;
+  bool _isDownloading = false;
+  String? _localPath;
+
+  @override
+  void initState() {
+    super.initState();
+    _player.onPlayerStateChanged.listen((state) {
+      if (mounted) {
+        setState(() {
+          _isPlaying = state == PlayerState.playing;
+        });
+      }
+    });
+    _player.onDurationChanged.listen((d) {
+      if (mounted) setState(() => _duration = d);
+    });
+    _player.onPositionChanged.listen((p) {
+      if (mounted) setState(() => _position = p);
+    });
+  }
+
+  @override
+  void dispose() {
+    _player.dispose();
+    super.dispose();
+  }
+
+  Future<void> _playPause() async {
+    if (_localPath == null) {
+      setState(() => _isDownloading = true);
+      try {
+        final dio = ref.read(dioProvider);
+        final res = await dio.get(
+          widget.mediaUrl,
+          options: Options(responseType: ResponseType.bytes),
+        );
+        final encryptedBytes = res.data as List<int>;
+        
+        final aesGcm = AesGcm.with256bits();
+        final keyBytes = base64Decode(widget.mediaKey);
+        final secretKey = SecretKey(keyBytes);
+
+        if (encryptedBytes.length < 12) throw Exception('Payload too short');
+        final nonceBytes = encryptedBytes.sublist(0, 12);
+        final cipherBytes = encryptedBytes.sublist(12);
+        
+        final secretBox = SecretBox(
+          cipherBytes,
+          nonce: nonceBytes,
+          mac: Mac.empty,
+        );
+
+        final decrypted = await aesGcm.decrypt(secretBox, secretKey: secretKey);
+        final tempDir = await getTemporaryDirectory();
+        final file = File(path.join(tempDir.path, 'audio_${DateTime.now().millisecondsSinceEpoch}.m4a'));
+        await file.writeAsBytes(decrypted);
+        _localPath = file.path;
+      } catch (e) {
+        debugPrint('Audio download error: $e');
+      } finally {
+        if (mounted) setState(() => _isDownloading = false);
+      }
+    }
+
+    if (_localPath != null) {
+      if (_isPlaying) {
+        await _player.pause();
+      } else {
+        await _player.play(DeviceFileSource(_localPath!));
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      width: 220,
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: _isDownloading ? null : _playPause,
+            child: CircleAvatar(
+              backgroundColor: Colors.white24,
+              radius: 20,
+              child: _isDownloading
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : Icon(_isPlaying ? Icons.pause : Icons.play_arrow, color: Colors.white),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                LinearProgressIndicator(
+                  value: _duration.inMilliseconds > 0 ? _position.inMilliseconds / _duration.inMilliseconds : 0.0,
+                  backgroundColor: Colors.white24,
+                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${_position.inMinutes}:${(_position.inSeconds % 60).toString().padLeft(2, '0')} / ${_duration.inMinutes}:${(_duration.inSeconds % 60).toString().padLeft(2, '0')}',
+                  style: GoogleFonts.inter(color: Colors.white70, fontSize: 10),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

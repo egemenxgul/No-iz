@@ -56,6 +56,8 @@ dependencies:
   # ── Media ─────────────────────────────────────────────────────────────────────
   file_picker: ^8.1.7
   flutter_image_compress: ^2.3.0
+  record: ^5.1.2
+  audioplayers: ^6.0.0
 
   # ── Google Sign-In ────────────────────────────────────────────────────────────
   # 6.2.x = Dart SDK >=2.17.0 <4.0.0 → Dart 3.4.4 ile uyumlu

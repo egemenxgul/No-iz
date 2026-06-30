@@ -4,7 +4,8 @@ import { useParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { wsManager } from '@/lib/websocket';
 import { getAuth } from '@/store/auth';
-import { sendEncrypted, receiveDecrypted, establishSession, loadSessions } from '@/lib/crypto/session';
+import { receiveDecrypted, sendEncrypted, establishSession, loadSessions } from '@/lib/crypto/session';
+import { encryptAndUploadMedia } from '@/lib/crypto/media';
 import { Message } from '@/types';
 import { webrtcManager } from '@/lib/webrtc';
 import MediaRenderer from '@/components/MediaRenderer';
@@ -30,6 +31,14 @@ export default function ConversationPage() {
   const [hasMore, setHasMore]           = useState(true);
   const [loadingMore, setLoadingMore]   = useState(false);
   const [expiresIn, setExpiresIn]       = useState<number>(0);
+  
+  // Recording state
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<BlobPart[]>([]);
+  const recordIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
   const oldestCursorRef                 = useRef<string | undefined>(undefined);
   const scrollAreaRef                   = useRef<HTMLDivElement>(null);
   
@@ -246,6 +255,106 @@ export default function ConversationPage() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        stream.getTracks().forEach(track => track.stop());
+        setIsRecording(false);
+        clearInterval(recordIntervalRef.current!);
+        setRecordingDuration(0);
+        
+        // Ensure duration is at least 1 second to avoid empty audio
+        if (audioBlob.size > 0) {
+          await sendAudioMessage(audioBlob);
+        }
+      };
+
+      mediaRecorder.start(200);
+      setIsRecording(true);
+      setRecordingDuration(0);
+      recordIntervalRef.current = setInterval(() => {
+        setRecordingDuration(prev => prev + 1);
+      }, 1000);
+    } catch (err) {
+      console.error('Failed to start recording:', err);
+      alert('Mikrofon erişimine izin verilmedi veya bir hata oluştu.');
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop();
+    }
+  };
+
+  const cancelRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      audioChunksRef.current = []; // Clear chunks to prevent sending
+      mediaRecorderRef.current.stop();
+    }
+  };
+
+  const sendAudioMessage = async (audioBlob: Blob) => {
+    if (!auth) return;
+    try {
+      // 1. Ensure session exists
+      const sessions = loadSessions();
+      if (!sessions[id]) {
+        const localKeysRaw = localStorage.getItem('iz_keys');
+        if (!localKeysRaw) throw new Error('Local keys not found');
+        const localKeys = JSON.parse(localKeysRaw);
+        await establishSession(id, localKeys.identityKey);
+      }
+
+      // 2. Encrypt & Upload Media
+      const { mediaUrl, base64Key, mimeType } = await encryptAndUploadMedia(audioBlob, `audio_${Date.now()}.webm`);
+
+      // 3. Create E2EE Payload
+      const payloadObj = {
+        media_url: mediaUrl,
+        media_key: base64Key,
+        mime_type: mimeType,
+      };
+      
+      const encrypted = await sendEncrypted(id, JSON.stringify(payloadObj));
+
+      // 4. Send over WebSocket
+      wsManager.send('send_message', {
+        recipient_id: id,
+        ...encrypted,
+        msg_type: 'audio',
+        expires_in: expiresIn,
+      }, true);
+
+      // Optimistic update
+      setMessages(prev => [...prev, {
+        id: crypto.randomUUID(),
+        sender_id: auth.user_id,
+        recipient_id: id,
+        ciphertext: encrypted.ciphertext,
+        plaintext: JSON.stringify(payloadObj),
+        msg_type: 'audio',
+        ratchet_header: encrypted.ratchet_key,
+        delivered_at: null,
+        read_at: null,
+        expires_at: expiresIn > 0 ? new Date(Date.now() + expiresIn * 1000).toISOString() : null,
+        created_at: new Date().toISOString(),
+      } as Message]);
+    } catch (err) {
+      console.error('Audio send failed:', err);
+    }
+  };
 
   async function sendMessage() {
     if (!input.trim() || !auth) return;
@@ -629,25 +738,58 @@ export default function ConversationPage() {
             <option value={604800}>1h</option>
           </select>
         </div>
-        <textarea
-          className={styles.textarea}
-          value={input}
-          onChange={handleInputChange}
-          onKeyDown={handleKey}
-          placeholder={t('app.chat_placeholder')}
-          rows={1}
-          id="message-input"
-        />
-        <button
-          className={styles.sendBtn}
-          onClick={sendMessage}
-          disabled={!input.trim()}
-          id="send-btn"
-        >
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-            <path d="M16 9L2 2l4 7-4 7 14-7z" fill="currentColor"/>
-          </svg>
-        </button>
+        {isRecording ? (
+          <div className={styles.recordingBar}>
+            <div className={styles.recordingPulse} />
+            <span style={{ color: '#ef4444', fontWeight: 'bold' }}>
+              {Math.floor(recordingDuration / 60)}:{(recordingDuration % 60).toString().padStart(2, '0')}
+            </span>
+            <div style={{ flex: 1 }} />
+            <button className={styles.cancelBtn} onClick={cancelRecording} title="İptal">
+              ✕
+            </button>
+            <button className={styles.sendRecordBtn} onClick={stopRecording} title="Gönder">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M16 9L2 2l4 7-4 7 14-7z" fill="currentColor"/>
+              </svg>
+            </button>
+          </div>
+        ) : (
+          <textarea
+            className={styles.textarea}
+            value={input}
+            onChange={handleInputChange}
+            onKeyDown={handleKey}
+            placeholder={t('app.chat_placeholder')}
+            rows={1}
+            id="message-input"
+          />
+        )}
+        {!isRecording && (
+          input.trim() ? (
+            <button
+              className={styles.sendBtn}
+              onClick={sendMessage}
+              id="send-btn"
+            >
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M16 9L2 2l4 7-4 7 14-7z" fill="currentColor"/>
+              </svg>
+            </button>
+          ) : (
+            <button
+              className={styles.micBtn}
+              onClick={startRecording}
+              title="Sesli Mesaj Kaydet"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                <line x1="12" x2="12" y1="19" y2="22" />
+              </svg>
+            </button>
+          )
+        )}
       </div>
     </div>
   );

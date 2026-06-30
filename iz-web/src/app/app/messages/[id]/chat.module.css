@@ -428,3 +428,77 @@
 .editActions button:hover {
   background: var(--bg-hover);
 }
+
+/* ─── Voice Recording UI ─── */
+.micBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.micBtn:hover {
+  background: rgba(124, 58, 237, 0.1);
+  color: var(--accent);
+}
+
+.recordingBar {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 20px;
+  padding: 0 16px;
+  gap: 12px;
+  height: 40px;
+}
+
+.recordingPulse {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ef4444;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.cancelBtn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  font-size: 16px;
+  font-weight: bold;
+}
+.cancelBtn:hover {
+  color: #ef4444;
+}
+
+.sendRecordBtn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.sendRecordBtn:hover {
+  transform: scale(1.1);
+}

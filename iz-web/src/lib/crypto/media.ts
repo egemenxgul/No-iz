@@ -64,3 +64,77 @@ export async function fetchAndDecryptMedia(
   const blob = new Blob([decryptedBuf], { type: mimeType });
   return URL.createObjectURL(blob);
 }
+
+/**
+ * Encrypts a Blob/File and uploads it to the backend.
+ * 
+ * @param file       The File or Blob to upload
+ * @param filename   Optional filename
+ * @returns An object containing mediaUrl, base64Key, and mimeType
+ */
+export async function encryptAndUploadMedia(
+  file: Blob,
+  filename: string = 'media.webm'
+): Promise<{ mediaUrl: string; base64Key: string; mimeType: string }> {
+  const token = getToken();
+  if (!token) throw new Error('No auth token');
+
+  const fileBuffer = await file.arrayBuffer();
+
+  // 1. Generate AES-GCM Key (32 bytes)
+  const cryptoKey = await window.crypto.subtle.generateKey(
+    { name: 'AES-GCM', length: 256 },
+    true,
+    ['encrypt', 'decrypt']
+  );
+
+  // 2. Generate IV (12 bytes)
+  const iv = window.crypto.getRandomValues(new Uint8Array(12));
+
+  // 3. Encrypt
+  const encryptedBuf = await window.crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv },
+    cryptoKey,
+    fileBuffer
+  );
+
+  // 4. Combine IV and Ciphertext
+  const payload = new Uint8Array(iv.length + encryptedBuf.byteLength);
+  payload.set(iv, 0);
+  payload.set(new Uint8Array(encryptedBuf), iv.length);
+
+  // 5. Upload to /api/media/upload
+  const formData = new FormData();
+  const encryptedBlob = new Blob([payload], { type: 'application/octet-stream' });
+  formData.append('file', encryptedBlob, filename);
+
+  const res = await fetch('/api/media/upload', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    },
+    body: formData
+  });
+
+  if (!res.ok) {
+    throw new Error(`Upload failed: ${res.status}`);
+  }
+
+  const data = await res.json();
+  const mediaUrl = data.url;
+
+  // 6. Export Key as Base64
+  const rawKey = await window.crypto.subtle.exportKey('raw', cryptoKey);
+  const keyBytes = new Uint8Array(rawKey);
+  let binaryString = '';
+  for (let i = 0; i < keyBytes.byteLength; i++) {
+    binaryString += String.fromCharCode(keyBytes[i]);
+  }
+  const base64Key = btoa(binaryString);
+
+  return {
+    mediaUrl,
+    base64Key,
+    mimeType: file.type || 'application/octet-stream'
+  };
+}
