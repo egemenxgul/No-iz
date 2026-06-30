@@ -1,0 +1,264 @@
+.container {
+  padding: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+  color: white;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.addBtn {
+  background: linear-gradient(135deg, var(--iz-primary), #a855f7);
+  border: none;
+  border-radius: 9999px;
+  padding: 0.75rem 1.5rem;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.addBtn:hover {
+  opacity: 0.9;
+  transform: scale(1.02);
+}
+
+.feed {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.userFeed {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 1rem;
+  padding: 1.5rem;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #a855f7, #6366f1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 600;
+  border: 2px solid transparent;
+}
+.hasUnviewed {
+  border-color: var(--iz-primary);
+}
+
+.userName {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+.userHandle {
+  color: #9ca3af;
+  font-size: 0.9rem;
+}
+
+.storiesGrid {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+.storiesGrid::-webkit-scrollbar {
+  height: 6px;
+}
+.storiesGrid::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+}
+
+.storyCard {
+  width: 120px;
+  height: 200px;
+  border-radius: 0.75rem;
+  background: #1f2937;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s;
+  border: 2px solid transparent;
+}
+.storyCard:hover {
+  transform: scale(1.05);
+}
+.storyCard.unviewed {
+  border-color: var(--iz-primary);
+}
+
+.storyThumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.8;
+}
+
+.storyTime {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 0.5rem;
+  right: 0.5rem;
+  font-size: 0.75rem;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
+/* Modals */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.createModal {
+  background: #111827;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 1rem;
+  padding: 2rem;
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.createModal h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+.fileInput {
+  display: none;
+}
+.fileLabel {
+  background: rgba(255,255,255,0.05);
+  border: 2px dashed rgba(255,255,255,0.2);
+  border-radius: 0.5rem;
+  padding: 3rem;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.fileLabel:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.captionInput {
+  background: rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  color: white;
+  resize: none;
+}
+.captionInput:focus {
+  outline: none;
+  border-color: var(--iz-primary);
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+.cancelBtn {
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+}
+.cancelBtn:hover {
+  color: white;
+}
+
+/* Story Viewer */
+.viewerModal {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.viewerContent {
+  max-width: 500px;
+  width: 100%;
+  height: 80vh;
+  position: relative;
+  background: #000;
+  border-radius: 1rem;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.viewerMedia {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+.viewerCaption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2rem 1rem 1rem;
+  background: linear-gradient(transparent, rgba(0,0,0,0.9));
+  text-align: center;
+  font-size: 1.1rem;
+}
+.closeViewerBtn {
+  position: absolute;
+  top: 1rem;
+  right: 2rem;
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: white;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.closeViewerBtn:hover {
+  background: rgba(255,255,255,0.2);
+}

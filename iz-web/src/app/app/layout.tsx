@@ -9,6 +9,8 @@ import styles from './layout.module.css';
 import { useI18n } from '@/lib/i18n/I18nContext';
 import CallOverlay from '@/components/CallOverlay';
 import ConnectionBanner from '@/components/ConnectionBanner';
+import { receiveDecrypted } from '@/lib/crypto/session';
+import { saveStoryKey } from '@/lib/crypto/story';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router   = useRouter();
@@ -23,6 +25,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     { href: '/app/groups',      icon: '👥', label: t('app.groups') },
     { href: '/app/communities', icon: '🌐', label: t('app.communities') },
     { href: '/app/calls',       icon: '📞', label: t('app.calls') },
+    { href: '/app/stories',     icon: '📸', label: t('app.stories') || 'Hikayeler' },
     { href: '/app/settings',    icon: '⚙️', label: t('app.settings') },
   ];
 
@@ -35,8 +38,26 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     wsManager.connect();
     const offConn = wsManager.on('__connected',    () => setWsStatus('connected'));
     const offDisc = wsManager.on('__disconnected', () => setWsStatus('disconnected'));
+    
+    // Global listener for E2EE story keys
+    const offStoryKey = wsManager.on('new_message', async (payloadRaw: unknown) => {
+      const msg = payloadRaw as any;
+      if (msg.msg_type === 'story_key' && msg.sender_id) {
+        try {
+          const plaintext = await receiveDecrypted(msg.sender_id, msg);
+          if (plaintext) {
+            const parsed = JSON.parse(plaintext);
+            if (parsed.type === 'story_key' && parsed.story_id && parsed.media_key) {
+              saveStoryKey(parsed.story_id, parsed.media_key);
+            }
+          }
+        } catch (e) {
+          console.error('Failed to decrypt story_key', e);
+        }
+      }
+    });
 
-    return () => { offConn(); offDisc(); wsManager.disconnect(); };
+    return () => { offConn(); offDisc(); offStoryKey(); wsManager.disconnect(); };
   }, [router]);
 
   function handleLogout() {
