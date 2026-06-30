@@ -368,9 +368,9 @@ export default function ConversationPage() {
             {['image', 'video', 'audio', 'file'].includes(m.msg_type) ? (
               <MediaRenderer payloadJson={m.plaintext || '{}'} msgType={m.msg_type} />
             ) : (
-              <div className={styles.bubbleText}>
+              <div className={`${styles.bubbleText} markdown-body`}>
                 {m.plaintext ? (
-                  <ReactMarkdown remarkPlugins={[remarkGfm]} className="markdown-body">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
                     {m.plaintext}
                   </ReactMarkdown>
                 ) : (

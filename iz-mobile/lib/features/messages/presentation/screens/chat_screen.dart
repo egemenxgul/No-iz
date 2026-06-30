@@ -1970,13 +1970,13 @@ class _MessageBubble extends ConsumerWidget {
           color: isMe ? Colors.white : AppColors.accent,
           decoration: TextDecoration.underline,
         ),
-        code: GoogleFonts.jetbrainsMono(
-          backgroundColor: isMe ? Colors.white.withOpacity(0.2) : Colors.grey.withOpacity(0.2),
+        code: GoogleFonts.jetBrainsMono(
+          backgroundColor: isMe ? Colors.white.withValues(alpha: 0.2) : Colors.grey.withValues(alpha: 0.2),
           color: isMe ? Colors.white : Colors.black87,
         ),
         codeblockPadding: const EdgeInsets.all(8),
         codeblockDecoration: BoxDecoration(
-          color: isMe ? Colors.white.withOpacity(0.15) : Colors.grey.withOpacity(0.15),
+          color: isMe ? Colors.white.withValues(alpha: 0.15) : Colors.grey.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(8),
         ),
       ),

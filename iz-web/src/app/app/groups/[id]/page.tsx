@@ -193,9 +193,9 @@ export default function GroupChatPage() {
             className={`${styles.bubble} ${m.sender_id === auth?.user_id ? styles.bubbleOut : styles.bubbleIn}`}
           >
             {m.sender_id !== auth?.user_id && <div style={{fontSize: 10, color: 'var(--accent)', marginBottom: 4}}>{m.sender_id.substring(0,8)}</div>}
-            <div className={styles.bubbleText}>
+            <div className={`${styles.bubbleText} markdown-body`}>
               {m.plaintext ? (
-                <ReactMarkdown remarkPlugins={[remarkGfm]} className="markdown-body">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {m.plaintext}
                 </ReactMarkdown>
               ) : (
