@@ -151,6 +151,7 @@ export default function LandingPage() {
               <Link href="/terms" className="hover:text-foreground transition-colors">Kullanım Şartları</Link>
               <Link href="/privacy" className="hover:text-foreground transition-colors">Gizlilik Politikası</Link>
               <Link href="/cookies" className="hover:text-foreground transition-colors">Çerez Politikası</Link>
+              <Link href="/help" className="hover:text-foreground transition-colors">Yardım Merkezi</Link>
             </div>
             <span className="text-sm text-muted-foreground">{t('landing.footer')}</span>
           </div>
