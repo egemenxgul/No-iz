@@ -11,6 +11,8 @@ import MediaRenderer from '@/components/MediaRenderer';
 import styles from './chat.module.css';
 
 import { useI18n } from '@/lib/i18n/I18nContext';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export default function ConversationPage() {
   const { id } = useParams<{ id: string }>();
@@ -366,9 +368,17 @@ export default function ConversationPage() {
             {['image', 'video', 'audio', 'file'].includes(m.msg_type) ? (
               <MediaRenderer payloadJson={m.plaintext || '{}'} msgType={m.msg_type} />
             ) : (
-              <span className={styles.bubbleText}>
-                {m.plaintext ?? <span style={{opacity: 0.4, fontStyle: 'italic', fontSize: '13px'}}>{t('encrypted_placeholder') || 'Şifreli — oturum anahtarı bulunamadı'}</span>}
-              </span>
+              <div className={styles.bubbleText}>
+                {m.plaintext ? (
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} className="markdown-body">
+                    {m.plaintext}
+                  </ReactMarkdown>
+                ) : (
+                  <span style={{opacity: 0.4, fontStyle: 'italic', fontSize: '13px'}}>
+                    {t('encrypted_placeholder') || 'Şifreli — oturum anahtarı bulunamadı'}
+                  </span>
+                )}
+              </div>
             )}
             <span className={styles.bubbleTime}>
               {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

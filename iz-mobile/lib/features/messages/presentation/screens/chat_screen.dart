@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -1956,12 +1957,28 @@ class _MessageBubble extends ConsumerWidget {
 
 
   Widget _buildTextBubble(String text) {
-    return Text(
-      text,
-      style: GoogleFonts.inter(
-        color: isMe ? Colors.white : AppColors.textPrimary,
-        fontSize: 15,
-        height: 1.4,
+    return MarkdownBody(
+      data: text,
+      selectable: true,
+      styleSheet: MarkdownStyleSheet(
+        p: GoogleFonts.inter(
+          color: isMe ? Colors.white : AppColors.textPrimary,
+          fontSize: 15,
+          height: 1.4,
+        ),
+        a: GoogleFonts.inter(
+          color: isMe ? Colors.white : AppColors.accent,
+          decoration: TextDecoration.underline,
+        ),
+        code: GoogleFonts.jetbrainsMono(
+          backgroundColor: isMe ? Colors.white.withOpacity(0.2) : Colors.grey.withOpacity(0.2),
+          color: isMe ? Colors.white : Colors.black87,
+        ),
+        codeblockPadding: const EdgeInsets.all(8),
+        codeblockDecoration: BoxDecoration(
+          color: isMe ? Colors.white.withOpacity(0.15) : Colors.grey.withOpacity(0.15),
+          borderRadius: BorderRadius.circular(8),
+        ),
       ),
     );
   }

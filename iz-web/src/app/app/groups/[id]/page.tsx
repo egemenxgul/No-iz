@@ -9,6 +9,8 @@ import { GroupMessage, Group } from '@/types';
 import { webrtcManager } from '@/lib/webrtc';
 import styles from '../../messages/[id]/chat.module.css';
 import { useI18n } from '@/lib/i18n/I18nContext';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export default function GroupChatPage() {
   const { id } = useParams<{ id: string }>();
@@ -191,7 +193,15 @@ export default function GroupChatPage() {
             className={`${styles.bubble} ${m.sender_id === auth?.user_id ? styles.bubbleOut : styles.bubbleIn}`}
           >
             {m.sender_id !== auth?.user_id && <div style={{fontSize: 10, color: 'var(--accent)', marginBottom: 4}}>{m.sender_id.substring(0,8)}</div>}
-            <span className={styles.bubbleText}>{m.plaintext ?? t('app.msg_text')}</span>
+            <div className={styles.bubbleText}>
+              {m.plaintext ? (
+                <ReactMarkdown remarkPlugins={[remarkGfm]} className="markdown-body">
+                  {m.plaintext}
+                </ReactMarkdown>
+              ) : (
+                t('app.msg_text')
+              )}
+            </div>
             <span className={styles.bubbleTime}>
               {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </span>
