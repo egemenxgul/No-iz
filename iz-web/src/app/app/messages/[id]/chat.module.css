@@ -355,3 +355,76 @@
 }
 .bubbleOut .reactionsBadge { right: 8px; }
 .bubbleIn .reactionsBadge { left: 8px; }
+
+/* ─── Edits ───────────────────────────────────────────────────────────────── */
+.editBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: all var(--transition-fast);
+  z-index: 10;
+}
+.bubbleOut .editBtn { left: -60px; }
+.bubbleIn .editBtn { right: -60px; }
+
+.bubble:hover .editBtn { opacity: 1; }
+.editBtn:hover { color: var(--accent-glow); border-color: var(--accent); }
+
+.editedLabel {
+  font-size: 10px;
+  opacity: 0.5;
+  margin-left: 6px;
+  font-style: italic;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.editMode {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.editMode textarea {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;
+  min-height: 60px;
+  width: 100%;
+}
+
+.editActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.editActions button {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.editActions button:hover {
+  background: var(--bg-hover);
+}

@@ -20,6 +20,7 @@ export default function GroupChatPage() {
   const [group, setGroup] = useState<Group | null>(null);
   const [input, setInput]       = useState('');
   const [loading, setLoading]   = useState(true);
+  const [expiresIn, setExpiresIn] = useState<number>(0);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -121,6 +122,7 @@ export default function GroupChatPage() {
         group_id: id,
         ciphertext: packagedCiphertext,
         msg_type: 'text',
+        expires_in: expiresIn,
       });
 
       // Optimistic update
@@ -134,7 +136,7 @@ export default function GroupChatPage() {
         is_pinned: false,
         iteration: 0,
         distribution_id: '',
-        expires_at: null,
+        expires_at: expiresIn > 0 ? new Date(Date.now() + expiresIn * 1000).toISOString() : null,
         created_at: new Date().toISOString(),
       }]);
       setInput('');
@@ -203,6 +205,7 @@ export default function GroupChatPage() {
               )}
             </div>
             <span className={styles.bubbleTime}>
+              {m.expires_at && <span title="Süreli Mesaj" style={{ color: '#ef4444', marginRight: 4 }}>🔥</span>}
               {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </span>
           </div>
@@ -211,6 +214,29 @@ export default function GroupChatPage() {
       </div>
 
       <div className={styles.inputBar}>
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+          <select 
+            value={expiresIn} 
+            onChange={(e) => setExpiresIn(Number(e.target.value))}
+            style={{ 
+              appearance: 'none', 
+              background: 'transparent', 
+              border: 'none', 
+              color: expiresIn > 0 ? '#ef4444' : 'var(--text-muted)', 
+              cursor: 'pointer',
+              fontSize: '18px',
+              outline: 'none',
+              padding: '4px'
+            }}
+            title="Süreli Mesaj"
+          >
+            <option value={0}>⏳</option>
+            <option value={5}>5s</option>
+            <option value={3600}>1s</option>
+            <option value={86400}>1g</option>
+            <option value={604800}>1h</option>
+          </select>
+        </div>
         <textarea
           className={styles.textarea}
           value={input}

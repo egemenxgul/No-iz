@@ -30,6 +30,7 @@ export interface Message {
   delivered_at: string | null;
   read_at: string | null;
   expires_at: string | null;
+  edited_at?: string | null;
   created_at: string;
   is_pinned?: boolean;
   reactions?: Record<string, string>;
@@ -59,7 +60,9 @@ export interface GroupMessage {
   iteration: number;
   distribution_id: string;
   expires_at: string | null;
+  edited_at?: string | null;
   created_at: string;
+  reactions?: Record<string, string>;
   plaintext?: string;
 }
 

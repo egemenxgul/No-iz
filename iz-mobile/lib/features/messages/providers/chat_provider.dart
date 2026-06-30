@@ -744,7 +744,6 @@ class ChatNotifier extends FamilyNotifier<List<MessageModel>, String> {
       }
     } catch (e) {
       debugPrint('Edit error: $e');
-    }
   }
 
   Future<void> deleteMessageForMe(String id) async {

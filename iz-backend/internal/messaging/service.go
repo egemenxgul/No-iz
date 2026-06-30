@@ -136,3 +136,24 @@ func (s *Service) SendMessage(
 
 	return msg, nil
 }
+
+// StartExpiredMessageCleanup starts a background goroutine to periodically delete expired messages.
+func (s *Service) StartExpiredMessageCleanup(ctx context.Context, interval time.Duration) {
+	ticker := time.NewTicker(interval)
+	go func() {
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				count, err := s.repo.DeleteExpiredMessages(ctx)
+				if err != nil {
+					s.log.Error().Err(err).Msg("failed to delete expired messages")
+				} else if count > 0 {
+					s.log.Info().Int64("deleted_count", count).Msg("deleted expired messages")
+				}
+			}
+		}
+	}()
+}

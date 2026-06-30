@@ -83,6 +83,7 @@ func main() {
 	msgHub := messaging.NewHub(msgRepo, log)
 	msgSvc := messaging.NewService(msgRepo, msgHub, notificationSvc, log)
 	msgSvc.SetSocialRepo(socialRepo) // Wire social repository to messaging service
+	msgSvc.StartExpiredMessageCleanup(context.Background(), 1*time.Minute)
 	msgHandler := messaging.NewHandler(msgHub, msgRepo, msgSvc, log)
 
 	// Groups

@@ -19,6 +19,7 @@ export default function ConversationPage() {
   const auth = getAuth();
   const { t } = useI18n();
   const [messages, setMessages] = useState<Message[]>([]);
+  const [appliedEdits, setAppliedEdits] = useState<Record<string, {text: string, at: string}>>({});
   const [input, setInput]       = useState('');
   const [loading, setLoading]   = useState(true);
   
@@ -28,6 +29,7 @@ export default function ConversationPage() {
   // UX-1: Infinite scroll state
   const [hasMore, setHasMore]           = useState(true);
   const [loadingMore, setLoadingMore]   = useState(false);
+  const [expiresIn, setExpiresIn]       = useState<number>(0);
   const oldestCursorRef                 = useRef<string | undefined>(undefined);
   const scrollAreaRef                   = useRef<HTMLDivElement>(null);
   
@@ -50,7 +52,6 @@ export default function ConversationPage() {
           }
         });
         
-        // Decrypt messages if possible
         const decryptedMsgs = await Promise.all(msgs.map(async m => {
           try {
             const plaintext = await receiveDecrypted(id, m);
@@ -60,7 +61,34 @@ export default function ConversationPage() {
           }
         }));
 
-        setMessages(decryptedMsgs.reverse());
+        const newEdits = { ...appliedEdits };
+        const normalMsgs = decryptedMsgs.filter(m => {
+          if (m.msg_type === 'edit' && m.plaintext) {
+            try {
+              const parsed = JSON.parse(m.plaintext);
+              if (parsed.type === 'edit') {
+                newEdits[parsed.target_message_id] = { text: parsed.new_text, at: m.created_at };
+              } else if (parsed.type === 'reaction') {
+                // Not supported well in pagination without local DB, but we do best effort
+                const targetId = parsed.target_message_id;
+                const mTarget = normalMsgs.find(nm => nm.id === targetId);
+                if (mTarget) {
+                  mTarget.reactions = mTarget.reactions || {};
+                  if (parsed.action === 'add') {
+                    mTarget.reactions[m.sender_id] = parsed.emoji;
+                  } else {
+                    delete mTarget.reactions[m.sender_id];
+                  }
+                }
+              }
+            } catch {}
+            return false;
+          }
+          return true;
+        });
+
+        setAppliedEdits(newEdits);
+        setMessages(normalMsgs.reverse());
         // UX-1: Track oldest message for cursor pagination
         if (decryptedMsgs.length > 0) {
           oldestCursorRef.current = msgs[msgs.length - 1].created_at;
@@ -90,7 +118,22 @@ export default function ConversationPage() {
         catch { return m; }
       }));
 
-      setMessages(prev => [...decryptedMsgs.reverse(), ...prev]);
+      const newEdits = { ...appliedEdits };
+      const normalMsgs = decryptedMsgs.filter(m => {
+        if (m.msg_type === 'edit' && m.plaintext) {
+          try {
+            const parsed = JSON.parse(m.plaintext);
+            if (parsed.type === 'edit') {
+              newEdits[parsed.target_message_id] = { text: parsed.new_text, at: m.created_at };
+            }
+          } catch {}
+          return false;
+        }
+        return true;
+      });
+
+      setAppliedEdits(newEdits);
+      setMessages(prev => [...normalMsgs.reverse(), ...prev]);
       oldestCursorRef.current = msgs[msgs.length - 1].created_at;
       setHasMore(msgs.length >= 50);
 
@@ -113,11 +156,41 @@ export default function ConversationPage() {
     const unsubNewMessage = wsManager.on('new_message', async (payloadRaw: unknown) => {
       const payload = payloadRaw as Message;
       if (payload.sender_id === id || payload.recipient_id === id) {
+        let plaintext: string | undefined;
         try {
-          const plaintext = await receiveDecrypted(id, payload);
+          plaintext = await receiveDecrypted(id, payload);
+        } catch {}
+
+        if (payload.msg_type === 'edit' && plaintext) {
+          try {
+            const parsed = JSON.parse(plaintext);
+            if (parsed.type === 'edit') {
+              setAppliedEdits(prev => ({
+                ...prev,
+                [parsed.target_message_id]: { text: parsed.new_text, at: payload.created_at }
+              }));
+            }
+          } catch {}
+        } else if (payload.msg_type === 'reaction' && plaintext) {
+          try {
+            const parsed = JSON.parse(plaintext);
+            if (parsed.type === 'reaction') {
+              setMessages(prev => prev.map(m => {
+                if (m.id === parsed.target_message_id) {
+                  const newReactions = { ...(m.reactions || {}) };
+                  if (parsed.action === 'add') {
+                    newReactions[payload.sender_id] = parsed.emoji;
+                  } else {
+                    delete newReactions[payload.sender_id];
+                  }
+                  return { ...m, reactions: newReactions };
+                }
+                return m;
+              }));
+            }
+          } catch {}
+        } else {
           setMessages(prev => [...prev, { ...payload, plaintext }]);
-        } catch {
-          setMessages(prev => [...prev, payload]);
         }
 
         // Send read receipt if we are the recipient
@@ -198,6 +271,7 @@ export default function ConversationPage() {
         recipient_id: id,
         ...encrypted,
         msg_type: 'text',
+        expires_in: expiresIn,
       }, true); // persistOnOffline = true
 
       // Optimistic update
@@ -211,7 +285,7 @@ export default function ConversationPage() {
         ratchet_header: encrypted.ratchet_key,
         delivered_at: null,
         read_at: null,
-        expires_at: null,
+        expires_at: expiresIn > 0 ? new Date(Date.now() + expiresIn * 1000).toISOString() : null,
         created_at: new Date().toISOString(),
         // UX-2: mark as pending if queued
         _pending: !sent,
@@ -219,6 +293,67 @@ export default function ConversationPage() {
       setInput('');
     } catch (err) {
       console.error('Send failed:', err);
+    }
+  }
+
+  async function sendEditMessage(msgId: string, newText: string) {
+    if (!newText.trim() || !auth) return;
+    try {
+      const payload = JSON.stringify({
+        type: 'edit',
+        target_message_id: msgId,
+        new_text: newText.trim(),
+      });
+      const encrypted = await sendEncrypted(id, payload);
+      wsManager.send('send_message', {
+        recipient_id: id,
+        ...encrypted,
+        msg_type: 'edit',
+        expires_in: 0,
+      }, true);
+
+      // Optimistic update
+      setAppliedEdits(prev => ({
+        ...prev,
+        [msgId]: { text: newText.trim(), at: new Date().toISOString() }
+      }));
+    } catch (err) {
+      console.error('Edit failed:', err);
+    }
+  }
+
+  async function sendReaction(msgId: string, emoji: string) {
+    if (!auth) return;
+    try {
+      const payload = JSON.stringify({
+        type: 'reaction',
+        target_message_id: msgId,
+        emoji: emoji,
+        action: emoji ? 'add' : 'remove',
+      });
+      const encrypted = await sendEncrypted(id, payload);
+      wsManager.send('send_message', {
+        recipient_id: id,
+        ...encrypted,
+        msg_type: 'reaction',
+        expires_in: 0,
+      }, true);
+
+      // Optimistic update
+      setMessages(prev => prev.map(m => {
+        if (m.id === msgId) {
+          const newReactions = { ...(m.reactions || {}) };
+          if (emoji) {
+            newReactions[auth!.user_id] = emoji;
+          } else {
+            delete newReactions[auth!.user_id];
+          }
+          return { ...m, reactions: newReactions };
+        }
+        return m;
+      }));
+    } catch (err) {
+      console.error('Reaction failed:', err);
     }
   }
 
@@ -294,6 +429,8 @@ export default function ConversationPage() {
   const pinnedMsg = messages.find(m => m.is_pinned);
   const EMOJI_LIST = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
   const [activeReactionMsgId, setActiveReactionMsgId] = useState<string | null>(null);
+  const [editingMsgId, setEditingMsgId] = useState<string | null>(null);
+  const [editInput, setEditInput] = useState<string>('');
 
   return (
     <div className={styles.container}>
@@ -366,21 +503,48 @@ export default function ConversationPage() {
             className={`${styles.bubble} ${m.sender_id === auth?.user_id ? styles.bubbleOut : styles.bubbleIn}`}
           >
             {['image', 'video', 'audio', 'file'].includes(m.msg_type) ? (
-              <MediaRenderer payloadJson={m.plaintext || '{}'} msgType={m.msg_type} />
+              <MediaRenderer payloadJson={(appliedEdits[m.id]?.text ?? m.plaintext) || '{}'} msgType={m.msg_type} />
             ) : (
               <div className={`${styles.bubbleText} markdown-body`}>
-                {m.plaintext ? (
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {m.plaintext}
-                  </ReactMarkdown>
+                {editingMsgId === m.id ? (
+                  <div className={styles.editMode}>
+                    <textarea 
+                      value={editInput} 
+                      onChange={e => setEditInput(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          sendEditMessage(m.id, editInput);
+                          setEditingMsgId(null);
+                        }
+                      }}
+                      autoFocus
+                    />
+                    <div className={styles.editActions}>
+                      <button onClick={() => { sendEditMessage(m.id, editInput); setEditingMsgId(null); }}>Kaydet</button>
+                      <button onClick={() => setEditingMsgId(null)}>İptal</button>
+                    </div>
+                  </div>
                 ) : (
-                  <span style={{opacity: 0.4, fontStyle: 'italic', fontSize: '13px'}}>
-                    {t('encrypted_placeholder') || 'Şifreli — oturum anahtarı bulunamadı'}
-                  </span>
+                  <>
+                    {appliedEdits[m.id]?.text ?? m.plaintext ? (
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {appliedEdits[m.id]?.text ?? m.plaintext ?? ''}
+                      </ReactMarkdown>
+                    ) : (
+                      <span style={{opacity: 0.4, fontStyle: 'italic', fontSize: '13px'}}>
+                        {t('encrypted_placeholder') || 'Şifreli — oturum anahtarı bulunamadı'}
+                      </span>
+                    )}
+                    {(appliedEdits[m.id] || m.edited_at) && (
+                      <span className={styles.editedLabel}>(düzenlendi)</span>
+                    )}
+                  </>
                 )}
               </div>
             )}
             <span className={styles.bubbleTime}>
+              {m.expires_at && <span title="Süreli Mesaj" style={{ color: '#ef4444', marginRight: 4 }}>🔥</span>}
               {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               {/* UX-2: pending icon for offline-queued messages */}
               {(m as Message & { _pending?: boolean })._pending && (
@@ -403,6 +567,17 @@ export default function ConversationPage() {
                 <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
               </svg>
             </button>
+            {m.sender_id === auth?.user_id && m.msg_type === 'text' && (
+              <button className={styles.editBtn} title="Düzenle" onClick={() => {
+                setEditingMsgId(m.id);
+                setEditInput(appliedEdits[m.id]?.text ?? m.plaintext ?? '');
+              }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+              </button>
+            )}
             <button className={styles.reactBtn} title="Tepki Ekle" onClick={() => setActiveReactionMsgId(activeReactionMsgId === m.id ? null : m.id)}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
@@ -411,7 +586,7 @@ export default function ConversationPage() {
             {activeReactionMsgId === m.id && (
               <div className={styles.reactionPicker}>
                 {EMOJI_LIST.map(emoji => (
-                  <button key={emoji} onClick={() => { handleReaction(m.id, emoji); setActiveReactionMsgId(null); }}>
+                  <button key={emoji} onClick={() => { sendReaction(m.id, emoji); setActiveReactionMsgId(null); }}>
                     {emoji}
                   </button>
                 ))}
@@ -431,6 +606,29 @@ export default function ConversationPage() {
 
       {/* Input */}
       <div className={styles.inputBar}>
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+          <select 
+            value={expiresIn} 
+            onChange={(e) => setExpiresIn(Number(e.target.value))}
+            style={{ 
+              appearance: 'none', 
+              background: 'transparent', 
+              border: 'none', 
+              color: expiresIn > 0 ? '#ef4444' : 'var(--text-muted)', 
+              cursor: 'pointer',
+              fontSize: '18px',
+              outline: 'none',
+              padding: '4px'
+            }}
+            title="Süreli Mesaj"
+          >
+            <option value={0}>⏳</option>
+            <option value={5}>5s</option>
+            <option value={3600}>1s</option>
+            <option value={86400}>1g</option>
+            <option value={604800}>1h</option>
+          </select>
+        </div>
         <textarea
           className={styles.textarea}
           value={input}

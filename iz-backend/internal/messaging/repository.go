@@ -424,3 +424,21 @@ func (r *Repository) SetReaction(ctx context.Context, msgID, userID uuid.UUID, r
 
 
 
+
+// DeleteExpiredMessages permanently deletes messages where expires_at has passed.
+func (r *Repository) DeleteExpiredMessages(ctx context.Context) (int64, error) {
+query := `DELETE FROM messages WHERE expires_at IS NOT NULL AND expires_at < NOW()`
+tag, err := r.db.Exec(ctx, query)
+if err != nil {
+return 0, err
+}
+
+// Also delete expired group messages
+groupQuery := `DELETE FROM group_messages WHERE expires_at IS NOT NULL AND expires_at < NOW()`
+gTag, err := r.db.Exec(ctx, groupQuery)
+if err != nil {
+return tag.RowsAffected(), err // Return DM deleted count even if group fails
+}
+
+return tag.RowsAffected() + gTag.RowsAffected(), nil
+}

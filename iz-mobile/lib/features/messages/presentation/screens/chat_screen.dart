@@ -1192,6 +1192,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     }
   }
 
+  void _showDisappearingMessageSettings() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _DisappearingMessageSheet(otherUserId: widget.otherUserId),
+    );
+  }
+
   Widget _buildInputArea() {
     return ClipRect(
       child: AppBackdropFilter(
@@ -1210,6 +1218,32 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
+              // Timer button
+              GestureDetector(
+                onTap: _showDisappearingMessageSettings,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: AppBackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: AppColors.glassMedium,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppColors.glassBorder, width: 0.5),
+                      ),
+                      child: const Icon(
+                        Icons.timer_outlined,
+                        color: AppColors.textSecondary,
+                        size: 22,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              
               // Attachment button
               GestureDetector(
                 onTap: _showAttachmentMenu,
@@ -2486,6 +2520,92 @@ class _BottomSheetDivider extends StatelessWidget {
       height: 0.5,
       color: AppColors.glassBorder,
       margin: const EdgeInsets.symmetric(vertical: 4),
+    );
+  }
+}
+
+class _DisappearingMessageSheet extends ConsumerWidget {
+  final String otherUserId;
+
+  const _DisappearingMessageSheet({required this.otherUserId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+      decoration: const BoxDecoration(
+        color: AppColors.bgBase,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 40,
+            height: 4,
+            margin: const EdgeInsets.only(bottom: 20),
+            decoration: BoxDecoration(
+              color: AppColors.glassBorder,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          Text(
+            'Süreli Mesajlar',
+            style: GoogleFonts.inter(
+              color: AppColors.textPrimary,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Yeni mesajlar, seçtiğiniz süre sonunda otomatik olarak silinecektir.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.inter(
+              color: AppColors.textSecondary,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 24),
+          _buildOption(context, ref, 'Kapalı', 0),
+          _buildOption(context, ref, '5 Saniye', 5),
+          _buildOption(context, ref, '1 Saat', 3600),
+          _buildOption(context, ref, '1 Gün', 86400),
+          _buildOption(context, ref, '1 Hafta', 604800),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOption(BuildContext context, WidgetRef ref, String title, int seconds) {
+    return InkWell(
+      onTap: () {
+        ref.read(chatProvider(otherUserId).notifier).updateDisappearingDuration(seconds);
+        Navigator.pop(context);
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: AppColors.glassBorder.withValues(alpha: 0.3), width: 0.5)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: GoogleFonts.inter(
+                color: seconds > 0 ? AppColors.accent : AppColors.textPrimary,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            if (seconds > 0)
+              const Icon(Icons.timer_outlined, color: AppColors.accent, size: 20),
+          ],
+        ),
+      ),
     );
   }
 }
