@@ -94,7 +94,7 @@ export default function MarkdownHelpPage() {
         <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '15px', color: 'var(--accent)' }}>4. Bağlantılar (Linkler)</h2>
         <p style={{ marginBottom: '10px' }}>Bir metne tıklanabilir link eklemek istiyorsanız şu yapıyı kullanın:</p>
         <div style={{ background: 'var(--bg-surface)', padding: '15px', borderRadius: '8px' }}>
-          <code>[Google'a Git](https://google.com)</code>
+          <code>[No-iz'e Git](https://no-iz.app)</code>
         </div>
         <p style={{ marginTop: '10px', fontSize: '14px', color: 'var(--text-secondary)' }}>Not: Doğrudan yazılan `https://...` linkleri de otomatik olarak tıklanabilir hale getirilecektir.</p>
       </section>
