@@ -10,7 +10,8 @@ const eslintConfig = defineConfig([
       "react-hooks/set-state-in-effect": "off",
       "@typescript-eslint/no-explicit-any": "off",
       "prefer-const": "off",
-      "@typescript-eslint/no-unused-vars": "off"
+      "@typescript-eslint/no-unused-vars": "off",
+      "react/no-unescaped-entities": "off"
     }
   },
   // Override default ignores of eslint-config-next.
